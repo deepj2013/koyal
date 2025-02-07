@@ -12,6 +12,7 @@ import Cartoon from "../assets/vedio/cartoon_video_soumya.mp4";
 import Sketch from "../assets/vedio/sketch_video_prakhar.mp4";
 import bgcircle from "../assets/images/bgcircle.png";
 import bgcirclewhite from "../assets/images/bgcirclewhite.png";
+import arrow from "../assets/images/Vector5.svg"
 
 import usecaseimg from "../assets/images/usecase.png";
 import usecaseimgright from "../assets/images/usecaseright.png";
@@ -118,7 +119,7 @@ const Home = () => {
                     className="w-20 h-10 object-contain opacity-80 hover:opacity-100 cursor-pointer"
                     onClick={() => window.open("https://web.mit.edu/", "_blank")}
                   />
-               
+
                   <img
                     src={meta}
                     alt="Meta"
@@ -155,11 +156,11 @@ const Home = () => {
                 <h1 className="text-[84px] font-inter font-bold leading-[83px] tracking-[-4.6px] text-white">
                   Turn your audio into engaging storytelling video with consistent characters and scenes using Koyal
                 </h1>
-                <hr className="w-[70%]" />
-                <p className=" w-[50%] mt-6 text-sm leading-relaxed text-white">
+                <hr className="w-[80%]" />
+                <p className=" w-[60%] mt-6 text-sm leading-relaxed text-white">
                   Koyal's AI-powered platform allows you to seamlessly convert audio
                   into personalized, visually compelling stories. With its suite of multimodal AI generation and translation models,
-                   Koyal generates custom characters, settings,
+                  Koyal generates custom characters, settings,
                   and animations that maintain a cohesive aesthetic throughout your
                   video content.
                 </p>
@@ -191,62 +192,42 @@ const Home = () => {
               </h4>
             </div>
           </div>
-          <div className="relative h-screen flex flex-col justify-center items-center px-8 snap-start bg-cover bg-center">
-            {/* Subsection 2 - Buttons & Image Display */}
-            <div className="relative h-screen flex flex-col justify-center items-center px-8 snap-start bg-cover bg-center">
-              <div className="flex flex-col items-center  space-y-6">
+          <div className="relative flex flex-col justify-center items-center px-8 snap-start bg-cover bg-center max-h-[90vh] py-10">
+            {/* Buttons & Image Display */}
+            <div className="relative flex flex-col items-center space-y-6">
 
-                {/* Buttons */}
-                <div className="mb-6 flex space-x-4">
-                  {styles.map((style) => (
-                    <button
-                      key={style}
-                      onClick={() => setActiveStyle(style)}
-                      className={`px-6 py-2 text-[17.02px] font-bold tracking-[0px] text-center font-inter rounded-2xl  transition-all 
-                   ${activeStyle === style
-                          ? "bg-white/30 text-white backdrop-blur-md " // Active state
-                          : "bg-transparent text-gray-500 hover:text-gray-300" // Inactive state
-                        }`}
-                      style={{
-                        padding: "10px 24px",
-                        borderColor: activeStyle === style ? "rgba(255, 255, 255, 0.5)" : "transparent",
-                      }}
-                    >
-                      {style}
-                    </button>
-                  ))}
-                </div>
+              {/* Buttons */}
+              <div className="mb-4 flex space-x-4">
+                {styles.map((style) => (
+                  <button
+                    key={style}
+                    onClick={() => setActiveStyle(style)}
+                    className={`px-6 py-2 text-[17.02px] font-bold tracking-[0px] text-center font-inter rounded-2xl transition-all
+            ${activeStyle === style
+                        ? "bg-white/30 text-white backdrop-blur-md"
+                        : "bg-transparent text-gray-500 hover:text-gray-300"
+                      }`}
+                    style={{
+                      padding: "10px 24px",
+                      borderColor: activeStyle === style ? "rgba(255, 255, 255, 0.5)" : "transparent",
+                    }}
+                  >
+                    {style}
+                  </button>
+                ))}
               </div>
 
-
-              {/* Image Display Section */}
-              <div className="bg-black/50 backdrop-blur-md rounded-lg overflow-hidden w-[60rem] h-[50rem] flex items-center justify-center p-40">
-                {/* <img
-                  src={images[activeStyle]}
-                  alt={`${activeStyle} Style`}
-                  className="w-[40rem] h-[30rem] object-contain bg-black"
-                /> */}
-                <VideoPlayer videoSrc={images[activeStyle]} />
-
+              {/* Video Display Section */}
+              <div className="rounded-lg overflow-hidden w-[50rem] h-[40rem] flex items-center justify-center p-10 relative">
+                <VideoPlayer videoSrc={images[activeStyle]} className="pointer-events-auto" />
 
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevious}
                   className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-300 text-black rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-gray-400 transition"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
 
@@ -254,31 +235,11 @@ const Home = () => {
                   onClick={handleNext}
                   className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-300 text-black rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-gray-400 transition"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
-
-
-              {/* Caption Below Video */}
-
-
-              {/* Bottom Caption */}
-              {/* <p className="mt-8 text-white text-sm text-center">
-                dummy text data
-              </p> */}
             </div>
           </div>
 
@@ -289,10 +250,10 @@ const Home = () => {
         {/* Section 2 */}
         <section
           id="section1"
-          className="relative flex flex-col items-center justify-center px-20 py-20 bg-[#f9f6f1] text-black"
+          className="relative flex flex-col items-center justify-center px-20 py-5 bg-[#f9f6f1] text-black"
         >
           {/* Background Circles */}
-          <div className="absolute top-0 w-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center overflow-hidden">
+          <div className="absolute z-10 top-0 w-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center overflow-hidden">
             <img
               src={bgcircle}
               alt="Background Circles"
@@ -302,7 +263,7 @@ const Home = () => {
 
           {/* Heading Section */}
           <div className="text-center  relative z-10">
-            <p className="text-[17.02px] font-medium leading-[46.17px] tracking-[0px] text-center  font-inter text-gray-600 mb-2">
+            <p className="text-[17.02px] font-medium leading-[46.17px] tracking-[0px] text-center  font-inter text-gray-600 ">
               Use cases
             </p>
             <div className="flex items-center justify-center">
@@ -524,14 +485,23 @@ const Home = () => {
             {/* Heading */}
             <h2 className="text-[46.2px] font-light leading-[46.17px] tracking-[-2.309px] text-center font-inter">
               Inject yourself into the videos with{" "}
-              <span className="text-[46.2px] font-light leading-[46.17px] tracking-[-2.309px] text-center text-yellow-400 font-inter">
+              <span className="text-yellow-400">
                 C.H.A.R.C.H.A.
-              </span>{" "}
-
-              <span className="text-[16px] font-normal leading-[46.17px] tracking-[0px] font-inter italic text-yellow-400" style={{ fontFamily: "Gloria Hallelujah" }}>
-                Patent pending ⏳
+              </span>
+              <span className="inline-flex items-center space-x-2">
+                {/* Arrow Image (Immediately After C.H.A.R.C.H.A.) */}
+                <img src={arrow} className="w-10 h-10 inline-block" alt="Arrow" />
               </span>
 
+              {/* Patent Pending (Positioned Below the Arrow) */}
+              <div className="flex justify-end mt-[-10px] mr-20">
+                <span
+                  className="text-[16px] font-normal tracking-[0px] italic text-yellow-400"
+                  style={{ fontFamily: "Gloria Hallelujah" }}
+                >
+                  Patent pending ⏳
+                </span>
+              </div>
             </h2>
 
             {/* Description */}
@@ -732,122 +702,6 @@ const Home = () => {
 export default Home;
 
 
-
-// const WaitingListModal = ({ isOpen, onClose }) => {
-//   const [email, setEmail] = useState("");
-//   const [mobile, setMobile] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [message, setMessage] = useState("");
-
-
-//   // Prevent background scrolling when modal is open
-//   useEffect(() => {
-//     if (isOpen) {
-//       document.body.style.overflow = "hidden";
-//     } else {
-//       document.body.style.overflow = "auto";
-//     }
-//     return () => {
-//       document.body.style.overflow = "auto"; // Reset on unmount
-//     };
-//   }, [isOpen]);
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setMessage("");
-
-//     try {
-//       const response = await fetch(`http://localhost:5001/api/public/createWaitingList`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ email, mobile }),
-//       });
-
-//       const result = await response.json();
-//       if (result.success) {
-//         setMessage("✅ Thank you for registering! We will contact you soon.");
-//         setEmail("");
-//         setMobile("");
-//       } else {
-//         setMessage(result.message || "❌ Something went wrong. Try again.");
-//       }
-//     } catch (error) {
-//       setMessage("❌ Error submitting the form. Try again.");
-//     }
-
-//     setLoading(false);
-//   };
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <div
-//       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-lg z-50"
-//       onClick={onClose} // Close when clicking outside
-//     >
-//       {/* Modal Container */}
-//       <div
-//         className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-6 w-[90%] max-w-md relative z-50 border border-white/20"
-//         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-//       >
-//         {/* Close Button */}
-//         <button
-//           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-xl"
-//           onClick={onClose}
-//         >
-//           ✖
-//         </button>
-
-//         <h2 className="text-xl font-semibold text-center mb-4">Join Our Waitlist</h2>
-
-//         {/* Success / Error Message */}
-//         {message ? (
-//           <p className="text-center text-sm font-medium">{message}</p>
-//         ) : (
-//           <form onSubmit={handleSubmit} className="space-y-4">
-//             {/* Email Input */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700">
-//                 Email <span className="text-red-500">*</span>
-//               </label>
-//               <input
-//                 type="email"
-//                 className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 required
-//               />
-//             </div>
-
-//             {/* Mobile Number Input (Optional) */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700">
-//                 Mobile Number (Optional)
-//               </label>
-//               <input
-//                 type="tel"
-//                 className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
-//                 value={mobile}
-//                 onChange={(e) => setMobile(e.target.value)}
-//               />
-//             </div>
-
-//             {/* Submit Button */}
-//             <button
-//               type="submit"
-//               className="w-full bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition duration-200 border border-white/30"
-//               disabled={loading}
-//             >
-//               {loading ? "Submitting..." : "Join Waitlist"}
-//             </button>
-//           </form>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
 const WaitingListModal = ({ isOpen, onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -995,26 +849,31 @@ const VideoPlayer = ({ videoSrc }) => {
   const [isMuted, setIsMuted] = useState(true);
 
   return (
-    <div className="relative w-[40rem] h-[30rem] bg-black">
+    <div className="relative z-50 w-[25rem] h-[25rem] bg-black rounded-2xl overflow-hidden">
       {/* Video Element */}
       <video
         src={videoSrc}
         autoPlay
         loop
         muted={isMuted}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
       />
 
       {/* Sound Toggle Button */}
       <button
-        className="absolute bottom-4 right-4 bg-white/30 text-white p-2 rounded-full hover:bg-white/50 transition"
+        className="absolute bottom-4 right-4 bg-white border-2 rounded-full flex items-center justify-center w-10 h-10 shadow-lg transition hover:bg-gray-200"
         onClick={() => setIsMuted(!isMuted)}
       >
-        {isMuted ? "🔇" : "🔊"}
+        <img
+          src={isMuted ? "https://cdn-icons-png.flaticon.com/512/727/727240.png" : "https://cdn-icons-png.flaticon.com/512/727/727269.png"}
+          alt={isMuted ? "Muted" : "Unmuted"}
+          className="w-6 h-6"
+        />
       </button>
     </div>
   );
 };
+
 
 
 const AutoImageSlider = ({ images, interval = 3000 }) => {
@@ -1029,12 +888,25 @@ const AutoImageSlider = ({ images, interval = 3000 }) => {
   }, [images.length, interval]);
 
   return (
-    <div className="w-full rounded-lg shadow-lg overflow-hidden">
+    <div className="w-full rounded-lg shadow-lg overflow-hidden relative">
+      {/* Image Display */}
       <img
         src={images[currentIndex]}
         alt="Sliding Images"
         className="rounded-lg w-full transition-all duration-700 ease-in-out object-cover"
       />
+
+      {/* Dots Navigation */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-3 h-3 rounded-full border border-white transition-all ${currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-400"
+              }`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
