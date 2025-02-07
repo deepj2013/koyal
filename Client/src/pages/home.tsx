@@ -298,12 +298,12 @@ const Home = () => {
           </div>
 
           {/* Heading Section */}
-          <div className="text-center m-[3rem] relative z-10">
-            <p className="text-[17.02px] font-medium leading-[46.17px] tracking-[0px] text-center m-3 font-inter text-gray-600 mb-2">
+          <div className="text-center  relative z-10">
+            <p className="text-[17.02px] font-medium leading-[46.17px] tracking-[0px] text-center  font-inter text-gray-600 mb-2">
               Use cases
             </p>
-            <div className="flex items-center mt-[3rem] justify-center">
-              <h2 className="text-[46.2px] font-light leading-[46.17px] tracking-[-2.309px] mt-10 text-center font-inter w-[50%]">
+            <div className="flex items-center justify-center">
+              <h2 className="text-[46.2px] font-light leading-[46.17px] tracking-[-2.309px]  text-center font-inter w-[50%]">
                 Turn ideas into content easily. The possibilities with Koyal are endless -
                 from short-form social videos to professional ads.
               </h2>

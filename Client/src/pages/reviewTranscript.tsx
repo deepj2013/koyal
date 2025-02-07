@@ -7,7 +7,7 @@ const TranscriptPage = ({ jsonSource }) => {
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
-
+  const regexNoVocals = /no vocals/i;
   const emotionColors = {
     euphoric: "bg-yellow-200",
     serene: "bg-blue-200",
@@ -34,6 +34,18 @@ const TranscriptPage = ({ jsonSource }) => {
     });
   };
 
+  const handleAddSection = (index) => {
+    const currentData = [...transcriptData];
+    const newSection = {
+      start: currentData[index].end,
+      end: "",
+      text: "New section",
+      emotion: "default",
+    };
+    currentData.splice(index + 1, 0, newSection);
+    setTranscriptData(currentData);
+  };
+
   const handleSave = () => {
     const updatedData = [...transcriptData];
     updatedData[selectedParagraph.index] = [
@@ -57,11 +69,10 @@ const TranscriptPage = ({ jsonSource }) => {
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
       <div className="flex flex-col items-center w-full px-8 mt-10">
-        <div className="flex justify-start w-[60%] mb-6">
-          <h1 className="text-[32px] font-medium leading-[30px] tracking-[0%] text-gray-900">
-            Transcript 
+        <div className="flex flex-col text-center w-[60%] mb-6">
+          <h1 className="text-[32px] font-medium leading-[30px]  tracking-[0%] text-gray-900">
+            Transcript
           </h1>
-          <span>(click portions to edit dialogue or emotions)</span>
         </div>
       </div>
       <ProgressBar currentStep={currentStep} />
@@ -89,22 +100,52 @@ const TranscriptPage = ({ jsonSource }) => {
             Click portions to edit dialogue or emotions
           </p>
         </div>
-        <div className="border border-gray-300 rounded-md p-4 h-64 overflow-y-scroll">
+      </div>
+
+      <div className="flex w-full h-screen">
+        {/* First Column (70%) */}
+        <div className="w-[70%] px-10 mx-10 border border-gray-300 overflow-y-scroll">
           {transcriptData.map(([start, end, text, emotion], index) => (
-            <div
-              key={index}
-              className={`cursor-pointer p-2 rounded-md mb-2 ${emotionColors[emotion] || emotionColors.default}`}
-              onClick={() => handleParagraphClick(index)}
-            >
-              {text}
+            <div key={index} className="relative mb-4">
+              <p
+                className="cursor-pointer"
+                onClick={() => handleParagraphClick(index)}
+              >
+                <span
+                  className={`${emotionColors[emotion] || emotionColors.default}`}
+                  style={{
+                    display: "inline", // Ensure only the text is highlighted
+                    padding: "1px 2px", // Add minimal padding around the text
+                    borderRadius: "5px", // Optional: Add rounded corners for better aesthetics
+                    border: "1px solid black", // Add a solid black border
+                  }}
+                >
+                  {text}
+                </span>
+              </p>
+              {regexNoVocals.test(text) && (
+                <button
+                  className="absolute right-0 mt-2 text-sm text-blue-500"
+                  onClick={() => handleAddSection(index)}
+                >
+                  + Add Section
+                </button>
+              )}
             </div>
           ))}
         </div>
-      </div>
 
-      {selectedParagraph && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-md w-96">
+        {/* Second Column (30%) */}
+        {selectedParagraph && (
+          <div
+            className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
+            style={{
+
+              left: "72%", // Start next to the first column
+              width: "28%", // Adjust width
+              maxHeight: "auto", // Height adjusts to content
+            }}
+          >
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 EMOTION:
@@ -125,9 +166,31 @@ const TranscriptPage = ({ jsonSource }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 TIME:
               </label>
-              <p className="text-sm">
-                {selectedParagraph[0]} - {selectedParagraph[1]}
-              </p>
+              <div className="flex justify-between items-center">
+                <input
+                  type="text"
+                  value={selectedParagraph[0]}
+                  onChange={(e) =>
+                    setSelectedParagraph((prev) => ({
+                      ...prev,
+                      start: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-300 p-2 rounded-md w-[45%]"
+                />
+                <span className="mx-2 text-gray-500">-</span>
+                <input
+                  type="text"
+                  value={selectedParagraph[1]}
+                  onChange={(e) =>
+                    setSelectedParagraph((prev) => ({
+                      ...prev,
+                      end: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-300 p-2 rounded-md w-[45%]"
+                />
+              </div>
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -142,7 +205,7 @@ const TranscriptPage = ({ jsonSource }) => {
                   }))
                 }
                 className="w-full border border-gray-300 p-2 rounded-md"
-                rows={4}
+                rows={6}
               ></textarea>
             </div>
             <div className="flex justify-end">
@@ -160,8 +223,8 @@ const TranscriptPage = ({ jsonSource }) => {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex justify-between w-full max-w-3xl mt-12 mx-auto">
         <button
