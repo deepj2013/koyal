@@ -3,7 +3,7 @@ import homebg from "../assets/vedio/koyal_bg.mp4";
 import sectionbg from "../assets/vedio/section_bg.mp4";
 
 
-import logo from "../assets/images/Nav.png";
+import logo from "../assets/images/Nav.svg";
 import mit from "../assets/images/mit.png";
 import meta from "../assets/images/Meta.png";
 import cali from "../assets/images/cali.png";
@@ -33,7 +33,7 @@ const images = {
   Cartoon: Cartoon,
   Sketch: Sketch,
 };
-const charachaImages =[charcha01, charcha02, charcha03]
+const charachaImages = [charcha01, charcha02, charcha03]
 
 const Home = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -99,10 +99,10 @@ const Home = () => {
 
           {/* Navbar */}
           <nav className="absolute z-10 w-full bg-transparent text-white">
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="container mx-auto pr-[18rem] px-2 py-1 flex  items-center">
               {/* Logo (Left Aligned) */}
               <div className="flex items-center space-x-4">
-                <img src={logo} alt="Logo" className="w-30 h-10" />
+                <img src={logo} alt="Logo" className="w-30 h-13" />
               </div>
 
               {/* Powered By Section (Centered) */}
@@ -115,19 +115,22 @@ const Home = () => {
                   <img
                     src={mit}
                     alt="MIT"
-                    className="w-20 h-10 object-contain opacity-80 hover:opacity-100"
+                    className="w-20 h-10 object-contain opacity-80 hover:opacity-100 cursor-pointer"
+                    onClick={() => window.open("https://web.mit.edu/", "_blank")}
                   />
-
+               
                   <img
                     src={meta}
                     alt="Meta"
-                    className="w-20 h-10 object-contain opacity-80 hover:opacity-100"
+                    className="w-20 h-10 object-contain opacity-80 hover:opacity-100 cursor-pointer"
+                    onClick={() => window.open("https://about.meta.com/", "_blank")}
                   />
 
                   <img
                     src={cali}
                     alt="CMU"
-                    className="w-20 h-10 object-contain  opacity-80 hover:opacity-100"
+                    className="w-20 h-10 object-contain opacity-80 hover:opacity-100 cursor-pointer"
+                    onClick={() => window.open("https://www.cmu.edu/", "_blank")}
                   />
                 </div>
               </div>
@@ -155,16 +158,16 @@ const Home = () => {
                 <hr className="w-[70%]" />
                 <p className=" w-[50%] mt-6 text-sm leading-relaxed text-white">
                   Koyal's AI-powered platform allows you to seamlessly convert audio
-                  into personalized, visually compelling stories. By leveraging
-                  advanced technology, Koyal generates custom characters, settings,
+                  into personalized, visually compelling stories. With its suite of multimodal AI generation and translation models,
+                   Koyal generates custom characters, settings,
                   and animations that maintain a cohesive aesthetic throughout your
                   video content.
                 </p>
                 <div className="mt-8 flex flex-wrap space-x-4">
                   {/* View demo button */}
-                  <button className="border border-white text-white px-6 py-3 rounded-full hover:bg-gray-200 hover:text-black transition">
+                  {/* <button className="border border-white text-white px-6 py-3 rounded-full hover:bg-gray-200 hover:text-black transition">
                     View demo
-                  </button>
+                  </button> */}
                   {/* Join our waitlist button */}
                   <button className="bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition"
                     onClick={() => setModalOpen(true)}>
@@ -273,9 +276,9 @@ const Home = () => {
 
 
               {/* Bottom Caption */}
-              <p className="mt-8 text-white text-sm text-center">
+              {/* <p className="mt-8 text-white text-sm text-center">
                 dummy text data
-              </p>
+              </p> */}
             </div>
           </div>
 

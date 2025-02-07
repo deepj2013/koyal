@@ -1,6 +1,6 @@
 import React from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
-import logo from "../assets/images/Nav.png";
+import logo from "../assets/images/Nav.svg";
 
 const Login = () => {
     return (
