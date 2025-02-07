@@ -1,0 +1,184 @@
+import React, { useState, useEffect } from "react";
+import ProgressBar from "../components/ProgressBar";
+import Navbar from "../components/Navbar";
+import sampleDoc from "../assets/sample/lyrics.json";
+
+const TranscriptPage = ({ jsonSource }) => {
+  const [transcriptData, setTranscriptData] = useState([]);
+  const [currentStep, setCurrentStep] = useState(2);
+  const [selectedParagraph, setSelectedParagraph] = useState(null);
+
+  const emotionColors = {
+    euphoric: "bg-yellow-200",
+    serene: "bg-blue-200",
+    melancholy: "bg-purple-200",
+    tense: "bg-red-200",
+    default: "bg-gray-200",
+  };
+
+  useEffect(() => {
+    if (jsonSource) {
+      fetch(jsonSource)
+        .then((response) => response.json())
+        .then((data) => setTranscriptData(data))
+        .catch((error) => console.error("Error loading transcript data:", error));
+    } else {
+      setTranscriptData(sampleDoc);
+    }
+  }, [jsonSource]);
+
+  const handleParagraphClick = (index) => {
+    setSelectedParagraph({
+      ...transcriptData[index],
+      index,
+    });
+  };
+
+  const handleSave = () => {
+    const updatedData = [...transcriptData];
+    updatedData[selectedParagraph.index] = [
+      selectedParagraph[0],
+      selectedParagraph[1],
+      selectedParagraph.text,
+      selectedParagraph.emotion,
+    ];
+    setTranscriptData(updatedData);
+    setSelectedParagraph(null);
+  };
+
+  const handleEmotionChange = (e) => {
+    setSelectedParagraph((prev) => ({
+      ...prev,
+      emotion: e.target.value,
+    }));
+  };
+
+  return (
+    <div className="h-screen flex flex-col bg-white">
+      <Navbar />
+      <div className="flex flex-col items-center w-full px-8 mt-10">
+        <div className="flex justify-start w-[60%] mb-6">
+          <h1 className="text-[32px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+            Transcript 
+          </h1>
+          <span>(click portions to edit dialogue or emotions)</span>
+        </div>
+      </div>
+      <ProgressBar currentStep={currentStep} />
+
+      <div className="w-full max-w-3xl mt-12 mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[16px] font-medium leading-[24px] tracking-[0%] text-gray-900">
+              Audio transcript
+            </h2>
+            <div className="flex items-center space-x-2">
+              {Object.entries(emotionColors).map(([key, color]) => (
+                key !== "default" && (
+                  <div className="flex items-center space-x-2" key={key}>
+                    <span className={`w-4 h-4 rounded-full ${color} border border-gray-300`}></span>
+                    <span className="text-[14px] font-normal leading-[20px] text-gray-700 capitalize">
+                      {key}
+                    </span>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+          <p className="text-[16px] font-normal leading-[24px] tracking-[0%] text-gray-500 mb-4">
+            Click portions to edit dialogue or emotions
+          </p>
+        </div>
+        <div className="border border-gray-300 rounded-md p-4 h-64 overflow-y-scroll">
+          {transcriptData.map(([start, end, text, emotion], index) => (
+            <div
+              key={index}
+              className={`cursor-pointer p-2 rounded-md mb-2 ${emotionColors[emotion] || emotionColors.default}`}
+              onClick={() => handleParagraphClick(index)}
+            >
+              {text}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {selectedParagraph && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md w-96">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                EMOTION:
+              </label>
+              <select
+                value={selectedParagraph.emotion}
+                onChange={handleEmotionChange}
+                className="w-full border border-gray-300 p-2 rounded-md"
+              >
+                {Object.keys(emotionColors).map((emotionKey) => (
+                  <option key={emotionKey} value={emotionKey}>
+                    {emotionKey}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                TIME:
+              </label>
+              <p className="text-sm">
+                {selectedParagraph[0]} - {selectedParagraph[1]}
+              </p>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                TEXT:
+              </label>
+              <textarea
+                value={selectedParagraph.text}
+                onChange={(e) =>
+                  setSelectedParagraph((prev) => ({
+                    ...prev,
+                    text: e.target.value,
+                  }))
+                }
+                className="w-full border border-gray-300 p-2 rounded-md"
+                rows={4}
+              ></textarea>
+            </div>
+            <div className="flex justify-end">
+              <button
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md mr-2"
+                onClick={() => setSelectedParagraph(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-black text-white rounded-md"
+                onClick={handleSave}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between w-full max-w-3xl mt-12 mx-auto">
+        <button
+          className="px-6 py-3 border border-gray-300 rounded-md text-gray-500"
+          onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 1))}
+        >
+          Previous
+        </button>
+        <button
+          className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800"
+          onClick={() => setCurrentStep((prev) => prev + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default TranscriptPage;
