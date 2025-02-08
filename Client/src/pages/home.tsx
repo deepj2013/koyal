@@ -634,8 +634,8 @@ const Home = () => {
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-gray-400 text-sm hover:underline">
-                        Contact
+                      <a href="#" className="text-gray-400 text-sm hover:underline" onClick={() => handleScroll("section2")}>
+                        C.H.A.R.C.H.A
                       </a>
                     </li>
                   </ul>
