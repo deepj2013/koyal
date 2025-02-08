@@ -722,7 +722,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
     setError("");
 
     try {
-      const response = await fetch("https://koyal.ai/api/public/createWaitingList", {
+      const response = await fetch("https://koyal.ai/api/api/public/createWaitingList", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, mobile }),
