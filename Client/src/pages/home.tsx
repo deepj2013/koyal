@@ -139,7 +139,7 @@ const Home = () => {
           </nav>
 
           <video
-            className="absolute top-0 left-0 w-full h-auto"
+            className="absolute top-0 left-0 w-full h-auto object-cover"
             autoPlay
             loop
             muted
@@ -224,7 +224,7 @@ const Home = () => {
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevious}
-                  className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-300 text-black rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-gray-400 transition"
+                  className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -233,7 +233,7 @@ const Home = () => {
 
                 <button
                   onClick={handleNext}
-                  className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-300 text-black rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:bg-gray-400 transition"
+                  className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -253,7 +253,7 @@ const Home = () => {
           className="relative flex flex-col items-center justify-center px-20 py-10 bg-[#f9f6f1] text-black"
         >
           {/* Background Circles */}
-          <div className="absolute z-10 top-0 w-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center overflow-hidden">
+          <div className="absolute z-10 top-0 w-[60%]  flex justify-center items-center overflow-hidden">
             <img
               src={bgcircle}
               alt="Background Circles"
@@ -541,16 +541,7 @@ const Home = () => {
 
             {/* Content Row 2 */}
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto space-y-8 lg:space-y-0">
-              {/* Left Content */}
-              {/* <div className="w-full lg:w-[45%]  p-6 rounded-lg shadow-lg">
-                <div className="relative">
-                  <img
-                    src={charcha2}
-                    alt="Generated Avatars"
-                    className="rounded-lg w-full"
-                  />
-                </div>
-              </div> */}
+
               <div className="w-full lg:w-[45%] p-6 rounded-lg shadow-lg">
                 <AutoImageSlider images={charachaImages} />
               </div>
@@ -587,7 +578,8 @@ const Home = () => {
             >
               The new age of video<br /> creation  starts here
             </h1>
-            <button className="px-6 py-3 bg-white text-black rounded-full  m-4 font-semibold hover:bg-gray-200">
+            <button className="px-6 py-3 bg-white text-black rounded-full  m-4 font-semibold hover:bg-gray-200"
+              onClick={() => setModalOpen(true)}>
               Join our waitlist
             </button>
           </div>
@@ -617,7 +609,8 @@ const Home = () => {
                 <p className="text-[15px] font-medium text-gray-400 font-inter">
                   Turn audio to video seamlessly
                 </p>
-                <button className="px-6 py-2 bg-white text-black rounded-full font-semibold hover:bg-gray-200">
+                <button className="px-6 py-2 bg-white text-black rounded-full font-semibold hover:bg-gray-200"
+                  onClick={() => setModalOpen(true)}>
                   Join the waitlist
                 </button>
               </div>
@@ -631,12 +624,12 @@ const Home = () => {
                   </h4>
                   <ul className="space-y-6">
                     <li>
-                      <a href="#" className="text-gray-400 text-sm hover:underline">
+                      <a href="#" className="text-gray-400 text-sm hover:underline" onClick={() => handleScroll("section0")}>
                         About us
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="text-gray-400 text-sm hover:underline">
+                      <a href="#" className="text-gray-400 text-sm hover:underline" onClick={() => handleScroll("section1")}>
                         Use cases
                       </a>
                     </li>
@@ -729,7 +722,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5001/api/public/createWaitingList", {
+      const response = await fetch("https://koyal.ai/api/public/createWaitingList", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, mobile }),
@@ -845,6 +838,8 @@ const WaitingListModal = ({ isOpen, onClose }) => {
 };
 
 
+
+
 const VideoPlayer = ({ videoSrc }) => {
   const [isMuted, setIsMuted] = useState(true);
 
@@ -859,20 +854,22 @@ const VideoPlayer = ({ videoSrc }) => {
         className="w-full h-full object-cover"
       />
 
-      {/* Sound Toggle Button */}
+      {/* Sound Toggle Button - iPhone Style */}
       <button
-        className="absolute bottom-4 right-4 bg-white border-2 rounded-full flex items-center justify-center w-10 h-10 shadow-lg transition hover:bg-gray-200"
+        className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center w-12 h-12 shadow-lg transition-all hover:bg-white/30"
         onClick={() => setIsMuted(!isMuted)}
       >
         <img
           src={isMuted ? "https://cdn-icons-png.flaticon.com/512/727/727240.png" : "https://cdn-icons-png.flaticon.com/512/727/727269.png"}
           alt={isMuted ? "Muted" : "Unmuted"}
-          className="w-6 h-6"
+          className="w-6 h-6 filter invert"
         />
       </button>
     </div>
   );
 };
+
+
 
 
 
@@ -902,9 +899,8 @@ const AutoImageSlider = ({ images, interval = 3000 }) => {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all mx-1 ${
-              currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-300"
-            }`}
+            className={`w-3 h-3 rounded-full transition-all mx-1 ${currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-300"
+              }`}
           />
         ))}
       </div>
