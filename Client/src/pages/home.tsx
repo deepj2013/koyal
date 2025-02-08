@@ -149,7 +149,7 @@ const Home = () => {
           </video>
           <WaitingListModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
           {/* Subsection 1 */}
-          <div className=" flex flex-col justify-center items-start px-20 snap-start pt-60">
+          <div className=" flex flex-col justify-center items-start px-20 snap-start pt-40">
             {/* Left-aligned heading with 30% blank space on the right */}
             <div className="flex flex-row w-full">
               <div className="w-[100%] z-10">
@@ -181,9 +181,9 @@ const Home = () => {
             </div>
           </div>
           {/* Subsection 4 */}
-          <div className="relative h-screen flex flex-col justify-center items-center mt-[24rem] px-8 snap-start bg-cover bg-center">
+          <div className="relative h-[40vh] flex flex-col justify-center items-center mt-[50rem] px-8 snap-start bg-cover bg-center">
             {/* Subsection 1 - Heading & Description */}
-            <div className="text-center w-[50%] mt-[0rem]"> {/* 3rem gap */}
+            <div className="text-center w-[50%]"> {/* 3rem gap */}
               <p className="text-[17.02px] leading-[46.17px] tracking-[0px] font-medium text-center font-inter text-white">
                 Styles
               </p>
@@ -192,12 +192,12 @@ const Home = () => {
               </h4>
             </div>
           </div>
-          <div className="relative flex flex-col justify-center items-center px-8 snap-start bg-cover bg-center max-h-[90vh] py-10">
+          <div className="relative flex flex-col justify-center items-center  snap-start bg-cover bg-center max-h-[70vh]">
             {/* Buttons & Image Display */}
-            <div className="relative flex flex-col items-center space-y-6">
+            <div className="relative flex flex-col items-center ">
 
               {/* Buttons */}
-              <div className="mb-4 flex space-x-4">
+              <div className="flex">
                 {styles.map((style) => (
                   <button
                     key={style}
@@ -250,7 +250,7 @@ const Home = () => {
         {/* Section 2 */}
         <section
           id="section1"
-          className="relative flex flex-col items-center justify-center px-20 py-5 bg-[#f9f6f1] text-black"
+          className="relative flex flex-col items-center justify-center px-20 py-10 bg-[#f9f6f1] text-black"
         >
           {/* Background Circles */}
           <div className="absolute z-10 top-0 w-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center overflow-hidden">
@@ -262,7 +262,7 @@ const Home = () => {
           </div>
 
           {/* Heading Section */}
-          <div className="text-center  relative z-10">
+          <div className="text-center mt-6 relative z-10">
             <p className="text-[17.02px] font-medium leading-[46.17px] tracking-[0px] text-center  font-inter text-gray-600 ">
               Use cases
             </p>
@@ -565,7 +565,7 @@ const Home = () => {
           </div>
         </section>
 
-        <section id="section3" className="relative w-full h-screen overflow-hidden">
+        <section id="section3" className="relative w-full h-[70vh] overflow-hidden">
           {/* Background Video */}
           <video
             className="absolute top-0 left-0 w-full h-full object-cover"
@@ -595,7 +595,7 @@ const Home = () => {
         </section>
 
         {/* Footer Section */}
-        <footer className="bg-black text-white py-16 px-8 relative h-[80vh]">
+        <footer className="bg-black text-white py-16 px-8 relative h-[50vh]">
           {/* Background Circles */}
           <div className="absolute top-0 left-0 w-[100%] h-[100%] overflow-hidden z-0">
             <img
@@ -884,11 +884,11 @@ const AutoImageSlider = ({ images, interval = 3000 }) => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, interval);
 
-    return () => clearInterval(slideInterval); // Cleanup interval on unmount
+    return () => clearInterval(slideInterval);
   }, [images.length, interval]);
 
   return (
-    <div className="w-full rounded-lg shadow-lg overflow-hidden relative">
+    <div className="w-full rounded-lg shadow-lg overflow-hidden">
       {/* Image Display */}
       <img
         src={images[currentIndex]}
@@ -896,14 +896,15 @@ const AutoImageSlider = ({ images, interval = 3000 }) => {
         className="rounded-lg w-full transition-all duration-700 ease-in-out object-cover"
       />
 
-      {/* Dots Navigation */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      {/* Dots Navigation (Placed Below Image) */}
+      <div className="flex justify-center mt-3">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full border border-white transition-all ${currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-400"
-              }`}
+            className={`w-3 h-3 rounded-full transition-all mx-1 ${
+              currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-300"
+            }`}
           />
         ))}
       </div>

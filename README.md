@@ -1,11 +1,7 @@
-
-# mute / unmute button change 
-# Font Static load
-
-# black bar remove with rounded corner 
-# usecases 
-# black bar remove and rounded corner 
-# arrow 
-# carsoule dot to change image 
-# link with website 
-
+# SVG to change
+# vedio cut from top and bottom 
+# move up that section 
+# arrow change for vedio
+# use case to put down 
+# 3 dot below image 
+# crop image 
