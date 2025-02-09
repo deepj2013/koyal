@@ -153,7 +153,7 @@ const Home = () => {
             {/* Left-aligned heading with 30% blank space on the right */}
             <div className="flex flex-row w-full">
               <div className="w-[100%] z-10">
-                <h1 className="text-[84px] font-inter font-bold leading-[83px] tracking-[-4.6px] text-white">
+                <h1 className="text-[80px] font-inter font-bold leading-[83px] tracking-[-4.6px] text-white">
                   Turn your audio into engaging storytelling video with consistent characters and scenes using Koyal
                 </h1>
                 <hr className="w-[80%]" />
