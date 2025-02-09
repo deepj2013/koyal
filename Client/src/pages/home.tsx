@@ -156,8 +156,8 @@ const Home = () => {
                 <h1 className="text-[80px] font-inter font-bold leading-[83px] tracking-[-4.6px] text-white">
                   Turn your audio into engaging storytelling video with consistent characters and scenes using Koyal
                 </h1>
-                <hr className="w-[35%]" />
-                <p className=" w-[40%] mt-6 text-[45px]leading-[35px] text-white">
+                <hr className="w-[38%] mt-2 border-2" />
+                <p className=" w-[40%] font-inter mt-6 text-[60px]leading-[45px] text-white">
                   Koyal's AI-powered platform allows you to seamlessly convert audio
                   into personalized, visually compelling stories. With its suite of multimodal AI generation and translation models,
                   Koyal generates custom characters, settings,
