@@ -104,32 +104,46 @@ const TranscriptPage = ({ jsonSource }) => {
 
       <div className="flex w-full h-screen">
         {/* First Column (70%) */}
-        <div className="w-[70%] px-10 mx-10 border border-gray-300 overflow-y-scroll">
+        <div className="w-[70%] px-10 mx-[10rem] overflow-y-scroll">
           {transcriptData.map(([start, end, text, emotion], index) => (
             <div key={index} className="relative mb-4">
-              <p
-                className="cursor-pointer"
-                onClick={() => handleParagraphClick(index)}
-              >
-                <span
-                  className={`${emotionColors[emotion] || emotionColors.default}`}
-                  style={{
-                    display: "inline", // Ensure only the text is highlighted
-                    padding: "1px 2px", // Add minimal padding around the text
-                    borderRadius: "5px", // Optional: Add rounded corners for better aesthetics
-                    border: "1px solid black", // Add a solid black border
-                  }}
+              {regexNoVocals.test(text) ? (
+                <div className="flex flex-col items-center">
+                  {/* Music Sign for No Vocals */}
+                  <div className="text-6xl text-gray-500">🎵</div>
+                  {/* Add Section Buttons */}
+                  <div className="flex justify-between mt-2 w-full">
+                    <button
+                      className="text-blue-500 text-sm hover:underline"
+                      onClick={() => handleAddSection(index, "up")}
+                    >
+                      + 
+                    </button>
+                    <button
+                      className="text-blue-500 text-sm hover:underline"
+                      onClick={() => handleAddSection(index, "down")}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p
+                  className="cursor-pointer"
+                  onClick={() => handleParagraphClick(index)}
                 >
-                  {text}
-                </span>
-              </p>
-              {regexNoVocals.test(text) && (
-                <button
-                  className="absolute right-0 mt-2 text-sm text-blue-500"
-                  onClick={() => handleAddSection(index)}
-                >
-                  + Add Section
-                </button>
+                  <span
+                    className={`${emotionColors[emotion] || emotionColors.default}`}
+                    style={{
+                      display: "inline",
+                      padding: "1px 2px",
+                      borderRadius: "5px",
+                      border: "1px solid black",
+                    }}
+                  >
+                    {text}
+                  </span>
+                </p>
               )}
             </div>
           ))}

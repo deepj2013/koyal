@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import PublicPage from "./pages/PublicPage";
-import UploadPage from "./pages/uploadPage";
-import LyricsEditor from "./pages/LyricsEditor";
+// import UploadPage from "./pages/uploadPage";
+// import LyricsEditor from "./pages/LyricsEditor";
 import "@fontsource/gloria-hallelujah"; //
 import Home from "./pages/home";
 import Login from "./pages/login";
@@ -16,10 +16,10 @@ const App: React.FC = () => {
       <Route path="/" element={<Home />} />
       <Route path="/start" element={<PublicPage />} />
       <Route path="/login" element={<Login />} />
-      {/* <Route path="/upload" element={<UploadPage />} /> */}
       <Route path="/upload" element={<AudioUploadPage />} />
       <Route path="/loading" element={<LoadingPage />} />
       <Route path="/lyricedit" element={<TranscriptPage />} />
+      {/* <Route path="/upload" element={<UploadPage />} /> */}
       {/* <Route path="/lyricedit" element={<LyricsEditor />} /> */}
     </Routes>
   );
