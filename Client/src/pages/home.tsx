@@ -139,7 +139,7 @@ const Home = () => {
           </nav>
 
           <video
-            className="absolute top-0 left-0 w-full h-auto object-cover"
+            className="absolute top-0 left-0 w-full h-full object-cover"
             autoPlay
             loop
             muted
