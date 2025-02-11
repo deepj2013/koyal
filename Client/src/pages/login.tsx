@@ -1,8 +1,10 @@
 import React from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
 import logo from "../assets/images/Nav.svg";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+    const navigate = useNavigate();
     return (
         <div className="flex h-screen">
             {/* Left Section: Video */}
@@ -75,7 +77,10 @@ const Login = () => {
                     </div>
 
                     {/* Submit Button */}
-                    <button className="w-full px-6 py-3 bg-black text-white rounded-md font-semibold hover:bg-gray-800 flex items-center justify-center space-x-2">
+                    <button
+                        className="w-full px-6 py-3 bg-black text-white rounded-md font-semibold hover:bg-gray-800 flex items-center justify-center space-x-2"
+                        onClick={() => navigate("/upload")}
+                    >
                         <span>Start creating</span>
                         <span>→</span>
                     </button>

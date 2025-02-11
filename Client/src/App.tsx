@@ -9,6 +9,10 @@ import Login from "./pages/login";
 import AudioUploadPage from "./pages/newuploadPage";
 import TranscriptPage from "./pages/reviewTranscript";
 import LoadingPage from "./pages/Loadingpage";
+import ChooseCharacterPage from "./pages/ChooseCharacterPage";
+import CharacterSelectionPage from "./pages/characterSelection";
+import EditScenes from "./pages/edtiScence";
+import FinalVideoPage from "./pages/finaVedio";
 
 const App: React.FC = () => {
   return (
@@ -19,6 +23,12 @@ const App: React.FC = () => {
       <Route path="/upload" element={<AudioUploadPage />} />
       <Route path="/loading" element={<LoadingPage />} />
       <Route path="/lyricedit" element={<TranscriptPage />} />
+      <Route path="/choosecharacter" element={<ChooseCharacterPage />} />
+      <Route path="/characterSelection" element={<CharacterSelectionPage />} />
+      <Route path="/editscene" element={<EditScenes />} />
+      <Route path="/finalvideo" element={<FinalVideoPage />} />
+
+
       {/* <Route path="/upload" element={<UploadPage />} /> */}
       {/* <Route path="/lyricedit" element={<LyricsEditor />} /> */}
     </Routes>

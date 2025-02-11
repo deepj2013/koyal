@@ -1,0 +1,738 @@
+{
+    "structured_prompts": [
+        [
+            0,
+            0.5,
+            {
+                "camera_position": "From behind",
+                "facial_expression": "Neutral, face not visible",
+                "location": "Luxury yacht deck",
+                "narrative": "mehulagarwal stands silently on the deck of a yacht, gazing out at the vast ocean before him.",
+                "number": 1,
+                "outfit": "man wearing a buttoned white linen shirt and khaki shorts",
+                "photo_type": "Full body",
+                "pose": "Standing with hands on railing",
+                "random_prompt": "Binoculars, champagne flute",
+                "time": "Sunset",
+                "weather": "Clear sky with golden light"
+            }
+        ],
+        [
+            0.5,
+            1,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Joyful, eyes closed",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal raises his arms in triumph as the yacht cuts through sparkling waves, feeling on top of the world.",
+                "number": 2,
+                "outfit": "Designer sunglasses, open shirt, swim trunks",
+                "photo_type": "Full body",
+                "pose": "Arms raised, leaning slightly back",
+                "random_prompt": "Seagulls, yacht wake",
+                "time": "Midday",
+                "weather": "Bright sunshine, clear blue sky"
+            }
+        ],
+        [
+            1,
+            5.72,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Concentrated, slightly worried",
+                "location": "Yacht helm",
+                "narrative": "mehulagarwal grips the ship's wheel tightly, brow furrowed as he navigates through choppy waters.",
+                "number": 3,
+                "outfit": "Navy blue windbreaker, captain's hat",
+                "photo_type": "Upper body",
+                "pose": "Hands on wheel, leaning forward",
+                "random_prompt": "Compass, storm clouds",
+                "time": "Late afternoon",
+                "weather": "Overcast, windy"
+            }
+        ],
+        [
+            5.72,
+            7.5,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Cool, unbothered",
+                "location": "Yacht main deck",
+                "narrative": "mehulagarwal glides confidently across the deck, ignoring the curious glances of other passengers.",
+                "number": 4,
+                "outfit": "Sleek black suit, no tie",
+                "photo_type": "Full body",
+                "pose": "Walking with purpose",
+                "random_prompt": "Cocktail party, string lights",
+                "time": "Evening",
+                "weather": "Soft twilight, gentle breeze"
+            }
+        ],
+        [
+            7.5,
+            7.6,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Pensive, slightly sad",
+                "location": "Yacht starboard side",
+                "narrative": "mehulagarwal leans against the railing, lost in thought as he watches the moonlit waves below.",
+                "number": 5,
+                "outfit": "Casual hoodie, jeans",
+                "photo_type": "3/4 shot",
+                "pose": "Leaning on railing, looking down",
+                "random_prompt": "Glowing plankton, shooting star",
+                "time": "Night",
+                "weather": "Clear night, moonlit"
+            }
+        ],
+        [
+            7.6,
+            8,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Troubled, searching",
+                "location": "Yacht upper deck",
+                "narrative": "mehulagarwal paces the deck restlessly, his mind filled with unanswered questions about his journey.",
+                "number": 6,
+                "outfit": "Rumpled t-shirt, sweatpants",
+                "photo_type": "Full body",
+                "pose": "Mid-stride, hand running through hair",
+                "random_prompt": "Steaming coffee mug, foghorn",
+                "time": "Dawn",
+                "weather": "Misty, cool"
+            }
+        ],
+        [
+            8,
+            9.26,
+            {
+                "camera_position": "From above",
+                "facial_expression": "Intense concentration",
+                "location": "Yacht captain's quarters",
+                "narrative": "mehulagarwal leans intently over a map spread on a table, trying to decipher his next move.",
+                "number": 7,
+                "outfit": "White tank top, gold chain",
+                "photo_type": "Upper body",
+                "pose": "Hunched over table",
+                "random_prompt": "Nautical charts, compass rose",
+                "time": "Early morning",
+                "weather": "Dim interior lighting"
+            }
+        ],
+        [
+            9.26,
+            9.5,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Determined, jaw set",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal stands tall at the ship's bow, defiantly facing the horizon despite choppy seas.",
+                "number": 8,
+                "outfit": "Rain jacket, waterproof pants",
+                "photo_type": "Full body",
+                "pose": "Standing firm, feet apart",
+                "random_prompt": "Lightning strike, crashing waves",
+                "time": "Midday",
+                "weather": "Stormy, dark clouds"
+            }
+        ],
+        [
+            9.5,
+            11.42,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Contemplative, slightly melancholic",
+                "location": "Yacht VIP suite",
+                "narrative": "mehulagarwal sits alone in a luxurious cabin, staring at his reflection in a gilded mirror.",
+                "number": 9,
+                "outfit": "Silk robe, designer slippers",
+                "photo_type": "Mid-range",
+                "pose": "Seated, leaning forward",
+                "random_prompt": "Crystal decanter, antique clock",
+                "time": "Late night",
+                "weather": "Soft interior lighting"
+            }
+        ],
+        [
+            11.42,
+            12,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Frustrated, disbelieving",
+                "location": "Yacht tech room",
+                "narrative": "mehulagarwal examines a holographic display of charts and figures, shaking his head at the inaccuracies.",
+                "number": 10,
+                "outfit": "Tech-wear jacket, smart glasses",
+                "photo_type": "Upper body",
+                "pose": "Standing, hand gesturing at display",
+                "random_prompt": "Hologram projector, data streams",
+                "time": "Afternoon",
+                "weather": "Indoor lighting, no windows"
+            }
+        ],
+        [
+            12,
+            13.36,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Intense, slightly angry",
+                "location": "Yacht conference area",
+                "narrative": "mehulagarwal confronts a group of analysts on deck, challenging their misinterpretation of his success.",
+                "number": 11,
+                "outfit": "Tailored blazer, designer jeans",
+                "photo_type": "Full body",
+                "pose": "Leaning forward, pointing assertively",
+                "random_prompt": "Whiteboard, laser pointer",
+                "time": "Midday",
+                "weather": "Bright sunlight"
+            }
+        ],
+        [
+            13.36,
+            15,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Epiphany, slight smile",
+                "location": "Yacht bridge",
+                "narrative": "mehulagarwal stands at the ship's helm, a look of realization dawning as he senses a pivotal moment.",
+                "number": 12,
+                "outfit": "Captain's uniform, gold epaulettes",
+                "photo_type": "Upper body",
+                "pose": "Hand on ship's wheel, looking ahead",
+                "random_prompt": "Sextant, ship's bell",
+                "time": "Golden hour",
+                "weather": "Warm, golden light"
+            }
+        ],
+        [
+            15,
+            15.2,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Wistful, distant gaze",
+                "location": "Yacht infinity pool",
+                "narrative": "mehulagarwal sits on the edge of the pool, feet dangling in the water, lost in bittersweet reflection.",
+                "number": 13,
+                "outfit": "Swim trunks, unbuttoned shirt",
+                "photo_type": "Full body",
+                "pose": "Sitting, shoulders slightly slumped",
+                "random_prompt": "Floating cocktail, pool lights",
+                "time": "Sunset",
+                "weather": "Warm evening glow"
+            }
+        ],
+        [
+            15.2,
+            17,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Joyful, carefree",
+                "location": "Yacht party deck",
+                "narrative": "mehulagarwal throws his head back in laughter, surrounded by friends on the yacht's deck.",
+                "number": 14,
+                "outfit": "Designer polo, gold watch",
+                "photo_type": "Upper body",
+                "pose": "Laughing, arms open",
+                "random_prompt": "Champagne bottles, sparklers",
+                "time": "Night",
+                "weather": "Clear, starry sky"
+            }
+        ],
+        [
+            17,
+            18.5,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Serene, eyes closed",
+                "location": "Yacht sun deck",
+                "narrative": "mehulagarwal relaxes in a hammock, finding peace despite the challenges he's faced.",
+                "number": 15,
+                "outfit": "Linen shirt, shorts, bare feet",
+                "photo_type": "Full body",
+                "pose": "Reclining in hammock",
+                "random_prompt": "Tropical drink, palm fronds",
+                "time": "Late afternoon",
+                "weather": "Warm, slight breeze"
+            }
+        ],
+        [
+            18.5,
+            19.04,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Determined, slightly anxious",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal grips the railing tightly, bracing himself as the yacht navigates rough waters.",
+                "number": 16,
+                "outfit": "Raincoat, life vest",
+                "photo_type": "Upper body",
+                "pose": "Leaning into the wind, holding on",
+                "random_prompt": "Crashing waves, lightning flash",
+                "time": "Stormy afternoon",
+                "weather": "Heavy rain, strong winds"
+            }
+        ],
+        [
+            19.04,
+            20.9,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Focused, slight smile",
+                "location": "Onboard recording studio",
+                "narrative": "mehulagarwal nods his head to the beat, listening intently to new tracks in the yacht's studio.",
+                "number": 17,
+                "outfit": "Headphones, vintage band tee",
+                "photo_type": "Close up",
+                "pose": "Seated, head bobbing",
+                "random_prompt": "Mixing board, vinyl records",
+                "time": "Night",
+                "weather": "Dimly lit interior"
+            }
+        ],
+        [
+            20.9,
+            22.5,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Conflicted, brow furrowed",
+                "location": "Yacht main deck",
+                "narrative": "mehulagarwal paces impatiently on deck, torn between action and heeding advice to wait.",
+                "number": 18,
+                "outfit": "Casual blazer, designer sneakers",
+                "photo_type": "Full body",
+                "pose": "Mid-stride, hand on chin",
+                "random_prompt": "Ticking watch, chess set",
+                "time": "Early evening",
+                "weather": "Calm, light sea mist"
+            }
+        ],
+        [
+            22.5,
+            22.66,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Blissful, eyes closed",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal throws his arms wide, embracing the ocean breeze with newfound patience and joy.",
+                "number": 19,
+                "outfit": "White linen suit, no shoes",
+                "photo_type": "Full body",
+                "pose": "Arms outstretched, leaning back",
+                "random_prompt": "Flock of seagulls, billowing sails",
+                "time": "Sunrise",
+                "weather": "Clear, golden light"
+            }
+        ],
+        [
+            22.66,
+            24.74,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Triumphant, beaming",
+                "location": "Yacht dining room",
+                "narrative": "mehulagarwal leads a group of friends in a celebratory toast, marking a turning point in their journey.",
+                "number": 20,
+                "outfit": "Tailored dinner jacket, bow tie",
+                "photo_type": "Upper body",
+                "pose": "Standing, raising a glass",
+                "random_prompt": "Crystal chandelier, gourmet feast",
+                "time": "Evening",
+                "weather": "Warm interior lighting"
+            }
+        ],
+        [
+            24.74,
+            26.62,
+            {
+                "camera_position": "From above",
+                "facial_expression": "Focused, hint of a smile",
+                "location": "Yacht captain's quarters",
+                "narrative": "mehulagarwal leans over a table, sketching out plans with excitement for the future.",
+                "number": 21,
+                "outfit": "Loose white shirt, gold chain",
+                "photo_type": "Upper body",
+                "pose": "Hunched over, writing",
+                "random_prompt": "Leather-bound journal, fountain pen",
+                "time": "Late night",
+                "weather": "Soft lamp light"
+            }
+        ],
+        [
+            26.62,
+            28.52,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Confident, slightly smug",
+                "location": "Yacht bridge",
+                "narrative": "mehulagarwal stands confidently at the yacht's helm, steering towards new horizons with a knowing smile.",
+                "number": 22,
+                "outfit": "Navy blazer, white pants, captain's hat",
+                "photo_type": "3/4 shot",
+                "pose": "One hand on wheel, other pointing forward",
+                "random_prompt": "Compass rose, distant island",
+                "time": "Dawn",
+                "weather": "Misty, golden rays breaking through"
+            }
+        ],
+        [
+            28.52,
+            30.44,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Excited, eyes wide",
+                "location": "Yacht sundeck",
+                "narrative": "mehulagarwal checks his phone eagerly, a burst of energy coursing through him as he reads a message.",
+                "number": 23,
+                "outfit": "Designer sunglasses, tropical print shirt",
+                "photo_type": "Close up",
+                "pose": "Sitting up quickly, phone in hand",
+                "random_prompt": "Iced cocktail, lounge chair",
+                "time": "Midday",
+                "weather": "Bright sunshine"
+            }
+        ],
+        [
+            30.44,
+            32.32,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Neutral, composed",
+                "location": "Yacht main deck",
+                "narrative": "mehulagarwal maintains a stoic facade as he addresses a crowd gathered on the yacht's main deck.",
+                "number": 24,
+                "outfit": "Tailored suit, pocket square",
+                "photo_type": "Full body",
+                "pose": "Standing tall, hands clasped",
+                "random_prompt": "Microphone stand, attentive audience",
+                "time": "Afternoon",
+                "weather": "Partly cloudy"
+            }
+        ],
+        [
+            32.32,
+            34.1,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Resolute, slightly annoyed",
+                "location": "Yacht upper deck",
+                "narrative": "mehulagarwal dismisses warnings with a wave of his hand, confidently striding across the deck.",
+                "number": 25,
+                "outfit": "Designer tracksuit, gold chains",
+                "photo_type": "Full body",
+                "pose": "Mid-stride, hand gesturing dismissively",
+                "random_prompt": "Hovering drone, security detail",
+                "time": "Late afternoon",
+                "weather": "Golden hour light"
+            }
+        ],
+        [
+            34.1,
+            36.14,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Serious, vigilant",
+                "location": "Yacht crow's nest",
+                "narrative": "mehulagarwal surveys the ocean with intense focus, aware of the high stakes of his journey.",
+                "number": 26,
+                "outfit": "Leather jacket, binoculars around neck",
+                "photo_type": "Upper body",
+                "pose": "Leaning on railing, looking out",
+                "random_prompt": "Flocking birds, distant lighthouse",
+                "time": "Dusk",
+                "weather": "Dramatic, colorful sky"
+            }
+        ],
+        [
+            36.14,
+            38.02,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Confident, slight smile",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal stands tall on the bow, arms crossed, as blessings seem to rain down around him.",
+                "number": 27,
+                "outfit": "All-white ensemble, gold watch",
+                "photo_type": "Full body",
+                "pose": "Standing proud, arms crossed",
+                "random_prompt": "Dove release, shower of flower petals",
+                "time": "Sunrise",
+                "weather": "Misty, rays of light breaking through"
+            }
+        ],
+        [
+            38.02,
+            40.7,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Passionate, energetic",
+                "location": "Yacht main deck",
+                "narrative": "mehulagarwal performs on a makeshift stage, energetically showcasing his success to the yacht crowd.",
+                "number": 28,
+                "outfit": "Glittering stage outfit, sneakers",
+                "photo_type": "Full body",
+                "pose": "Mid-performance, microphone in hand",
+                "random_prompt": "Pyrotechnics, cheering fans",
+                "time": "Night",
+                "weather": "Clear, starry sky"
+            }
+        ],
+        [
+            40.7,
+            42.64,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Charming, slightly amused",
+                "location": "Yacht lounge",
+                "narrative": "mehulagarwal mingles with admirers at a yacht party, his charisma drawing attention from all around.",
+                "number": 29,
+                "outfit": "Designer suit, no tie, gold jewelry",
+                "photo_type": "Mid-range",
+                "pose": "Leaning against bar, surrounded by people",
+                "random_prompt": "Champagne tower, velvet ropes",
+                "time": "Evening",
+                "weather": "Warm interior lighting"
+            }
+        ],
+        [
+            42.64,
+            44.68,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Calm, slightly defiant",
+                "location": "Yacht press room",
+                "narrative": "mehulagarwal faces a group of critics head-on, maintaining his composure despite their unspoken judgments.",
+                "number": 30,
+                "outfit": "Crisp dress shirt, tie loosened",
+                "photo_type": "Upper body",
+                "pose": "Standing at podium, leaning forward",
+                "random_prompt": "Flashing cameras, microphone array",
+                "time": "Midday",
+                "weather": "Bright, artificial lighting"
+            }
+        ],
+        [
+            44.68,
+            46.56,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Serene, eyes closed",
+                "location": "Yacht zen garden",
+                "narrative": "mehulagarwal meditates on the yacht's deck at dawn, finding inner peace amidst external pressures.",
+                "number": 31,
+                "outfit": "Flowing white linen outfit",
+                "photo_type": "Full body",
+                "pose": "Seated in lotus position",
+                "random_prompt": "Incense smoke, zen rock garden",
+                "time": "Dawn",
+                "weather": "Soft, misty light"
+            }
+        ],
+        [
+            46.56,
+            48.82,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Hidden behind ornate mask",
+                "location": "Yacht ballroom",
+                "narrative": "mehulagarwal dons a mysterious mask, blending into the crowd at a masquerade party on the yacht.",
+                "number": 32,
+                "outfit": "Elegant tuxedo, feathered mask",
+                "photo_type": "Upper body",
+                "pose": "Standing still, slightly turned",
+                "random_prompt": "Venetian decorations, masked dancers",
+                "time": "Night",
+                "weather": "Dimly lit, chandeliers"
+            }
+        ],
+        [
+            48.82,
+            50.76,
+            {
+                "camera_position": "From below",
+                "facial_expression": "Unreadable, in shadow",
+                "location": "Yacht upper deck balcony",
+                "narrative": "mehulagarwal observes the party from a hidden corner, his face obscured by shadows.",
+                "number": 33,
+                "outfit": "Dark hoodie, jeans",
+                "photo_type": "Full body",
+                "pose": "Leaning against railing, partially hidden",
+                "random_prompt": "Twinkling fairy lights, distant laughter",
+                "time": "Late night",
+                "weather": "Moonlit, slight breeze"
+            }
+        ],
+        [
+            50.76,
+            52.6,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Hidden behind sunglasses",
+                "location": "Yacht gangway",
+                "narrative": "mehulagarwal navigates through a crowd of paparazzi, his face obscured by a large hat and sunglasses.",
+                "number": 34,
+                "outfit": "Oversized coat, wide-brimmed hat",
+                "photo_type": "Full body",
+                "pose": "Walking briskly, head down",
+                "random_prompt": "Flashing cameras, bodyguards",
+                "time": "Midday",
+                "weather": "Bright sunlight"
+            }
+        ],
+        [
+            52.6,
+            53.58,
+            {
+                "camera_position": "From behind",
+                "facial_expression": "Not visible, facing away",
+                "location": "Yacht bow",
+                "narrative": "mehulagarwal stands alone on the bow, his silhouette stark against the setting sun.",
+                "number": 35,
+                "outfit": "Tailored suit silhouette",
+                "photo_type": "Full body",
+                "pose": "Standing tall, hands in pockets",
+                "random_prompt": "Flock of seagulls, billowing flag",
+                "time": "Sunset",
+                "weather": "Dramatic orange sky"
+            }
+        ],
+        [
+            53.58,
+            55.5,
+            {
+                "camera_position": "From above",
+                "facial_expression": "Unseen, underwater",
+                "location": "Open ocean behind yacht",
+                "narrative": "mehulagarwal swims in the yacht's wake, his face submerged as he glides through the water.",
+                "number": 36,
+                "outfit": "Sleek swimwear",
+                "photo_type": "Upper body",
+                "pose": "Swimming, head partially underwater",
+                "random_prompt": "Yacht wake, swimming dolphins",
+                "time": "Afternoon",
+                "weather": "Sunny, clear skies"
+            }
+        ],
+        [
+            55.5,
+            57.42,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Focused, eyes on the water",
+                "location": "Yacht diving platform",
+                "narrative": "mehulagarwal performs a high dive from the yacht's top deck, his form perfect as he enters the water.",
+                "number": 37,
+                "outfit": "Fitted swim trunks",
+                "photo_type": "Full body",
+                "pose": "Mid-dive, arms outstretched",
+                "random_prompt": "Splash radius, onlookers cheering",
+                "time": "Midday",
+                "weather": "Bright sunshine, blue sky"
+            }
+        ],
+        [
+            57.42,
+            58.36,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Hidden in steam",
+                "location": "Yacht spa",
+                "narrative": "mehulagarwal emerges from a steam room, his face obscured by thick mist.",
+                "number": 38,
+                "outfit": "White towel around waist",
+                "photo_type": "Upper body",
+                "pose": "Stepping forward, parting steam",
+                "random_prompt": "Eucalyptus branches, zen water feature",
+                "time": "Evening",
+                "weather": "Steam-filled interior"
+            }
+        ],
+        [
+            58.36,
+            58.5,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Covered by tinted helmet visor",
+                "location": "Open ocean beside yacht",
+                "narrative": "mehulagarwal pilots a jet ski alongside the yacht, his face concealed by a sleek helmet.",
+                "number": 39,
+                "outfit": "Wetsuit, life vest",
+                "photo_type": "Full body",
+                "pose": "Crouched on jet ski, turning sharply",
+                "random_prompt": "Water spray, yacht in background",
+                "time": "Late afternoon",
+                "weather": "Sunny, slight chop on water"
+            }
+        ],
+        [
+            58.5,
+            58.52,
+            {
+                "camera_position": "From above",
+                "facial_expression": "Serene, eyes closed",
+                "location": "Yacht infinity pool",
+                "narrative": "mehulagarwal floats peacefully on his back in the yacht's infinity pool, face turned to the sky.",
+                "number": 40,
+                "outfit": "Designer swim trunks",
+                "photo_type": "Full body",
+                "pose": "Floating on back, arms outstretched",
+                "random_prompt": "Rose petals on water, starry sky reflection",
+                "time": "Dusk",
+                "weather": "Soft twilight glow"
+            }
+        ],
+        [
+            58.52,
+            59.36,
+            {
+                "camera_position": "From front",
+                "facial_expression": "Hidden by hat brim",
+                "location": "Yacht bridge",
+                "narrative": "mehulagarwal stands at the yacht's helm, a captain's hat pulled low over his eyes.",
+                "number": 41,
+                "outfit": "Captain's uniform, gold epaulettes",
+                "photo_type": "Upper body",
+                "pose": "Hands on ship's wheel",
+                "random_prompt": "Nautical maps, ship's bell",
+                "time": "Early morning",
+                "weather": "Misty, breaking dawn"
+            }
+        ],
+        [
+            59.36,
+            60,
+            {
+                "camera_position": "From side",
+                "facial_expression": "Covered by open book",
+                "location": "Yacht sun deck",
+                "narrative": "mehulagarwal reclines in a hammock, a book covering his face as he dozes in the sun.",
+                "number": 42,
+                "outfit": "Loose linen shirt, shorts",
+                "photo_type": "Full body",
+                "pose": "Lying in hammock, one leg dangling",
+                "random_prompt": "Tropical drink, gentle waves lapping",
+                "time": "Afternoon",
+                "weather": "Warm sunshine, light breeze"
+            }
+        ],
+        [
+            60,
+            60.024,
+            {
+                "camera_position": "From behind",
+                "facial_expression": "Not visible, facing away",
+                "location": "Yacht stern",
+                "narrative": "mehulagarwal stands silently at the yacht's stern, watching the wake disappear into the horizon.",
+                "number": 43,
+                "outfit": "Casual blazer, designer jeans",
+                "photo_type": "Full body",
+                "pose": "Standing still, hands in pockets",
+                "random_prompt": "Yacht's wake, flock of seabirds",
+                "time": "Sunset",
+                "weather": "Golden light, calm seas"
+            }
+        ]
+    ],
+    "use_custom_character": true,
+    "character_lora": "mehulagarwal",
+    "gender": "man"
+}

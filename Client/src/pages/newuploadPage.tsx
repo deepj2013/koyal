@@ -45,7 +45,7 @@ const AudioUploadPage = () => {
             setIsUploading(true);
             setTimeout(() => {
                 setIsUploading(false);
-                navigate("/reviewtranscript"); // Redirect to TranscriptPage after loading
+                navigate("/lyricedit"); // Redirect to TranscriptPage after loading
             }, 100); // 3 seconds delay for loading simulation
         }
     };
@@ -74,69 +74,70 @@ const AudioUploadPage = () => {
                         Files supported: MP3, WAV
                     </p>
                     {uploadedFile ? (
-                        <div className="border-2 border-blue-500 p-4 rounded-lg shadow-md">
-                            <div className="flex items-center justify-between">
-                                {/* Music Icon */}
-                                <div className="flex items-center space-x-4">
-                                    <img
-                                        src={musicicon}// Replace with the actual path to your icon
-                                        alt="Music Icon"
-                                        className="w-6 h-6"
-                                    />
-                                    <div>
-                                        {/* File Name */}
-                                        <p className="text-gray-900 font-medium">{uploadedFile.name}</p>
-                                        {/* File Size */}
-                                        <p className="text-gray-500 text-sm">
-                                            {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                                        </p>
-                                    </div>
-                                </div>
-                                {/* Cancel Button */}
-                                <button
-                                    className="text-gray-500 hover:text-red-500"
-                                    onClick={() => {
-                                        setUploadedFile(null);
-                                        setUploadProgress(0);
-                                    }}
-                                >
-                                    ×
-                                </button>
-                            </div>
-                            {/* Upload Progress Bar */}
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                <div
-                                    className="bg-blue-500 h-2 rounded-full"
-                                    style={{ width: `${uploadProgress}%` }}
-                                />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className=" p-4 rounded-lg">
-                            <div className="flex space-x-4">
-                                {["Music", "Podcast", "Voiceover"].map((type) => (
-                                    <button
-                                        key={type}
-                                        className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white" : "text-gray-800"
-                                            } hover:bg-gray-100 focus:ring-2 focus:ring-black`}
-                                        onClick={() => {
-                                            handleAudioTypeSelect(type);
-                                            document.getElementById("file-input").click();
-                                        }}
-                                    >
-                                        {type}
-                                    </button>
-                                ))}
-                                <input
-                                    id="file-input"
-                                    type="file"
-                                    accept=".mp3, .wav"
-                                    onChange={handleFileUpload}
-                                    className="hidden"
-                                />
-                            </div>
-                        </div>
-                    )}
+    <div className="border-2 border-blue-500 p-4 rounded-lg shadow-md">
+        <div className="flex items-center justify-between">
+            {/* Music Icon */}
+            <div className="flex items-center space-x-4">
+                <img
+                    src={musicicon} // Replace with the actual path to your icon
+                    alt="Music Icon"
+                    className="w-6 h-6"
+                />
+                <div>
+                    {/* File Name */}
+                    <p className="text-gray-900 font-medium">{uploadedFile.name}</p>
+                    {/* File Size */}
+                    <p className="text-gray-500 text-sm">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                </div>
+            </div>
+            {/* Cancel Button */}
+            <button
+                className="text-gray-500 hover:text-red-500"
+                onClick={() => {
+                    setUploadedFile(null);
+                    setUploadProgress(0);
+                }}
+            >
+                ×
+            </button>
+        </div>
+        {/* Upload Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div
+                className="bg-blue-500 h-2 rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+            />
+        </div>
+    </div>
+) : (
+    <div className="p-4 rounded-lg">
+        <div className="flex space-x-4">
+            {["Music", "Podcast", "Voiceover"].map((type) => (
+                <button
+                    key={type}
+                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white" : "text-gray-800"
+                        } hover:bg-gray-100 focus:ring-2 focus:ring-black`}
+                    onClick={() => {
+                        setSelectedAudioType(type); // Ensure selection happens first
+                        setTimeout(() => document.getElementById("file-input").click(), 0); // Ensures single click
+                    }}
+                >
+                    {type}
+                </button>
+            ))}
+            <input
+                id="file-input"
+                type="file"
+                accept=".mp3, .wav"
+                onChange={handleFileUpload}
+                className="hidden"
+            />
+        </div>
+    </div>
+)}
+
 
                     {/* Is the audio in English? */}
                     <div>

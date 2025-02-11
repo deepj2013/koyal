@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import sampleDoc from "../assets/sample/lyrics.json";
+import { useNavigate } from "react-router-dom";
 
 const TranscriptPage = ({ jsonSource }) => {
+  const navigate = useNavigate();
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
+  const [selectedEmotion, setSelectedEmotion] = useState("");
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
     euphoric: "bg-yellow-200",
@@ -28,36 +31,62 @@ const TranscriptPage = ({ jsonSource }) => {
   }, [jsonSource]);
 
   const handleParagraphClick = (index) => {
+    const entry = transcriptData[index];
+    
+    if (!entry) return; // Prevent crashes
+  
     setSelectedParagraph({
-      ...transcriptData[index],
-      index,
+      start: entry[0], // Extract start time
+      end: entry[1], // Extract end time
+      text: entry[2], // Extract text
+      emotion: entry[3], // Extract emotion
+      index: index, // Store index for update
     });
+  
+    setSelectedEmotion(entry[3]); // Ensure emotion updates
   };
-
   const handleAddSection = (index) => {
     const currentData = [...transcriptData];
-    const newSection = {
-      start: currentData[index].end,
-      end: "",
-      text: "New section",
-      emotion: "default",
-    };
+  
+    const newSection = [
+      currentData[index]?.[1] || "0", // Use previous end time as start
+      "", // Empty end time
+      "New section", // Default text
+      currentData[index]?.[3] || "default" // Inherit emotion
+    ];
+  
     currentData.splice(index + 1, 0, newSection);
     setTranscriptData(currentData);
+  
+    // Automatically open the newly added section for editing
+    setSelectedParagraph({ 
+      start: newSection[0], 
+      end: newSection[1], 
+      text: newSection[2], 
+      emotion: newSection[3], 
+      index: index + 1 
+    });
+  
+    setSelectedEmotion(newSection[3]);
   };
+
 
   const handleSave = () => {
-    const updatedData = [...transcriptData];
-    updatedData[selectedParagraph.index] = [
-      selectedParagraph[0],
-      selectedParagraph[1],
-      selectedParagraph.text,
-      selectedParagraph.emotion,
-    ];
-    setTranscriptData(updatedData);
-    setSelectedParagraph(null);
+    if (selectedParagraph && selectedParagraph.index !== undefined) {
+      const updatedData = [...transcriptData];
+  
+      // Update only the correct index, maintaining JSON format
+      updatedData[selectedParagraph.index] = [
+        selectedParagraph.start,  // Keep as string to prevent NaN errors
+        selectedParagraph.end,
+        selectedParagraph.text || "New section", // Prevent empty values
+        selectedParagraph.emotion,
+      ];
+  
+      setTranscriptData(updatedData); // Update state
+      setSelectedParagraph(null); // Close modal
+    }
   };
-
   const handleEmotionChange = (e) => {
     setSelectedParagraph((prev) => ({
       ...prev,
@@ -104,140 +133,106 @@ const TranscriptPage = ({ jsonSource }) => {
 
       <div className="flex w-full h-screen">
         {/* First Column (70%) */}
-        <div className="w-[70%] px-10 mx-[10rem] overflow-y-scroll">
-          {transcriptData.map(([start, end, text, emotion], index) => (
-            <div key={index} className="relative mb-4">
-              {regexNoVocals.test(text) ? (
-                <div className="flex flex-col items-center">
-                  {/* Music Sign for No Vocals */}
-                  <div className="text-6xl text-gray-500">🎵</div>
-                  {/* Add Section Buttons */}
-                  <div className="flex justify-between mt-2 w-full">
-                    <button
-                      className="text-blue-500 text-sm hover:underline"
-                      onClick={() => handleAddSection(index, "up")}
-                    >
-                      + 
-                    </button>
-                    <button
-                      className="text-blue-500 text-sm hover:underline"
-                      onClick={() => handleAddSection(index, "down")}
-                    >
-                      +
-                    </button>
+        <div className="w-[30%] px-10 mx-[25rem] overflow-y-scroll">
+          {transcriptData.map((entry, index) => {
+            if (!Array.isArray(entry) || entry.length < 4) return null; // Prevent errors
+
+            const [start, end, text, emotion] = entry; // Extract values safely
+
+            return (
+              <div key={index} className="relative mb-4">
+                {regexNoVocals.test(text) ? (
+                  <div className="flex items-start">
+                    {/* Add Section Buttons */}
+                    <div className="flex flex-col">
+                      {/* Hide + button when a new section is added */}
+                      {!text && (
+                        <button
+                          className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200"
+                          onClick={() => handleAddSection(index)}
+                        >
+                          +
+                        </button>
+                      )}
+                      <div className="bg-yellow-100 p-2 rounded mt-1">
+                        <div className="text-2xl text-gray-800">🎵</div>
+                      </div>
+                      <button
+                        className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 mt-1"
+                        onClick={() => handleAddSection(index)}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <p
-                  className="cursor-pointer"
-                  onClick={() => handleParagraphClick(index)}
-                >
-                  <span
-                    className={`${emotionColors[emotion] || emotionColors.default}`}
-                    style={{
-                      display: "inline",
-                      padding: "1px 2px",
-                      borderRadius: "5px",
-                      border: "1px solid black",
-                    }}
-                  >
-                    {text}
-                  </span>
-                </p>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <div className="relative mb-4">
+                    <p className="cursor-pointer mt-2" onClick={() => handleParagraphClick(index)}>
+                      <span
+                        className={`${emotionColors[emotion] || emotionColors.default}`}
+                        style={{
+                          display: "inline",
+                          padding: "1px 2px",
+                          borderRadius: "5px",
+                          border: "1px solid black",
+                        }}
+                      >
+                        {text}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Second Column (30%) */}
-        {selectedParagraph && (
-          <div
-            className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
-            style={{
+      {/* Second Column (30%) */}
+      {selectedParagraph && (
+  <div className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
+    style={{ left: "60%", width: "25%", maxHeight: "auto" }}
+  >
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">EMOTION:</label>
+      <EmotionDropdown selectedEmotion={selectedEmotion} setSelectedEmotion={(emotion) =>
+        setSelectedParagraph((prev) => ({ ...prev, emotion }))
+      }/>
+    </div>
 
-              left: "72%", // Start next to the first column
-              width: "28%", // Adjust width
-              maxHeight: "auto", // Height adjusts to content
-            }}
-          >
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                EMOTION:
-              </label>
-              <select
-                value={selectedParagraph.emotion}
-                onChange={handleEmotionChange}
-                className="w-full border border-gray-300 p-2 rounded-md"
-              >
-                {Object.keys(emotionColors).map((emotionKey) => (
-                  <option key={emotionKey} value={emotionKey}>
-                    {emotionKey}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                TIME:
-              </label>
-              <div className="flex justify-between items-center">
-                <input
-                  type="text"
-                  value={selectedParagraph[0]}
-                  onChange={(e) =>
-                    setSelectedParagraph((prev) => ({
-                      ...prev,
-                      start: e.target.value,
-                    }))
-                  }
-                  className="border border-gray-300 p-2 rounded-md w-[45%]"
-                />
-                <span className="mx-2 text-gray-500">-</span>
-                <input
-                  type="text"
-                  value={selectedParagraph[1]}
-                  onChange={(e) =>
-                    setSelectedParagraph((prev) => ({
-                      ...prev,
-                      end: e.target.value,
-                    }))
-                  }
-                  className="border border-gray-300 p-2 rounded-md w-[45%]"
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                TEXT:
-              </label>
-              <textarea
-                value={selectedParagraph.text}
-                onChange={(e) =>
-                  setSelectedParagraph((prev) => ({
-                    ...prev,
-                    text: e.target.value,
-                  }))
-                }
-                className="w-full border border-gray-300 p-2 rounded-md"
-                rows={6}
-              ></textarea>
-            </div>
-            <div className="flex justify-end">
-              <button
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md mr-2"
-                onClick={() => setSelectedParagraph(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-black text-white rounded-md"
-                onClick={handleSave}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">TIME:</label>
+      <div className="flex justify-between items-center">
+        <input type="text"
+          value={selectedParagraph.start}
+          onChange={(e) => setSelectedParagraph((prev) => ({ ...prev, start: e.target.value }))}
+          className="border border-gray-300 p-2 rounded-md w-[45%]"
+        />
+        <span className="mx-2 text-gray-500">-</span>
+        <input type="text"
+          value={selectedParagraph.end}
+          onChange={(e) => setSelectedParagraph((prev) => ({ ...prev, end: e.target.value }))}
+          className="border border-gray-300 p-2 rounded-md w-[45%]"
+        />
+      </div>
+    </div>
+
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">TEXT:</label>
+      <textarea value={selectedParagraph.text}
+        onChange={(e) => setSelectedParagraph((prev) => ({ ...prev, text: e.target.value }))}
+        className="w-full border border-gray-300 p-2 rounded-md"
+        rows={6}
+      ></textarea>
+    </div>
+
+    <div className="flex justify-end">
+      <button className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md mr-2"
+        onClick={() => setSelectedParagraph(null)}>Cancel</button>
+      <button className="px-4 py-2 bg-black text-white rounded-md"
+        onClick={handleSave}>Save</button>
+    </div>
+  </div>
+)}
       </div>
 
       <div className="flex justify-between w-full max-w-3xl mt-12 mx-auto">
@@ -249,11 +244,74 @@ const TranscriptPage = ({ jsonSource }) => {
         </button>
         <button
           className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800"
-          onClick={() => setCurrentStep((prev) => prev + 1)}
+          onClick={() => navigate("/choosecharacter")}
         >
           Next
         </button>
       </div>
+    </div>
+  );
+};
+
+
+const EmotionDropdown = ({ selectedEmotion, setSelectedEmotion }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const emotionColors = {
+    euphoric: "bg-yellow-200",
+    serene: "bg-blue-200",
+    melancholy: "bg-purple-200",
+    tense: "bg-red-200",
+  };
+
+  const handleSelect = (emotion) => {
+    setSelectedEmotion(emotion);
+    setIsOpen(false); // Close dropdown after selection
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      {/* Selected Emotion Display */}
+      <button
+        className="w-full flex items-center justify-between border border-gray-300 p-2 rounded-md bg-white"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="flex items-center">
+          <span className={`w-4 h-4 rounded-full ${emotionColors[selectedEmotion]} mr-2`}></span>
+          {selectedEmotion}
+        </span>
+        <span>▼</span>
+      </button>
+
+      {/* Dropdown List */}
+      {isOpen && (
+        <div className="absolute w-full border border-gray-300 bg-white shadow-lg rounded-md mt-1 z-10">
+          {Object.keys(emotionColors).map((emotion) => (
+            <div
+              key={emotion}
+              className="flex items-center border px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSelect(emotion)}
+            >
+              <span className={`w-4 h-4 rounded-full ${emotionColors[emotion]} mr-2`}></span>
+              {emotion}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

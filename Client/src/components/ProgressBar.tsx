@@ -25,32 +25,37 @@ const ProgressBar = ({ currentStep }) => {
             {/* Step Circle */}
             <div
               className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                currentStep === step.id
-                  ? "bg-purple-500 text-white"
+                currentStep >= step.id
+                  ? "bg-black text-white"
                   : "bg-gray-100 text-gray-700"
               }`}
             >
               <img
                 src={step.icon}
                 alt={step.label}
-                className="w-16 h-10"
+                className={`w-6 h-6 ${
+                  currentStep >= step.id && step.id !== 1 ? "filter invert" : ""
+                }`}
               />
             </div>
 
             {/* Step Label */}
             <div
               className={`mt-2 text-sm text-center ${
-                currentStep === step.id ? "text-black font-semibold" : "text-gray-500"
+                currentStep === step.id
+                  ? "text-black font-semibold"
+                  : "text-gray-500"
               }`}
             >
               {step.label}
             </div>
           </div>
 
+          {/* Step Connector Line */}
           {index < steps.length - 1 && (
             <div
               className={`h-[1.5px] w-16 ${
-                currentStep > step.id ? "bg-purple-500" : "bg-gray-200"
+                currentStep > step.id ? "bg-black" : "bg-gray-200"
               }`}
               style={{
                 marginTop: "-2.5rem", // Adjusts the line to align vertically in the middle of the icon
