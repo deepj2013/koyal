@@ -153,11 +153,13 @@ const Home = () => {
             {/* Left-aligned heading with 30% blank space on the right */}
             <div className="flex flex-row w-full">
               <div className="w-[100%] z-10">
-                <h1 className="text-[80px] font-inter font-bold leading-[83px] tracking-[-4.6px] text-white">
-                  Turn your audio into engaging storytelling video with consistent characters and scenes using Koyal
+                <h1 className="text-[70px] font-inter font-bold leading-[83px] text-white">
+                  Turn your audio into engaging <br />
+                  storytelling video with <br />
+                  consistent characters and <br />scenes using Koyal
                 </h1>
-                <hr className="w-[38%] mt-2 border-2" />
-                <p className=" w-[40%] font-inter mt-6 text-[60px]leading-[45px] text-white">
+                <hr className="w-[60%] mt-2 border-2" />
+                <p className=" w-[60%] font-inter mt-3 text-[23px] text-white">
                   Koyal's AI-powered platform allows you to seamlessly convert audio
                   into personalized, visually compelling stories. With its suite of multimodal AI generation and translation models,
                   Koyal generates custom characters, settings,
@@ -218,9 +220,10 @@ const Home = () => {
               </div>
 
               {/* Video Display Section */}
-              <div className="rounded-lg overflow-hidden w-[50rem] h-[40rem] flex items-center justify-center p-10 relative">
+              <div className="rounded-lg   overflow-hidden w-[50rem] h-[40rem] flex items-center justify-center p-10 relative">
+               <div className="bg-black/20 backdrop-blur-md m-5">
                 <VideoPlayer videoSrc={images[activeStyle]} className="pointer-events-auto" />
-
+                </div>
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevious}

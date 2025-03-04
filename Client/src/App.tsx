@@ -9,7 +9,7 @@ import Login from "./pages/login";
 import AudioUploadPage from "./pages/newuploadPage";
 import TranscriptPage from "./pages/reviewTranscript";
 import LoadingPage from "./pages/Loadingpage";
-import ChooseCharacterPage from "./pages/ChooseCharacterPage";
+import ChooseCharacterPage from "./pages/chooseCharacterPage";
 import CharacterSelectionPage from "./pages/characterSelection";
 import EditScenes from "./pages/edtiScence";
 import FinalVideoPage from "./pages/finaVedio";
