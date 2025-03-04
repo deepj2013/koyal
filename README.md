@@ -23,6 +23,6 @@
 # [x] Navbar Alignment and spacing 
 
 ### Login Screen 
-# [ ] reduce spacing between logo and get started 
-# [] reduce width for all input and getstarted section 
-# change arrow 
+# [x] reduce spacing between logo and get started 
+# [x] reduce width for all input and getstarted section 
+# [x] change arrow 
