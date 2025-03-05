@@ -48,7 +48,7 @@ const ChooseCharacterPage = () => {
         })
         .catch((error) => console.error("Error accessing webcam:", error));
     }
-  }, [stage]);
+  }, [stage, isChooseCharModalOpen]);
 
   useEffect(() => {
     if (stage === "actionRecord") {
@@ -126,7 +126,7 @@ const ChooseCharacterPage = () => {
           </div>
           <div>
             <ProgressBar currentStep={3} />
-            {stage === "default" && (
+
               <div className="w-full bg-transparent border-none shadow-none">
                 <p className="text-[#101828] mb-3">
                   Describe the theme for the video that Koyal will create{" "}
@@ -242,7 +242,7 @@ const ChooseCharacterPage = () => {
                   </a>
                 </p>
               </div>
-            )}
+         
             <div className="flex justify-end w-full mt-12 mb-12">
               <button className="px-6 py-1 h-[40px] mr-2 border border-gray-300 rounded-md text-gray-500">
                 Previous
