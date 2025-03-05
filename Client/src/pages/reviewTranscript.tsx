@@ -97,16 +97,20 @@ const TranscriptPage = ({ jsonSource }) => {
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
-      <div className="flex flex-col items-center w-full px-8 mt-10">
-        <div className="flex flex-col text-center w-[60%] mb-6">
-          <h1 className="text-[32px] font-medium leading-[30px]  tracking-[0%] text-gray-900">
-            Transcript
-          </h1>
-        </div>
+      <div className="flex justify-center">
+      <div className="px-40 max-w-[1200px]">
+      <div className="w-full mt-10">
+        <div className="w-full mt-10">
+                <div className="flex justify-start w-[60%] mb-6">
+                    <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+                        Generate your video
+                    </h1>
+                </div>
+            </div>
       </div>
       <ProgressBar currentStep={currentStep} />
 
-      <div className="w-full max-w-3xl mt-12 mx-auto">
+      <div className="w-full mt-12">
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-medium leading-[24px] tracking-[0%] text-gray-900">
@@ -131,9 +135,9 @@ const TranscriptPage = ({ jsonSource }) => {
         </div>
       </div>
 
-      <div className="flex w-full h-screen">
+      <div className="flex w-full h-[40vh] relative">
         {/* First Column (70%) */}
-        <div className="w-[30%] px-10 mx-[25rem] overflow-y-scroll">
+        <div className="w-full overflow-y-scroll">
           {transcriptData.map((entry, index) => {
             if (!Array.isArray(entry) || entry.length < 4) return null; // Prevent errors
 
@@ -190,7 +194,7 @@ const TranscriptPage = ({ jsonSource }) => {
       {/* Second Column (30%) */}
       {selectedParagraph && (
   <div className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
-    style={{ left: "60%", width: "25%", maxHeight: "auto" }}
+    style={{ right: "2%", bottom:0, width: "43%", maxHeight: "auto" }}
   >
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-2">EMOTION:</label>
@@ -235,19 +239,21 @@ const TranscriptPage = ({ jsonSource }) => {
 )}
       </div>
 
-      <div className="flex justify-between w-full max-w-3xl mt-12 mx-auto">
+      <div className="flex justify-end w-full mt-12 mb-12">
         <button
-          className="px-6 py-3 border border-gray-300 rounded-md text-gray-500"
+          className="px-6 py-1 h-[40px] mr-2 border border-gray-300 rounded-md text-gray-500"
           onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 1))}
         >
           Previous
         </button>
         <button
-          className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800"
+          className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800"
           onClick={() => navigate("/choosecharacter")}
         >
           Next
         </button>
+      </div>
+      </div>
       </div>
     </div>
   );
