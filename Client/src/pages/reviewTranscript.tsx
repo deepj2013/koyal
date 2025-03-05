@@ -194,11 +194,11 @@ const TranscriptPage = ({ jsonSource }) => {
       {/* Second Column (30%) */}
       {selectedParagraph && (
   <div className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
-    style={{ right: "2%", bottom:0, width: "43%", maxHeight: "auto" }}
+    style={{ right: "0", bottom:0, width: "43%", maxHeight: "auto" }}
   >
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-2">EMOTION:</label>
-      <EmotionDropdown selectedEmotion={selectedEmotion} setSelectedEmotion={(emotion) =>
+      <EmotionDropdown selectedEmotion={selectedParagraph.emotion} setSelectedEmotion={(emotion) =>
         setSelectedParagraph((prev) => ({ ...prev, emotion }))
       }/>
     </div>

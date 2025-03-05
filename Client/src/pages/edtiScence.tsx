@@ -69,7 +69,7 @@ const GenerateVideoPage: React.FC = () => {
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
     setEditingScene({ ...scene, index });
-    setNewDescription(scene.description);
+    setNewDescription("");
     setIsModalOpen(true);
   };
 
@@ -209,8 +209,9 @@ const GenerateVideoPage: React.FC = () => {
 
       {/* Description Input */}
       <textarea
-        className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
+        className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200 placeholder-opacity-50"
         rows={4}
+        placeholder="make the character smile"
         value={newDescription}
         onChange={(e) => setNewDescription(e.target.value)}
       />
