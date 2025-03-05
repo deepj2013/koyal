@@ -49,8 +49,8 @@ const TranscriptPage = ({ jsonSource }) => {
     const currentData = [...transcriptData];
   
     const newSection = [
-      currentData[index]?.[1] || "0", // Use previous end time as start
-      "", // Empty end time
+      currentData[index]?.[0] || "0", // Use previous end time as start
+      currentData[index]?.[1], // Empty end time
       "New section", // Default text
       currentData[index]?.[3] || "default" // Inherit emotion
     ];
