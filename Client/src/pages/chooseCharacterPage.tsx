@@ -95,6 +95,20 @@ const ChooseCharacterPage = () => {
   const onConfirm = () => {
     if (stage === Stages.VERIFICATION) {
       setStage(Stages.IDENTIFICATION);
+    } else if (stage === Stages.IDENTIFICATION) {
+      setStage(Stages.CALIBRATION);
+    } else if (stage === Stages.CALIBRATION) {
+      setStage(Stages.ACTION_RECORD);
+    } else if (stage === Stages.ACTION_RECORD) {
+      navigate("/characterSelection")
+    }
+  };
+
+  const getConfirmText = () => {
+    if (stage === Stages.VERIFICATION) {
+      return "Begin Face Verification";
+    } else if (stage === Stages.ACTION_RECORD) {
+      return "Finalize the Character";
     }
   };
 
@@ -269,9 +283,8 @@ const ChooseCharacterPage = () => {
               onClose={() => setIsChooseCharModalOpen(false)}
               onConfirm={onConfirm}
               title="Create New Character"
-              confirmText={
-                stage === Stages.VERIFICATION ? "Begin Face Verification" : null
-              }
+              confirmText={getConfirmText()}
+              isConfirmDisabled={stage === Stages.ACTION_RECORD && !isComplete }
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg">
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">
@@ -325,11 +338,11 @@ const ChooseCharacterPage = () => {
                   )}
                   {stage === "identification" && (
                     <>
-                      <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                      <h2 className="text-lg mb-4 font-[500]">
                         Please enter your information
                       </h2>
-                      <div className="mx-[60px] items-start text-xl text-left ">
-                        <p className="text-gray-700 mb-4">
+                      <div className="items-start text-md text-left ">
+                        <p className="mb-4">
                           Use a unique identifier that isn't part of regular
                           English vocabulary.
                         </p>
@@ -372,33 +385,31 @@ const ChooseCharacterPage = () => {
                     </>
                   )}
                   {stage === "calibration" && (
-                    <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-col">
                       {/* Title */}
-                      <h2 className="text-xl font-bold text-black mb-4">
-                        CALIBRATION
-                      </h2>
+                      <h2 className="text-lg  font-[500]">CALIBRATION</h2>
 
                       {/* Instructions (Centered, Proper Spacing) */}
-                      <div className=" p-4 w-[80%] md:w-[50%] mb-4">
-                        <p className="text-gray-700">
+                      <div className=" p-4 text-left mb-4">
+                        <p className="text-gray-700 mb-3">
                           Please keep your head in a neutral position and look
                           straight at the camera.
                         </p>
-                        <p className="text-gray-700">
+                        <p className="text-gray-700 mb-3">
                           Try to maintain similar positioning for the test.
                         </p>
                         <p className="text-gray-700">Click start to begin.</p>
                       </div>
 
                       {/* Progress Indicator */}
-                      <p className="text-black font-bold">
+                      <p className="text-black font-medium text-left pl-4">
                         Calibration progress:{" "}
                         <span className="font-bold">30 frames remaining</span>
                       </p>
 
                       {/* Start Button (Bordered with Red & Hover Effect) */}
                       <button
-                        className="border border-black-900 rounded-lg px-6 py-3 mt-6 text-black font-bold hover:bg-black-900 hover:text-white-200 transition-shadow shadow-sm hover:shadow-md"
+                        className="border border-black-900 rounded-lg px-6 py-3 ml-4 mt-6 text-black font-bold hover:bg-black-900 hover:text-white-200 transition-shadow shadow-sm hover:shadow-md"
                         onClick={() => setStage("actionRecord")}
                       >
                         Start Calibration
@@ -431,14 +442,9 @@ const ChooseCharacterPage = () => {
                               key={index}
                               className={`relative flex items-center justify-center p-3 rounded-lg w-96 border-2
         ${
-          index === currentAction
-            ? "bg-black text-white"
-            : "bg-white text-black"
-        }
-        ${
           completedActions.includes(index)
-            ? "border-green-500 text-black"
-            : "border-gray-400"
+            ? "border-green-500 text-black bg-white"
+            : "border-gray-400 bg-black text-white"
         }`}
                             >
                               {/* Number Circle Positioned Outside on the Left */}

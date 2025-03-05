@@ -1,4 +1,12 @@
-export const Modal = ({ isOpen, onClose, title, children, confirmText, onConfirm }) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  confirmText,
+  onConfirm,
+  isConfirmDisabled,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -28,7 +36,10 @@ export const Modal = ({ isOpen, onClose, title, children, confirmText, onConfirm
 
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 rounded-lg transition 
+             bg-blue-600 text-white hover:bg-blue-700 
+             disabled:opacity-50 disabled:bg-blue-600 disabled:text-gray-200 disabled:cursor-not-allowed"
+            disabled={isConfirmDisabled}
           >
             {confirmText ? confirmText : "Confirm"}
           </button>
