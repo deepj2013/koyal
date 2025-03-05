@@ -27,7 +27,7 @@ import instagramicon from "../assets/images/instagram.png";
 import twittericon from "../assets/images/twitter.png";
 import readcvicon from "../assets/images/readcv.png";
 import discardicon from "../assets/images/discard.png";
-
+import '../styles/home.css'
 
 const images = {
   Realistic: Realstic,
@@ -67,7 +67,7 @@ const Home = () => {
     <div className="relative h-screen overflow-y-hidden">
       {/* Background Video */}
       {/* Inline Menu (Sticky) */}
-      <div className="fixed top-4 right-4 bg-white backdrop-blur-md px-4 py-2 rounded-full flex items-center space-x-4 z-50 shadow-lg">
+      <div className="fixed top-6 right-4 bg-white backdrop-blur-md px-4 py-2 rounded-full flex items-center space-x-4 z-50 shadow-lg">
         <span
           className="text-sm cursor-pointer text-black font-semibold"
           onClick={() => handleScroll("section1")}
@@ -100,7 +100,7 @@ const Home = () => {
 
           {/* Navbar */}
           <nav className="absolute z-10 w-full bg-transparent text-white">
-            <div className="container mx-auto pr-[18rem] px-2 py-1 flex  items-center">
+            <div className="mx-auto pr-[18rem] px-5 py-6 flex  items-center">
               {/* Logo (Left Aligned) */}
               <div className="flex items-center space-x-4">
                 <img src={logo} alt="Logo" className="w-30 h-13" />
@@ -108,7 +108,7 @@ const Home = () => {
 
               {/* Powered By Section (Centered) */}
               <div className="hidden md:flex inset-x-0 mx-auto w-max bg-black/30 backdrop-blur-md px-6 py-2 rounded-full items-center space-x-4">
-                <span className="text-sm font-medium text-gray-200">
+                <span className="text-[1.1rem] font-medium text-gray-200">
                   Powered by researchers from
                 </span>
                 <span className="text-gray-200">—</span>
@@ -149,17 +149,17 @@ const Home = () => {
           </video>
           <WaitingListModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
           {/* Subsection 1 */}
-          <div className=" flex flex-col justify-center items-start px-20 snap-start pt-40">
+          <div className=" flex flex-col justify-center items-start px-5 snap-start pt-40">
             {/* Left-aligned heading with 30% blank space on the right */}
             <div className="flex flex-row w-full">
-              <div className="w-[100%] z-10">
-                <h1 className="text-[70px] font-inter font-bold leading-[83px] text-white">
+              <div className="z-10">
+                <h1 className="text-[84px] font-inter font-bold leading-[83px] text-white">
                   Turn your audio into engaging <br />
                   storytelling video with <br />
                   consistent characters and <br />scenes using Koyal
                 </h1>
-                <hr className="w-[60%] mt-2 border-2" />
-                <p className=" w-[60%] font-inter mt-3 text-[23px] text-white">
+                <hr className="w-[60%] mt-6 border-2" />
+                <p className=" w-[60%] font-inter mt-6 text-[18px] text-white tracking-[-0.72px] eading-[21.6px]">
                   Koyal's AI-powered platform allows you to seamlessly convert audio
                   into personalized, visually compelling stories. With its suite of multimodal AI generation and translation models,
                   Koyal generates custom characters, settings,
@@ -221,9 +221,12 @@ const Home = () => {
 
               {/* Video Display Section */}
               <div className="rounded-lg   overflow-hidden w-[50rem] h-[40rem] flex items-center justify-center p-10 relative">
-               <div className="bg-black/20 backdrop-blur-md m-5">
+              <div className="bg-[#030400]/20 backdrop-blur-md ">
+              <div className="bg-black/20 backdrop-blur-md m-[70px_100px_100px]">
                 <VideoPlayer videoSrc={images[activeStyle]} className="pointer-events-auto" />
                 </div>
+               </div>
+              
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevious}
@@ -253,7 +256,7 @@ const Home = () => {
         {/* Section 2 */}
         <section
           id="section1"
-          className="relative flex flex-col items-center justify-center px-20 py-10 bg-[#f9f6f1] text-black"
+          className="relative flex flex-col items-center justify-center px-20 py-10 bg-[#FFF8EF] text-black"
         >
           {/* Background Circles */}
           <div className="absolute z-10 top-0 w-[60%]  flex justify-center items-center overflow-hidden">
@@ -280,7 +283,7 @@ const Home = () => {
           {/* Two-Column Section */}
           <div className="flex flex-wrap w-full m-[5rem]  relative z-10">
             {/* Left Column: Expandable Options */}
-            <div className="w-full md:w-1/2 pr-12 ">
+            <div className="w-full md:w-1/2 lg:w-[40%] pr-12 ">
               {/* Option 1 */}
               <div className="border-b border-gray-300 pb-8 mb-12">
                 <button
@@ -292,7 +295,7 @@ const Home = () => {
                     {activeOption === "advertisers" ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6"
+                        className="w-10 h-10"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -307,7 +310,7 @@ const Home = () => {
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6"
+                        className="w-10 h-10"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -355,7 +358,7 @@ const Home = () => {
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6"
+                        className="w-10 h-10"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -388,7 +391,7 @@ const Home = () => {
                     {activeOption === "musicians" ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6"
+                        className="w-10 h-10"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -403,7 +406,7 @@ const Home = () => {
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6"
+                        className="w-10 h-10"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -427,7 +430,7 @@ const Home = () => {
             </div>
 
             {/* Right Column: Dynamic Image Display */}
-            <div className="w-full md:w-1/2 flex justify-center items-center p-4">
+            <div className="w-full md:w-1/2 lg:w-[60%] flex justify-center">
               {activeOption === "advertisers" && (
                 <VideoPlayer videoSrc={Cartoon} />
               )}
@@ -443,7 +446,7 @@ const Home = () => {
           {/* Footer Section */}
 
 
-          <div className="relative flex items-center justify-center m-[8rem]   w-full px-4">
+          <div className="relative flex items-center justify-center m-[6rem]   w-full px-4">
             {/* Left Image (Background) */}
             <img
               src={usecaseimgright}
@@ -493,7 +496,7 @@ const Home = () => {
               </span>
               <span className="inline-flex items-center space-x-2">
                 {/* Arrow Image (Immediately After C.H.A.R.C.H.A.) */}
-                <img src={arrow} className="w-10 h-10 inline-block" alt="Arrow" />
+                {/* <img src={arrow} className="w-10 h-10 inline-block" alt="Arrow" /> */}
               </span>
 
               {/* Patent Pending (Positioned Below the Arrow) */}
@@ -612,7 +615,7 @@ const Home = () => {
                 <p className="text-[15px] font-medium text-gray-400 font-inter">
                   Turn audio to video seamlessly
                 </p>
-                <button className="px-6 py-2 bg-white text-black rounded-full font-semibold hover:bg-gray-200"
+                <button className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold hover:bg-gray-200 custom-btn-border"
                   onClick={() => setModalOpen(true)}>
                   Join the waitlist
                 </button>
@@ -674,7 +677,7 @@ const Home = () => {
 
               {/* Right Aligned Icons */}
               <div className="flex space-x-4">
-                <a href="#" className="text-white hover:text-gray-400">
+                {/* <a href="#" className="text-white hover:text-gray-400">
                   <img src={twittericon} alt="Twitter" className="w-6 h-6" />
                 </a>
                 <a href="#" className="text-white hover:text-gray-400">
@@ -682,7 +685,7 @@ const Home = () => {
                 </a>
                 <a href="#" className="text-white hover:text-gray-400">
                   <img src={discardicon} alt="Discord" className="w-6 h-6" />
-                </a>
+                </a> */}
                 <a href="#" className="text-white hover:text-gray-400">
                   <img src={instagramicon} alt="Instagram" className="w-6 h-6" />
                 </a>

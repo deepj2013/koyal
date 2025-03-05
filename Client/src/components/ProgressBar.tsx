@@ -17,7 +17,7 @@ const steps = [
 
 const ProgressBar = ({ currentStep }) => {
   return (
-    <div className="flex items-center justify-center w-full py-6">
+    <div className="flex items-center justify-around w-full py-6">
       {steps.map((step, index) => (
         <div key={step.id} className="flex items-center">
           {/* Step Circle and Label */}
