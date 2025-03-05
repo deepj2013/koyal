@@ -121,7 +121,7 @@ const TranscriptPage = ({ jsonSource }) => {
                 key !== "default" && (
                   <div className="flex items-center space-x-2" key={key}>
                     <span className={`w-4 h-4 rounded-full ${color} border border-gray-300`}></span>
-                    <span className="text-[14px] font-normal leading-[20px] text-gray-700 capitalize">
+                    <span className="text-[15px] font-bold leading-[20px] text-gray-700 capitalize">
                       {key}
                     </span>
                   </div>
