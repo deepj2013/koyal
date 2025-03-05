@@ -83,37 +83,45 @@ const ChooseCharacterPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <h1 className="text-2xl font-semibold text-gray-900  text-center">Generate your video</h1>
-      <div className="px-2">
+      <div className="flex justify-center">
+            <div className="px-40 max-w-[1200px]">
+      <div className="w-full mt-10">
+                <div className="flex justify-start w-[60%] mb-6">
+                    <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+                        Generate your video
+                    </h1>
+                </div>
+            </div>
+      <div>
         <ProgressBar currentStep={3} />
         {stage === "default" && (
-          <div className="w-full max-w-3xl mx-auto bg-transparent border-none shadow-none">
-            <p className="text-gray-700 mb-3">
+          <div className="w-full bg-transparent border-none shadow-none">
+            <p className="text-[#101828] mb-3">
               Describe the theme for the video that Koyal will create <span className="text-red-500">*</span>
             </p>
-            <p className="text-gray-400 text-[16px] font-inter font-normal leading-[24px] tracking-normal">
+            <p className="text-[#475467] text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
               Click to edit text or press button to completely change the theme
             </p>
             <textarea
-        className="w-full h-32 p-3 border rounded-md bg-transparent text-gray-700"
+        className="w-full h-32 p-3 mb-3 border rounded-md bg-transparent text-gray-700"
         rows="4"
         value={themeText} // Bound to state
         readOnly
       />
             <button
               onClick={handleOpenModal}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 h-[56px]">
               Describe new theme
             </button>
-            <p className="text-gray-700 mt-6">Do you want your likeness in the video?<span className="text-red-500">*</span></p>
-            <p className="text-gray-400 text-[16px] font-inter font-normal leading-[24px] tracking-normal"> You can train your face using our secure personalization protocol or describe a custom main character for the final video</p>
+            <p className="text-[#101828] mt-6">Do you want your likeness in the video?<span className="text-red-500">*</span></p>
+            <p className="text-[#475467]  text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3"> You can train your face using our secure personalization protocol or describe a custom main character for the final video</p>
             <div className="flex flex-col space-y-4">
       {/* Yes/No Selection */}
       <div className="flex space-x-4">
         {/* Yes Option */}
         <label
           className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-            ${selected === "yes" ? "bg-black text-white border-black" : "bg-white text-gray-700 border-gray-300"}`}
+            ${selected === "yes" ? "bg-white text-gray-700 border-gray-400" : "bg-white text-gray-700 border-gray-300"}`}
         >
           <input
             type="radio"
@@ -123,8 +131,8 @@ const ChooseCharacterPage = () => {
             onChange={() => setSelected("yes")} // Just update state
           />
           <span className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-            ${selected === "yes" ? "border-white bg-black" : "border-gray-500 bg-white"}`}>
-            {selected === "yes" && <span className="w-2.5 h-2.5 bg-white rounded-full"></span>}
+            ${selected === "yes" ? "border-black bg-white" : "border-gray-500 bg-white"}`}>
+            {selected === "yes" && <span className="w-2.5 h-2.5 bg-black rounded-full"></span>}
           </span>
           Yes
         </label>
@@ -160,18 +168,31 @@ const ChooseCharacterPage = () => {
       )}
     </div>
 
-            <p className="text-gray-800 mt-1 inline-flex items-center">
+            <p className="text-gray-400 mt-6 inline-flex items-center">
               If you’ve already trained your own character,
               <a className="text-green-600 font-bold ml-1" href="#">Use an existing character</a>
             </p>
           </div>
         )}
+              <div className="flex justify-end w-full mt-12 mb-12">
+        <button
+          className="px-6 py-1 h-[40px] mr-2 border border-gray-300 rounded-md text-gray-500"
+        >
+          Previous
+        </button>
+        <button
+          className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800"
+        >
+          Next
+        </button>
+      </div>
+
 
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
             <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-6 w-[90%] max-w-md relative z-50 border border-white/20">
               <button onClick={handleCloseModal} className="absolute top-3 right-3 text-white hover:text-gray-300 text-xl">✖</button>
-              <h2 className="text-xl font-semibold text-white text-center mb-4">Describe how you want the new theme to be</h2>
+              <h2 className="text-[18px] text-white text-center mb-4">Describe how you want the new theme to be</h2>
               <textarea className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200" rows="4" placeholder="Make the video more vibrant and colorful."></textarea>
               <button
               onClick={handleSaveTheme}
@@ -354,6 +375,8 @@ const ChooseCharacterPage = () => {
 
 
       </div>
+    </div>
+    </div>
     </div>
   );
 };
