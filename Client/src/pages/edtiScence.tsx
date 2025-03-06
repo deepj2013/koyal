@@ -164,10 +164,15 @@ const GenerateVideoPage: React.FC = () => {
       <Navbar />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
-          <h1 className="text-2xl font-semibold text-gray-900 text-center my-6">
-            Generate your video
-          </h1>
-          <div className="px-4 text-center">
+          
+          <div className="w-full mt-10">
+                <div className="flex justify-start w-[60%] mb-6">
+                    <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+                        Generate your video
+                    </h1>
+                </div>
+            </div>
+          <div className="text-center">
             <ProgressBar currentStep={5} />
           </div>
           <div className="max-w-5xl mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
