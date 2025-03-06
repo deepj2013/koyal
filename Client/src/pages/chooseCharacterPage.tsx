@@ -116,7 +116,7 @@ const ChooseCharacterPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex justify-center">
-        <div className="px-40 max-w-[1200px]">
+        <div className="px-20 max-w-[1200px]">
           <div className="w-full mt-10">
             <div className="flex justify-start w-[60%] mb-6">
               <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">

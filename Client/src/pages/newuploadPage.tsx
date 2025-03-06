@@ -54,7 +54,7 @@ const AudioUploadPage = () => {
         <div className="h-screen flex flex-col bg-white">
             <Navbar />
             <div className="flex justify-center">
-            <div className="px-40 max-w-[1200px]">
+            <div className="px-20 max-w-[1200px]">
             {/* Main Content */}
             <div className="w-full mt-10">
                 <div className="flex justify-start w-[60%] mb-6">
