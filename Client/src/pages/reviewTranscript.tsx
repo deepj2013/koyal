@@ -135,7 +135,7 @@ const TranscriptPage = ({ jsonSource }) => {
         </div>
       </div>
 
-      <div className="flex w-full h-[40vh] relative">
+      <div className="flex w-full h-[40vh] relative border-[1px] border-solid border-[rgba(52,64,84,0.5)] p-3 pr-0 rounded-[12px]">
         {/* First Column (70%) */}
         <div className="w-full overflow-y-scroll">
           {transcriptData.map((entry, index) => {
@@ -193,8 +193,8 @@ const TranscriptPage = ({ jsonSource }) => {
 
       {/* Second Column (30%) */}
       {selectedParagraph && (
-  <div className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
-    style={{ right: "0", bottom:0, width: "43%", maxHeight: "auto" }}
+  <div className="shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] absolute bg-gray-100 shadow-lg p-6 rounded-md"
+    style={{ right: "-1px", bottom:0, width: "43%", maxHeight: "auto" }}
   >
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-2">EMOTION:</label>
