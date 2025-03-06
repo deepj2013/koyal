@@ -119,8 +119,8 @@ const AudioUploadPage = () => {
             {["Music", "Podcast", "Voiceover"].map((type) => (
                 <button
                     key={type}
-                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white" : "text-gray-800"
-                        } hover:bg-gray-100 focus:ring-2 focus:ring-black`}
+                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white hover:bg-gray-700" : "text-gray-800 hover:bg-gray-100"
+                        } focus:ring-2 focus:ring-black`}
                     onClick={() => {
                         setSelectedAudioType(type); // Ensure selection happens first
                         setTimeout(() => document.getElementById("file-input").click(), 0); // Ensures single click
