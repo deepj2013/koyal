@@ -107,6 +107,10 @@ const ChooseCharacterPage = () => {
   const getConfirmText = () => {
     if (stage === Stages.VERIFICATION) {
       return "Begin Face Verification";
+    } else if (stage === Stages.IDENTIFICATION) {
+      return "Continue";
+    } else if (stage === Stages.CALIBRATION) {
+      return "Start Calibration";
     } else if (stage === Stages.ACTION_RECORD) {
       return "Finalize the Character";
     }
@@ -290,7 +294,7 @@ const ChooseCharacterPage = () => {
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">
                   <video
                     ref={videoRef}
-                    className="w-full h-auto rounded-xl"
+                    className="w-full h-auto rounded-xl object-cover"
                     autoPlay
                     playsInline
                   ></video>
@@ -376,12 +380,12 @@ const ChooseCharacterPage = () => {
                       </select>
 
                       {/* Continue Button */}
-                      <button
+                      {/* <button
                         className="border border-gray-500 rounded-lg p-3 w-full text-gray-900 font-bold hover:bg-gray-900 hover:text-white"
                         onClick={() => setStage("calibration")}
                       >
                         Continue
-                      </button>
+                      </button> */}
                     </>
                   )}
                   {stage === "calibration" && (
@@ -408,12 +412,12 @@ const ChooseCharacterPage = () => {
                       </p>
 
                       {/* Start Button (Bordered with Red & Hover Effect) */}
-                      <button
+                      {/* <button
                         className="border border-black-900 rounded-lg px-6 py-3 ml-4 mt-6 text-black font-bold hover:bg-black-900 hover:text-white-200 transition-shadow shadow-sm hover:shadow-md"
                         onClick={() => setStage("actionRecord")}
                       >
                         Start Calibration
-                      </button>
+                      </button> */}
                     </div>
                   )}
                   {stage === "actionRecord" && (
@@ -485,14 +489,14 @@ const ChooseCharacterPage = () => {
                       )}
 
                       {/* Final Button Appears After Completion, Waits for User Click */}
-                      {isComplete && (
+                      {/* {isComplete && (
                         <button
                           className="bg-black text-white px-6 py-3 rounded-lg mt-6 border border-red-500 shadow-lg"
                           onClick={() => navigate("/characterSelection")}
                         >
                           Continue to Narrative
                         </button>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </div>

@@ -17,7 +17,7 @@ export const Modal = ({
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-800"
+              className="text-gray-500 hover:text-gray-800 font-bold"
             >
               X
             </button>
