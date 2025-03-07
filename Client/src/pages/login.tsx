@@ -2,6 +2,7 @@ import React from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
 import logo from "../assets/images/Nav.svg";
 import { useNavigate } from "react-router-dom";
+import { FaArrowRight } from "react-icons/fa";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -21,9 +22,9 @@ const Login = () => {
             </div>
 
             {/* Right Section: Form */}
-            <div className="w-1/2 bg-white flex flex-col justify-center items-center p-8 relative">
+            <div className="w-1/2 bg-white flex flex-col justify-center p-20 relative pt-0">
                 {/* Logo */}
-                <div className="absolute top-[10%] left-[10%]">
+                <div className="absolute top-[10%] left-20">
                     <img
                         src={logo} // Replace with the correct logo path
                         alt="Koyal Logo"
@@ -32,7 +33,7 @@ const Login = () => {
                 </div>
 
                 {/* Form */}
-                <div className="w-3/4 mt-12">
+                <div className="w-[85%] xl:w-[75%] px-2">
                     <h1 className="text-[32px] font-medium leading-[24px] tracking-[0%] font-inter mb-4">
                         Get started
                     </h1>
@@ -82,7 +83,7 @@ const Login = () => {
                         onClick={() => navigate("/upload")}
                     >
                         <span>Start creating</span>
-                        <span>→</span>
+                        <FaArrowRight/>
                     </button>
 
                     {/* Instructions */}

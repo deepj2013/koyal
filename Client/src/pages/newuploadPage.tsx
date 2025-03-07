@@ -53,10 +53,12 @@ const AudioUploadPage = () => {
     return (
         <div className="h-screen flex flex-col bg-white">
             <Navbar />
+            <div className="flex justify-center">
+            <div className="px-20 max-w-[1200px]">
             {/* Main Content */}
-            <div className="flex flex-col items-center w-full px-8 mt-10">
+            <div className="w-full mt-10">
                 <div className="flex justify-start w-[60%] mb-6">
-                    <h1 className="text-[32px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+                    <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
                         Generate your video
                     </h1>
                 </div>
@@ -64,17 +66,17 @@ const AudioUploadPage = () => {
             <ProgressBar currentStep={currentStep} />
 
             {/* Form Section */}
-            <div className="w-full max-w-3xl mt-12 space-y-12 mx-auto">
+            <div className="w-full mt-12 space-y-12">
                 {/* Select Audio Type */}
                 <div>
                     <h2 className="text-[16px] font-medium leading-[24px] tracking-[0%] text-gray-900 mb-2">
                         Select your audio type to upload<span className="text-red-500">*</span>
                     </h2>
-                    <p className="text-[16px] font-normal leading-[24px] tracking-[0%] text-gray-500 mb-4">
+                    <p className="text-[16px] font-normal leading-[24px] tracking-[0%] text-gray-500">
                         Files supported: MP3, WAV
                     </p>
                     {uploadedFile ? (
-    <div className="border-2 border-blue-500 p-4 rounded-lg shadow-md">
+    <div className="border-2 border-blue-500 py-4 rounded-lg shadow-md">
         <div className="flex items-center justify-between">
             {/* Music Icon */}
             <div className="flex items-center space-x-4">
@@ -117,8 +119,8 @@ const AudioUploadPage = () => {
             {["Music", "Podcast", "Voiceover"].map((type) => (
                 <button
                     key={type}
-                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white" : "text-gray-800"
-                        } hover:bg-gray-100 focus:ring-2 focus:ring-black`}
+                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white hover:bg-gray-700" : "text-gray-800 hover:bg-gray-100"
+                        } focus:ring-2 focus:ring-black`}
                     onClick={() => {
                         setSelectedAudioType(type); // Ensure selection happens first
                         setTimeout(() => document.getElementById("file-input").click(), 0); // Ensures single click
@@ -140,11 +142,11 @@ const AudioUploadPage = () => {
 
 
                     {/* Is the audio in English? */}
-                    <div>
+                    <div className="mt-8">
                         <h2 className="text-[16px] font-medium leading-[24px] tracking-[0%] text-gray-900 mb-2">
                             Is the primary spoken language in the audio file going to be English?
                         </h2>
-                        <p className="text-[16px] font-normal leading-[24px] tracking-[0%] text-gray-500 mb-4">
+                        <p className="text-[16px] font-normal leading-[24px] tracking-[0%] text-gray-500 mb-5">
                             Knowing this helps us transcribe the audio better :)
                         </p>
                         <div className="flex space-x-4">
@@ -163,12 +165,12 @@ const AudioUploadPage = () => {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between w-full max-w-3xl mt-12 mx-auto">
-                    <button className="px-6 py-3 border border-gray-300 rounded-md text-gray-500">
+                <div className="flex justify-end w-full mt-12 mx-auto">
+                    <button className="px-6 py-1 mr-2 h-[40px] border border-gray-300 rounded-md text-gray-500">
                         Previous
                     </button>
                     <button
-                        className={`px-6 py-3 rounded-md relative group ${!uploadedFile
+                        className={`px-6 py-1 h-[40px] rounded-md relative group ${!uploadedFile
                                 ? "bg-gray-300 text-gray-800"
                                 : "bg-black text-white hover:bg-gray-800"
                             }`}
@@ -177,12 +179,14 @@ const AudioUploadPage = () => {
                     >
                         Next
                         {!uploadedFile && (
-                            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-4 bg-black text-white text-[16px] font-normal leading-[24px] tracking-[0%] px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-4 bg-black text-white text-[16px] font-normal leading-[24px] tracking-[0%] px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity min-w-[220px] ">
                                 Please upload audio to move to next step
                             </span>
                         )}
                     </button>
                 </div>
+            </div>
+            </div>
             </div>
         </div>
     );

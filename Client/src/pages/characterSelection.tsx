@@ -6,6 +6,7 @@ import ProgressBar from "../components/ProgressBar";
 import Realstic from "../assets/images/mehul_real.png";
 import Cartoon from "../assets/images/mehul_anime.png";
 import Sketch from "../assets/images/mehul_sketch.png";
+import { FaArrowRight } from "react-icons/fa";
 
 
 
@@ -24,34 +25,46 @@ const CharacterSelectionPage = ({ setStage }) => {
 
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <h1 className="text-2xl font-semibold text-gray-900  text-center">Generate your video</h1>
-      <div className="px-2 text-center">
+      <div className="flex justify-center">
+      <div className="px-20 max-w-[1200px]">
+      <div className="w-full mt-10">
+        <div className="w-full mt-10">
+                <div className="flex justify-start w-[60%] mb-6">
+                    <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
+                        Generate your video
+                    </h1>
+                </div>
+            </div>
+      </div>
+      <div>
         <ProgressBar currentStep={4} />
 
 
-        <div className="w-full min-h-screen bg-white flex flex-col items-center py-6">
+        <div className="w-full min-h-screen bg-white flex flex-col py-6">
           {/* Title */}
-          <h1 className="text-2xl font-bold text-gray-900">Choose your main character’s look & art style for the video</h1>
-          <p className="text-gray-500 text-sm mt-1 w-3/4 text-center">
+          <div>
+          <h1 className="text-lg font-bold text-gray-900">Choose your main character’s look & art style for the video</h1>
+          <p className="text-gray-500 text-sm mt-1 w-full leading-[24px]">
             You can use the prompt bar to describe the look of the main character & then choose an art style for the final video
           </p>
 
           {/* Input & Change Look Button */}
-          <div className="flex items-center mt-4 w-3/4 bg-gray-200 rounded-xl p-2">
+          <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
             
             <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none" > mehulagarwal, White linen shirt, khaki shorts </textarea>
             <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
-              Change Look →
+              Change Look <span className="ml-2"><FaArrowRight/></span>
             </button>
+          </div>
           </div>
 
           {/* Character Styles */}
           <div className="flex flex-col mt-6 space-y-6">
-  <div className="flex space-x-6">
+  <div className="flex space-x-6 px-8">
     {styles.map((style) => (
       <div
         key={style.name}
-        className={`relative p-2 rounded-lg transition-all cursor-pointer overflow-hidden`}
+        className={`relative rounded-lg transition-all cursor-pointer overflow-hidden`}
         onClick={() => setSelectedStyle(style.name)}
       >
         <img src={style.image} alt={style.name} className="w-80 h-68 rounded-lg transition-transform duration-300" />
@@ -113,13 +126,15 @@ const CharacterSelectionPage = ({ setStage }) => {
 </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between w-3/4 mt-6">
-            <button className="px-6 py-2 border border-gray-400 text-gray-700 rounded-md bg-white hover:bg-gray-200">Previous</button>
+          <div className="flex justify-end w-full mt-6">
+            <button className="px-6 py-2 mr-2 border border-gray-400 text-gray-700 rounded-md bg-white hover:bg-gray-200">Previous</button>
             <button className="px-6 py-2 bg-black text-white rounded-md shadow-md hover:bg-gray-900"
              onClick={() => navigate("/editscene")}>Next</button>
           </div>
         </div>    
         </div>
+    </div>
+    </div>
     </div>
   );
 };
