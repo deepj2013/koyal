@@ -14,8 +14,8 @@ import Realstic from "../assets/images/mehul_real.png";
 import Cartoon from "../assets/images/mehul_anime.png";
 import Sketch from "../assets/images/mehul_sketch.png";
 import { FaArrowRight } from "react-icons/fa";
-import { IoPhonePortraitOutline } from "react-icons/io5";
-import { IoPhoneLandscapeOutline } from "react-icons/io5";
+import { IoTabletPortraitOutline } from "react-icons/io5";
+import { IoTabletLandscapeOutline } from "react-icons/io5";
 import { IoSquareOutline } from "react-icons/io5";
 
 import { CharacterStyles, VideoOrientationStyles } from "../utils/constants";
@@ -104,166 +104,160 @@ const CharacterSelectionPage = ({ setStage }) => {
                 </div>
 
                 {/* Show Lipsync Section below the images if style.name is Realistic */}
-                {(selectedStyle === CharacterStyles.REALISTIC ||
-                  selectedStyle === CharacterStyles.SKETCH) && (
-                  <div className="mt-4 p-4 border rounded-lg">
-                    {selectedStyle === CharacterStyles.REALISTIC && (
-                      <div className="mb-4">
-                        <p className="font-semibold mb-2">
-                          Do you want to add lipsync to your video?
-                        </p>
-                        <div className="flex space-x-4">
-                          <label
-                            className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                            ${
-                              selected === "yes"
-                                ? "bg-black text-white border-black"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                            onClick={() => setSelected("yes")}
-                          >
-                            <input
-                              type="radio"
-                              name="likeness"
-                              value="yes"
-                              className="hidden"
-                            />
-                            {/* Custom Radio Button Circle */}
-                            <span
-                              className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-                              ${
-                                selected === "yes"
-                                  ? "border-black bg-white"
-                                  : "border-gray-500 bg-white"
-                              }`}
-                            >
-                              {selected === "yes" && (
-                                <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                              )}
-                            </span>
-                            Yes
-                          </label>
-
-                          <label
-                            className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                            ${
-                              selected === "no"
-                                ? "bg-black text-white border-black"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                            onClick={() => setSelected("no")}
-                          >
-                            <input
-                              type="radio"
-                              name="likeness"
-                              value="no"
-                              className="hidden"
-                            />
-                            {/* Custom Radio Button Circle */}
-                            <span
-                              className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-                              ${
-                                selected === "no"
-                                  ? "border-black bg-white"
-                                  : "border-gray-500 bg-white"
-                              }`}
-                            >
-                              {selected === "no" && (
-                                <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                              )}
-                            </span>
-                            No
-                          </label>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Choose video orientation for Realistic or Sketch */}
-                    <div>
-                      <p className="font-semibold mb-2">
-                        Choose Video Orientation
-                      </p>
-                      <div className="flex space-x-4">
-                        {/* Portrait */}
-                        <label
-                          className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                <div className="mt-4 p-4 border rounded-lg">
+                  {/* Choose video orientation for Realistic or Sketch */}
+                  <div className="mb-4">
+                    <p className="font-semibold mb-2">
+                      Choose Video Orientation
+                    </p>
+                    <div className="flex space-x-4">
+                      {/* Portrait */}
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                             ${
                               orientationStyle ===
                               VideoOrientationStyles.PORTRAIT
                                 ? "bg-black text-white border-black"
                                 : "bg-white text-gray-700 border-gray-300"
                             }`}
-                          onClick={() =>
-                            setOrientationStyle(VideoOrientationStyles.PORTRAIT)
-                          }
-                        >
-                          {/* Portrait Icon */}
-                          <IoPhonePortraitOutline
-                            className={`w-6 h-6 mr-2 transition-colors duration-200 
+                        onClick={() =>
+                          setOrientationStyle(VideoOrientationStyles.PORTRAIT)
+                        }
+                      >
+                        {/* Portrait Icon */}
+                        <IoTabletPortraitOutline
+                          className={`w-6 h-6 mr-2 transition-colors duration-200 
                               ${
                                 orientationStyle ===
                                 VideoOrientationStyles.PORTRAIT
                                   ? "text-white"
                                   : "text-gray-700"
                               }`}
-                          />
-                          Portrait
-                        </label>
+                        />
+                        Portrait
+                      </label>
 
-                        {/* Square */}
-                        <label
-                          className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                            ${
-                              orientationStyle === VideoOrientationStyles.SQUARE
-                                ? "bg-black text-white border-black"
-                                : "bg-white text-gray-700 border-gray-300"
-                            }`}
-                          onClick={() =>
-                            setOrientationStyle(VideoOrientationStyles.SQUARE)
-                          }
-                        >
-                          <IoSquareOutline
-                            className={`w-6 h-6 mr-2 transition-colors duration-200 
-                              ${
-                                orientationStyle ===
-                                VideoOrientationStyles.SQUARE
-                                  ? "text-white"
-                                  : "text-gray-700"
-                              }`}
-                          />
-                          Square
-                        </label>
-
-                        {/* Landscape */}
-                        <label
-                          className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                      {/* Landscape */}
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                             ${
                               orientationStyle ===
                               VideoOrientationStyles.LANDSCAPE
                                 ? "bg-black text-white border-black"
                                 : "bg-white text-gray-700 border-gray-300"
                             }`}
-                          onClick={() =>
-                            setOrientationStyle(
-                              VideoOrientationStyles.LANDSCAPE
-                            )
-                          }
-                        >
-                          <IoPhoneLandscapeOutline
-                            className={`w-6 h-6 mr-2 transition-colors duration-200 
+                        onClick={() =>
+                          setOrientationStyle(VideoOrientationStyles.LANDSCAPE)
+                        }
+                      >
+                        <IoTabletLandscapeOutline
+                          className={`w-7 h-6 mr-2 transition-colors duration-200 
                               ${
                                 orientationStyle ===
                                 VideoOrientationStyles.LANDSCAPE
                                   ? "text-white"
                                   : "text-gray-700"
                               }`}
+                        />
+                        Landscape
+                      </label>
+
+                      {/* Square */}
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                            ${
+                              orientationStyle === VideoOrientationStyles.SQUARE
+                                ? "bg-black text-white border-black"
+                                : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                        onClick={() =>
+                          setOrientationStyle(VideoOrientationStyles.SQUARE)
+                        }
+                      >
+                        <IoSquareOutline
+                          className={`w-6 h-6 mr-2 transition-colors duration-200 
+                              ${
+                                orientationStyle ===
+                                VideoOrientationStyles.SQUARE
+                                  ? "text-white"
+                                  : "text-gray-700"
+                              }`}
+                        />
+                        Square
+                      </label>
+                    </div>
+                  </div>
+                  {selectedStyle !== CharacterStyles.CARTOON && (
+                    <div>
+                      <p className="font-semibold mb-2">
+                        Do you want to add lipsync to your video?
+                      </p>
+                      <div className="flex space-x-4">
+                        <label
+                          className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                            ${
+                              selected === "yes"
+                                ? "bg-black text-white border-black"
+                                : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                          onClick={() => setSelected("yes")}
+                        >
+                          <input
+                            type="radio"
+                            name="likeness"
+                            value="yes"
+                            className="hidden"
                           />
-                          Landscape
+                          {/* Custom Radio Button Circle */}
+                          <span
+                            className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
+                              ${
+                                selected === "yes"
+                                  ? "border-black bg-white"
+                                  : "border-gray-500 bg-white"
+                              }`}
+                          >
+                            {selected === "yes" && (
+                              <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
+                            )}
+                          </span>
+                          Yes
+                        </label>
+
+                        <label
+                          className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                            ${
+                              selected === "no"
+                                ? "bg-black text-white border-black"
+                                : "bg-white text-gray-700 border-gray-300"
+                            }`}
+                          onClick={() => setSelected("no")}
+                        >
+                          <input
+                            type="radio"
+                            name="likeness"
+                            value="no"
+                            className="hidden"
+                          />
+                          {/* Custom Radio Button Circle */}
+                          <span
+                            className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
+                              ${
+                                selected === "no"
+                                  ? "border-black bg-white"
+                                  : "border-gray-500 bg-white"
+                              }`}
+                          >
+                            {selected === "no" && (
+                              <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
+                            )}
+                          </span>
+                          No
                         </label>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Navigation Buttons */}
