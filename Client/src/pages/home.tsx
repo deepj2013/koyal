@@ -186,6 +186,8 @@ const Home = () => {
             <source src={homebg} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
+          <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
+
           <WaitingListModal
             isOpen={isModalOpen}
             onClose={() => setModalOpen(false)}
@@ -213,8 +215,8 @@ const Home = () => {
                 <div className="mt-8 flex flex-wrap space-x-4">
                   {/* View demo button */}
                   {/* <button className="border border-white text-white px-4 py-2 md:px-6 md:py-3 rounded-full hover:bg-gray-200 hover:text-black transition">
-      View demo
-    </button> */}
+                      View demo
+                    </button> */}
                   {/* Join our waitlist button */}
                   <button
                     className="bg-black text-white px-3 py-2 sm:px-4 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-gray-800 transition"
@@ -230,10 +232,10 @@ const Home = () => {
           {/* Subsection 4 */}
           <div className="relative  md:h-[40vh] flex flex-col justify-center items-center mt-[6rem] md:mt-[50rem] px-8 snap-start bg-cover bg-center">
             {/* Subsection 1 - Heading & Description */}
-            <div className="text-center w-[50%]">
+            <div className="text-center w-[75%] md:w-[50%]">
               {" "}
               {/* 3rem gap */}
-              <p className="text-[16px] sm:text-[17px] leading-[28px] sm:leading-[36px] tracking-[0px] font-medium text-center font-inter text-white">
+              <p className="text-[10px] sm:text-[17px] leading-[28px] sm:leading-[36px] tracking-[0px] font-medium text-center font-inter text-white">
                 Styles
               </p>
               <h4 className="text-[20px] sm:text-[36px] md:text-[42px] lg:text-[46px] leading-[32px] sm:leading-[40px] md:leading-[46px] tracking-[-1.5px] font-normal text-center font-inter text-white">
@@ -251,7 +253,7 @@ const Home = () => {
                   <button
                     key={style}
                     onClick={() => setActiveStyle(style)}
-                    className={`px-6 py-2 md:text-[17.02px] text-[14px] font-bold tracking-[0px] text-center font-inter rounded-2xl transition-all
+                    className={`px-6 py-2 md:text-[17.02px] text-[10px] font-bold tracking-[0px] text-center font-inter rounded-2xl transition-all
             ${
               activeStyle === style
                 ? "bg-white/30 text-white backdrop-blur-md"
@@ -271,9 +273,9 @@ const Home = () => {
               </div>
 
               {/* Video Display Section */}
-              <div className="rounded-lg   overflow-hidden md:w-[50rem] md:h-[40rem] w-[22rem] h-[22rem] flex items-center justify-center p-10 relative">
+              <div className="rounded-lg   overflow-hidden md:w-[50rem] md:h-[40rem] w-[20rem] h-[19rem] flex items-center justify-center p-10 relative">
                 <div className="bg-[#030400]/20 backdrop-blur-md ">
-                  <div className="bg-black/20 backdrop-blur-md md:m-[70px_100px_100px] m-[40px_50px_50px]">
+                  <div className="bg-black/20 backdrop-blur-md md:m-[70px_100px_100px] m-[20px]">
                     <VideoPlayer
                       videoSrc={images[activeStyle]}
                       className="pointer-events-auto"
@@ -284,7 +286,7 @@ const Home = () => {
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevious}
-                  className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-6 h-6 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
+                  className="absolute top-1/2 left-0 md:left-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-6 h-6 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -304,7 +306,7 @@ const Home = () => {
 
                 <button
                   onClick={handleNext}
-                  className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-6 h-6 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
+                  className="absolute top-1/2 right-0 md:right-4 transform -translate-y-1/2 bg-white/20 backdrop-blur-md text-white rounded-full w-6 h-6 md:w-12 md:h-12 flex items-center justify-center shadow-lg hover:bg-white/30 transition-all border border-white/30"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -328,7 +330,7 @@ const Home = () => {
         {/* Section 2 */}
         <section
           id="section1"
-          className="relative flex flex-col items-center justify-center px-20 py-10 bg-[#FFF8EF] text-black"
+          className="relative flex flex-col items-center justify-center px-8 md:px-20 py-10 bg-[#FFF8EF] text-black"
         >
           {/* Background Circles */}
           <div className="absolute z-10 top-0 w-[60%]  flex justify-center items-center overflow-hidden">
@@ -517,14 +519,14 @@ const Home = () => {
           {/* Footer Section */}
 
           <div className="relative flex flex-col md:flex-row items-center justify-center m-12 sm:m-16 md:m-24 w-full md:px-4 mt-0 space-y-6 md:space-y-0">
-          {/* Left Image (Background) */}
+            {/* Left Image (Background) */}
             <img
               src={usecaseimgright}
               alt="Left"
-              className="  w-40 h-40 object-cover opacity-50"
+              className="w-25 h-20 md:w-40 md:h-40 object-cover opacity-50"
             />
             {/* Text */}
-            <p className="relative z-10 text-[24px] sm:text-[32px] md:text-[43px] font-light leading-[28px] sm:leading-[38px] md:leading-[46px] tracking-[-1px] sm:tracking-[-1.5px] md:tracking-[-2.309px] text-center font-inter xl:w-[25%]  lg:w-[35%] sm:w-[70%] md:w-[50%]">
+            <p className="relative z-10 text-[34px] sm:text-[35px] md:text-[43px] font-light leading-[28px] sm:leading-[38px] md:leading-[46px] tracking-[-1px] sm:tracking-[-1.5px] md:tracking-[-2.309px] text-center font-inter xl:w-[25%]  lg:w-[35%] sm:w-[70%] md:w-[50%]">
               Sky is the limit <br /> for the use cases...
             </p>
 
@@ -532,7 +534,7 @@ const Home = () => {
             <img
               src={usecaseimgleft}
               alt="Right"
-              className="mx-0 w-40 h-40 object-cover opacity-60"
+              className="w-25 h-20 md:w-40 md:h-40 object-cover opacity-50"
             />
           </div>
         </section>
@@ -560,35 +562,31 @@ const Home = () => {
             <h2 className="mb-20 text-[28px] sm:text-[36px] md:text-[46.2px] font-light leading-[32px] sm:leading-[40px] md:leading-[46.17px] tracking-[-1px] sm:tracking-[-1.5px] md:tracking-[-2.309px] text-center font-inter w-[90%] sm:w-[80%] md:w-full mx-auto">
               Inject yourself into the videos with{" "}
               <span className="relative">
-
-              <span className="text-yellow-400">C.H.A.R.C.H.A.</span>
-              <div className="patent-pending absolute bottom-[-2rem] right-[-4rem]">
-              {/* <div className="absolute bottom-[0px] right-[-5rem] sm:bottom-[-30px] sm:right-[-3rem] md:right-[-3rem] flex justify-center sm:justify-end mt-[-4px] sm:mt-[-10px]"> */}
-                <span
-                  className="text-[12px] sm:text-[14px] md:text-[16px] font-normal tracking-[0px] italic text-yellow-400"
-                  style={{ fontFamily: "Gloria Hallelujah" }}
-                >
-                  Patent pending ⏳
-                </span>
-              </div>
+                <span className="text-yellow-400">C.H.A.R.C.H.A.</span>
+                <div className="patent-pending absolute bottom-[-2rem] right-[-4rem]">
+                  {/* <div className="absolute bottom-[0px] right-[-5rem] sm:bottom-[-30px] sm:right-[-3rem] md:right-[-3rem] flex justify-center sm:justify-end mt-[-4px] sm:mt-[-10px]"> */}
+                  <span
+                    className="text-[12px] sm:text-[14px] md:text-[16px] font-normal tracking-[0px] italic text-yellow-400"
+                    style={{ fontFamily: "Gloria Hallelujah" }}
+                  >
+                    Patent pending ⏳
+                  </span>
+                </div>
               </span>
               <span className="inline-flex items-center space-x-2">
                 {/* Arrow Image (Immediately After C.H.A.R.C.H.A.) */}
                 {/* <img src={arrow} className="w-8 sm:w-10 h-8 sm:h-10 inline-block" alt="Arrow" /> */}
               </span>
               {/* Patent Pending (Positioned Below the Arrow) */}
-              
             </h2>
-
 
             {/* Description */}
             <p className="mt-6 text-[22.46px] font-normal leading-[27.6px] tracking-[-0.72px] text-center font-inter max-w-3xl mx-auto">
               <div>
-
-              <span className="text-gray-400">
-                It stands for Computer Human Assessment for Recreating
-                Characters with Human Actions.
-              </span>{" "}
+                <span className="text-gray-400">
+                  It stands for Computer Human Assessment for Recreating
+                  Characters with Human Actions.
+                </span>{" "}
               </div>
               <span className="text-white">
                 It generates personalized videos with your avatar. Upload clips
@@ -603,7 +601,7 @@ const Home = () => {
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto mb-16 space-y-8 lg:space-y-0">
               {/* Left Content */}
               <div className="w-full lg:w-[45%]  p-6 rounded-lg shadow-lg">
-              <h3 className="text-3xl sm:text-4xl md:text-[43.13px] font-bold leading-tight md:leading-[46.17px] tracking-tight md:tracking-[-2.309px] font-inter mb-4">
+                <h3 className="text-3xl sm:text-4xl md:text-[43.13px] font-bold leading-tight md:leading-[46.17px] tracking-tight md:tracking-[-2.309px] font-inter mb-4">
                   Validate your identity in one minute with C.H.A.R.C.H.A.
                 </h3>
               </div>
@@ -638,7 +636,7 @@ const Home = () => {
 
         <section
           id="section3"
-          className="relative w-full h-[70vh] overflow-hidden"
+          className="relative w-full h-[40vh] md:h-[70vh] overflow-hidden"
         >
           {/* Background Video */}
           <video
