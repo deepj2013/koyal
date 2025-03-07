@@ -101,6 +101,8 @@ const GenerateVideoPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
+  const [scenes, setScenes] = useState<any[]>([]);
+  const [tableBodyHeight, setTableBodyHeight] = useState("auto");
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
@@ -121,7 +123,7 @@ const GenerateVideoPage: React.FC = () => {
     setScenes(updatedScenes);
     setIsModalOpen(false);
   };
-  const [scenes, setScenes] = useState<any[]>([]);
+  
   const emotions = {
     euphoric: "bg-yellow-300",
     serene: "bg-blue-300",
@@ -159,13 +161,43 @@ const GenerateVideoPage: React.FC = () => {
     }
   }, []);
 
+
+  useEffect(() => {
+    const updateTableHeight = () => {
+      const createBtn = document.getElementById("create-btn");
+      const header = document.getElementById("table-header");
+
+      let totalFooterHeight = 0;
+      if (createBtn) {
+        const computedStyle = window.getComputedStyle(createBtn);
+        const marginTop = parseFloat(computedStyle.marginTop); // Get (margin-top)
+        const createBtnHeight = createBtn.offsetHeight; // Get element height
+        totalFooterHeight = createBtnHeight + marginTop;
+      }
+
+      if (header) {
+        const headerOffset = header.getBoundingClientRect().top;
+        const headerHeight = header.offsetHeight;
+        const tableBodyHeight = window.innerHeight - headerOffset -headerHeight - totalFooterHeight - 24 ; // 24px is padding
+        setTableBodyHeight(`${tableBodyHeight}px`);
+      }
+    };
+
+    updateTableHeight();
+    window.addEventListener("resize", updateTableHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateTableHeight);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           
-          <div className="w-full mt-10">
+          <div className="w-full mt-6">
                 <div className="flex justify-start w-[60%] mb-6">
                     <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
                         Generate your video
@@ -175,7 +207,7 @@ const GenerateVideoPage: React.FC = () => {
           <div className="text-center">
             <ProgressBar currentStep={5} />
           </div>
-          <div className="max-w-5xl mx-auto mt-6 bg-white p-6 rounded-lg shadow-md">
+          <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
             {/* Title */}
             <h2 className="text-md font-semibold mb-4 text-gray-800">
               You can make edits to generated scenes individually
@@ -184,7 +216,7 @@ const GenerateVideoPage: React.FC = () => {
             {/* Table */}
             <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold">
+              <div id="table-header" className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold">
                 <span className="pl-3">Scene visual</span>
                 <span>Scene description</span>
                 <span>Dialogue</span>
@@ -193,7 +225,7 @@ const GenerateVideoPage: React.FC = () => {
               </div>
 
               {/* Table Rows */}
-              <div className="divide-y">
+              <div className="divide-y overflow-y-auto" style={{ height: tableBodyHeight }}>
                 {scenes.map((scene, index) => (
                   <div
                     key={index}
@@ -291,7 +323,7 @@ const GenerateVideoPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="mt-6">
+            <div className="mt-6" id="create-btn" >
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 onClick={() => navigate("/finalvideo")}
