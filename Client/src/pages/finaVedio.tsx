@@ -10,6 +10,15 @@ const FinalVideoPage = () => {
   const [showPlayButton, setShowPlayButton] = useState(false);
   const videoRef = useState(null);
 
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = FinalVideo; // Video file path
+    link.download = "Final_Video.mp4"; // File name
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   // Remove "18 minutes remaining" after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,7 +46,9 @@ const FinalVideoPage = () => {
           <div className="w-full mt-10">
             <div className="flex justify-start w-[60%] mb-6">
               <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
-                {isGenerating ? "Generating your video... ⏳" : "Your video is ready! 🥳"}
+                {isGenerating
+                  ? "Generating your video... ⏳"
+                  : "Your video is ready! 🥳"}
               </h1>
             </div>
           </div>
@@ -89,6 +100,7 @@ const FinalVideoPage = () => {
                     : "bg-black hover:bg-gray-800"
                 } text-white rounded-lg shadow-md`}
                 disabled={isGenerating}
+                onClick={handleDownload}
               >
                 <Download className="w-5 h-5 mr-2" />
                 Download Video
