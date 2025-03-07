@@ -5,3 +5,15 @@ export enum Stages {
   ACTION_RECORD = "actionRecord",
   DEFAULT = "default",
 }
+
+export enum CharacterStyles {
+  REALISTIC = "Realistic",
+  CARTOON = "Cartoon",
+  SKETCH = "Sketch",
+}
+
+export enum VideoOrientationStyles {
+  PORTRAIT = "portrait",
+  SQUARE = "square",
+  LANDSCAPE = "landscape",
+}
