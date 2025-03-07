@@ -1,3 +1,5 @@
+export const INSTAGRAM_URL = "https://www.instagram.com/koyal.ai";
+
 export enum Stages {
   VERIFICATION = "verification",
   IDENTIFICATION = "identification",

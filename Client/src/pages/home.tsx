@@ -28,6 +28,7 @@ import discardicon from "../assets/images/discard.png";
 import "../styles/home.css";
 import { TiThMenu } from "react-icons/ti";
 import { ImCross } from "react-icons/im";
+import { INSTAGRAM_URL } from "../utils/constants";
 
 const images = {
   Realistic: Realstic,
@@ -784,7 +785,7 @@ const Home = () => {
                 <a href="#" className="text-white hover:text-gray-400">
                   <img src={discardicon} alt="Discord" className="w-6 h-6" />
                 </a> */}
-                <a href="#" className="text-white hover:text-gray-400">
+                <a href={INSTAGRAM_URL} className="text-white hover:text-gray-400">
                   <img
                     src={instagramicon}
                     alt="Instagram"
