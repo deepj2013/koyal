@@ -54,7 +54,7 @@ const AudioUploadPage = () => {
         <div className="h-screen flex flex-col bg-white">
             <Navbar />
             <div className="flex justify-center">
-            <div className="px-40 max-w-[1200px]">
+            <div className="px-20 max-w-[1200px]">
             {/* Main Content */}
             <div className="w-full mt-10">
                 <div className="flex justify-start w-[60%] mb-6">
@@ -119,8 +119,8 @@ const AudioUploadPage = () => {
             {["Music", "Podcast", "Voiceover"].map((type) => (
                 <button
                     key={type}
-                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white" : "text-gray-800"
-                        } hover:bg-gray-100 focus:ring-2 focus:ring-black`}
+                    className={`px-6 py-3 border rounded-md ${selectedAudioType === type ? "bg-gray-800 text-white hover:bg-gray-700" : "text-gray-800 hover:bg-gray-100"
+                        } focus:ring-2 focus:ring-black`}
                     onClick={() => {
                         setSelectedAudioType(type); // Ensure selection happens first
                         setTimeout(() => document.getElementById("file-input").click(), 0); // Ensures single click
@@ -179,7 +179,7 @@ const AudioUploadPage = () => {
                     >
                         Next
                         {!uploadedFile && (
-                            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-4 bg-black text-white text-[16px] font-normal leading-[24px] tracking-[0%] px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-4 bg-black text-white text-[16px] font-normal leading-[24px] tracking-[0%] px-4 py-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity min-w-[220px] ">
                                 Please upload audio to move to next step
                             </span>
                         )}

@@ -49,8 +49,8 @@ const TranscriptPage = ({ jsonSource }) => {
     const currentData = [...transcriptData];
   
     const newSection = [
-      currentData[index]?.[1] || "0", // Use previous end time as start
-      "", // Empty end time
+      currentData[index]?.[0] || "0", // Use previous end time as start
+      currentData[index]?.[1], // Empty end time
       "New section", // Default text
       currentData[index]?.[3] || "default" // Inherit emotion
     ];
@@ -98,7 +98,7 @@ const TranscriptPage = ({ jsonSource }) => {
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
       <div className="flex justify-center">
-      <div className="px-40 max-w-[1200px]">
+      <div className="px-20 max-w-[1200px]">
       <div className="w-full mt-10">
         <div className="w-full mt-10">
                 <div className="flex justify-start w-[60%] mb-6">
@@ -121,7 +121,7 @@ const TranscriptPage = ({ jsonSource }) => {
                 key !== "default" && (
                   <div className="flex items-center space-x-2" key={key}>
                     <span className={`w-4 h-4 rounded-full ${color} border border-gray-300`}></span>
-                    <span className="text-[14px] font-normal leading-[20px] text-gray-700 capitalize">
+                    <span className="text-[15px] font-bold leading-[20px] text-gray-700 capitalize">
                       {key}
                     </span>
                   </div>
@@ -135,7 +135,7 @@ const TranscriptPage = ({ jsonSource }) => {
         </div>
       </div>
 
-      <div className="flex w-full h-[40vh] relative">
+      <div className="flex w-full h-[40vh] relative p-3 pr-0 rounded-[12px]">
         {/* First Column (70%) */}
         <div className="w-full overflow-y-scroll">
           {transcriptData.map((entry, index) => {
@@ -193,12 +193,12 @@ const TranscriptPage = ({ jsonSource }) => {
 
       {/* Second Column (30%) */}
       {selectedParagraph && (
-  <div className="absolute bg-gray-100 shadow-lg border border-black p-6 rounded-md"
-    style={{ right: "2%", bottom:0, width: "43%", maxHeight: "auto" }}
+  <div className="shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] border border-black absolute bg-gray-100 shadow-lg p-6 rounded-md"
+    style={{ right: "-1px", bottom:0, width: "43%", maxHeight: "auto" }}
   >
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-2">EMOTION:</label>
-      <EmotionDropdown selectedEmotion={selectedEmotion} setSelectedEmotion={(emotion) =>
+      <EmotionDropdown selectedEmotion={selectedParagraph.emotion} setSelectedEmotion={(emotion) =>
         setSelectedParagraph((prev) => ({ ...prev, emotion }))
       }/>
     </div>
