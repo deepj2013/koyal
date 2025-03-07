@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
-// import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
-import FinalVideo from "../assets/vedio/cartoon_video_soumya.mp4"
+import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
+//import FinalVideo from "../assets/vedio/cartoon_video_soumya.mp4"
 
 const FinalVideoPage = () => {
   const [isGenerating, setIsGenerating] = useState(true);
