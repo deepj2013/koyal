@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import { FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
-import { Stages } from "../utils/constants";
+import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const ChooseCharacterPage = () => {
     "TILT YOUR HEAD DOWN",
     "OPEN YOUR MOUTH",
     "TILT YOUR HEAD UP",
-    "STANDUP (ENSURE YOUR HEAD IS IN THE FRAME)",
+    "STANDUP (ENSURE HEAD IN THE FRAME)",
   ];
 
   useEffect(() => {
@@ -79,9 +79,14 @@ const ChooseCharacterPage = () => {
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
-  const handleYesClick = () => {
-    setStage(Stages.VERIFICATION);
-    setIsChooseCharModalOpen(true);
+
+  const handleContinueClick = () => {
+    if(selected === "yes") {
+      setStage(Stages.VERIFICATION);
+      setIsChooseCharModalOpen(true);
+    } else {
+      navigate("/characterSelection")
+    }
   };
 
   const handleSaveTheme = () => {
@@ -105,15 +110,7 @@ const ChooseCharacterPage = () => {
   };
 
   const getConfirmText = () => {
-    if (stage === Stages.VERIFICATION) {
-      return "Begin Face Verification";
-    } else if (stage === Stages.IDENTIFICATION) {
-      return "Continue";
-    } else if (stage === Stages.CALIBRATION) {
-      return "Start Calibration";
-    } else if (stage === Stages.ACTION_RECORD) {
-      return "Finalize the Character";
-    }
+    return ConfirmButtonTextMap[stage] || "Confirm";
   };
 
   return (
@@ -232,7 +229,7 @@ const ChooseCharacterPage = () => {
                   {selected && (
                     <button
                       className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
-                      onClick={handleYesClick}
+                      onClick={handleContinueClick}
                     >
                       Continue
                     </button>
@@ -479,14 +476,14 @@ const ChooseCharacterPage = () => {
                       </ul>
 
                       {/* Start Button (Only Visible at the Beginning) */}
-                      {currentAction === 0 && timeLeft === 7 && (
+                      {/* {currentAction === 0 && timeLeft === 7 && (
                         <button
                           className="bg-black text-white px-6 py-3 rounded-lg mt-6"
                           onClick={() => setTimeLeft(6)} // Start countdown when clicked
                         >
                           Start Actions
                         </button>
-                      )}
+                      )} */}
 
                       {/* Final Button Appears After Completion, Waits for User Click */}
                       {/* {isComplete && (

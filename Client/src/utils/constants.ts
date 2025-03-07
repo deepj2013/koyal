@@ -17,3 +17,10 @@ export enum VideoOrientationStyles {
   SQUARE = "square",
   LANDSCAPE = "landscape",
 }
+
+export const ConfirmButtonTextMap = {
+  [Stages.VERIFICATION]: "Begin Face Verification",
+  [Stages.IDENTIFICATION]: "Continue",
+  [Stages.CALIBRATION]: "Start Calibration",
+  [Stages.ACTION_RECORD]: "Finalize the Character",
+};
