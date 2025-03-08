@@ -88,7 +88,7 @@ const Login = () => {
 
                     {/* Instructions */}
                     <p className="text-gray-400 text-sm mt-4 text-center">
-                        Click on the button to start your video creation process (motiontest)
+                        Click on the button to start your video creation process (testRunner)
                     </p>
                 </div>
             </div>
