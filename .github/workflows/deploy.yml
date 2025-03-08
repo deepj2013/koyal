@@ -1,0 +1,50 @@
+name: Auto Deploy to Server
+
+on:
+  push:
+    branches:
+      - main  # Runs this workflow when pushing to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H your-server-ip >> ~/.ssh/known_hosts
+
+      - name: Deploy to Remote Server
+        run: |
+          ssh -i ~/.ssh/id_rsa your-user@your-server << 'EOF'
+            # Go to project folder and pull latest code
+            cd /root/koyal
+            git reset --hard
+            git pull origin main
+            
+            # --- Frontend Deployment ---
+            cd Client
+            rm -rf dist/
+            npm install
+            npm run build
+            sudo rm -rf /var/www/koyal/*
+            sudo cp -r /root/koyal/Client/dist/* /var/www/koyal/
+            sudo chown -R www-data:www-data /var/www/koyal/
+            sudo chmod -R 755 /var/www/koyal/
+
+            # --- Backend Deployment ---
+            cd /root/koyal/Server
+            npm install
+            pm2 delete koyal-backend || true
+            pm2 start server.js --name koyal-backend
+            pm2 save
+            pm2 restart koyal-backend
+
+            echo "Deployment Successful!"
+          EOF
