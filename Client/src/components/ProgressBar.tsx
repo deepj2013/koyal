@@ -1,10 +1,10 @@
 import React from "react";
-import progresimg1 from "../assets/images/icon1.png";
-import progresimg2 from "../assets/images/icon2.png";
-import progresimg3 from "../assets/images/icon3.png";
-import progresimg4 from "../assets/images/icon4.png";
-import progresimg5 from "../assets/images/icon5.png";
-import progresimg6 from "../assets/images/icon6.png";
+import progresimg1 from "../assets/images/FeaturedIcon.svg";
+import progresimg2 from "../assets/images/Transcript.svg";
+import progresimg3 from "../assets/images/ChooseChar.svg";
+import progresimg4 from "../assets/images/SelectChar.svg";
+import progresimg5 from "../assets/images/EditScene.svg";
+import progresimg6 from "../assets/images/FinalVideo.svg";
 
 const steps = [
   { id: 1, label: "Upload audio", icon: progresimg1 },
@@ -27,13 +27,13 @@ const ProgressBar = ({ currentStep }) => {
               className={`w-10 h-10 flex items-center justify-center rounded-full ${
                 currentStep >= step.id
                   ? "bg-black text-white"
-                  : "bg-gray-100 text-gray-700"
+                  : "text-gray-700"
               }`}
             >
               <img
                 src={step.icon}
                 alt={step.label}
-                className={`w-6 h-6 ${
+                className={`w-full h-full ${
                   currentStep >= step.id && step.id !== 1 ? "filter invert" : ""
                 }`}
               />
