@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import Realstic from "../assets/images/realistic_preview.png";
-import Cartoon from "../assets/images/animated_preview.png";
+import Animated from "../assets/images/animated_preview.png";
 import Sketch from "../assets/images/sketch_preview.png";
 import { FaArrowRight } from "react-icons/fa";
 import { IoTabletPortraitOutline } from "react-icons/io5";
@@ -22,14 +22,14 @@ import { CharacterStyles, VideoOrientationStyles } from "../utils/constants";
 
 const CharacterSelectionPage = ({ setStage }) => {
   const navigate = useNavigate();
-  const [selectedStyle, setSelectedStyle] = useState("Cartoon");
+  const [selectedStyle, setSelectedStyle] = useState("Animated");
   const [selected, setSelected] = useState<string | null>(null);
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
 
   const styles = [
-    { name: "Realistic", image: Realstic },
-    { name: "Cartoon", image: Cartoon },
-    { name: "Sketch", image: Sketch },
+    { name: CharacterStyles.REALISTIC, image: Realstic },
+    { name: CharacterStyles.ANIMATED, image: Animated },
+    { name: CharacterStyles.SKETCH, image: Sketch },
   ];
 
   return (
@@ -187,7 +187,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                       </label>
                     </div>
                   </div>
-                  {selectedStyle !== CharacterStyles.CARTOON && (
+                  {selectedStyle !== CharacterStyles.ANIMATED && (
                     <div>
                       <p className="font-semibold mb-2">
                         Do you want to add lipsync to your video?

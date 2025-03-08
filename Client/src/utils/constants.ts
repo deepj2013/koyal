@@ -10,8 +10,8 @@ export enum Stages {
 
 export enum CharacterStyles {
   REALISTIC = "Realistic",
-  CARTOON = "Cartoon",
-  SKETCH = "Sketch",
+  ANIMATED = "Animated",
+  SKETCH = "Sketch"
 }
 
 export enum VideoOrientationStyles {

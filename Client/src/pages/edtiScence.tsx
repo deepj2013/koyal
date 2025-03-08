@@ -197,17 +197,23 @@ const GenerateVideoPage: React.FC = () => {
   const handleSave = () => {
     const updatedScenes = [...scenes];
 
-    let replacedImage = img37;
+    let replacedImage =
+      location.state.selectedStyle === CharacterStyles.ANIMATED
+        ? animatedImage37
+        : img37;
+
     let newDesc =
       "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
 
-    if (editingScene.index === 18) {
-      replacedImage = replaced18;
-      newDesc = newDescription18;
-    } else if (editingScene.index === 23) {
-      replacedImage = replaced23;
-      newDesc = newDescription23;
-    }
+      if(location.state.selectedStyle === CharacterStyles.REALISTIC) {
+        if (editingScene.index === 18) {
+          replacedImage = replaced18;
+          newDesc = newDescription18;
+        } else if (editingScene.index === 23) {
+          replacedImage = replaced23;
+          newDesc = newDescription23;
+        }
+      }
 
     updatedScenes[editingScene.index] = {
       ...editingScene,
@@ -239,7 +245,7 @@ const GenerateVideoPage: React.FC = () => {
             return {
               image:
                 images[
-                  location.state.selectedStyle === CharacterStyles.CARTOON
+                  location.state.selectedStyle === CharacterStyles.ANIMATED
                     ? "animated"
                     : "realistic"
                 ][promptMatch.number - 1],
@@ -432,11 +438,13 @@ const GenerateVideoPage: React.FC = () => {
             <div className="mt-6" id="create-btn">
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() => navigate("/finalvideo",{
-                  state: {
-                    selectedStyle: location.state.selectedStyle,
-                  },
-                })}
+                onClick={() =>
+                  navigate("/finalvideo", {
+                    state: {
+                      selectedStyle: location.state.selectedStyle,
+                    },
+                  })
+                }
               >
                 Create Video
               </button>
