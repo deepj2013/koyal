@@ -35,11 +35,12 @@ const TranscriptPage = ({ jsonSource }) => {
     
     if (!entry) return; // Prevent crashes
   
+    const { start, end, text, emotion} = entry;
     setSelectedParagraph({
-      start: entry[0], // Extract start time
-      end: entry[1], // Extract end time
-      text: entry[2], // Extract text
-      emotion: entry[3], // Extract emotion
+      start, // Extract start time
+      end, // Extract end time
+      text, // Extract text
+      emotion, // Extract emotion
       index: index, // Store index for update
     });
   
@@ -48,26 +49,29 @@ const TranscriptPage = ({ jsonSource }) => {
   const handleAddSection = (index) => {
     const currentData = [...transcriptData];
   
-    const newSection = [
-      currentData[index]?.[0] || "0", // Use previous end time as start
-      currentData[index]?.[1], // Empty end time
-      "New section", // Default text
-      currentData[index]?.[3] || "default" // Inherit emotion
-    ];
+    const { start, end, emotion} = currentData[index];
+    
+    const newSection = {
+      start, // Use previous end time as start
+      end, // Empty end time
+      text: "New section", // Default text
+      emotion// Inherit emotion
+    };
   
     currentData.splice(index + 1, 0, newSection);
     setTranscriptData(currentData);
   
     // Automatically open the newly added section for editing
+
     setSelectedParagraph({ 
-      start: newSection[0], 
-      end: newSection[1], 
-      text: newSection[2], 
-      emotion: newSection[3], 
+      start, 
+      end, 
+      text: newSection.text, 
+      emotion, 
       index: index + 1 
     });
   
-    setSelectedEmotion(newSection[3]);
+    setSelectedEmotion(emotion);
   };
 
 
@@ -139,9 +143,8 @@ const TranscriptPage = ({ jsonSource }) => {
         {/* First Column (70%) */}
         <div className="w-full overflow-y-scroll">
           {transcriptData.map((entry, index) => {
-            if (!Array.isArray(entry) || entry.length < 4) return null; // Prevent errors
 
-            const [start, end, text, emotion] = entry; // Extract values safely
+            const { text, emotion} = entry; // Extract values safely
 
             return (
               <div key={index} className="relative mb-4">

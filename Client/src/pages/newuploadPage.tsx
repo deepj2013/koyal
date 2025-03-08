@@ -114,7 +114,7 @@ const AudioUploadPage = () => {
         </div>
     </div>
 ) : (
-    <div className="p-4 rounded-lg">
+    <div className="pl-0 p-4 rounded-lg">
         <div className="flex space-x-4">
             {["Music", "Podcast", "Voiceover"].map((type) => (
                 <button
