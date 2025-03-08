@@ -10,9 +10,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
-import Realstic from "../assets/images/mehul_real.png";
-import Cartoon from "../assets/images/mehul_anime.png";
-import Sketch from "../assets/images/mehul_sketch.png";
+import Realstic from "../assets/images/realistic_preview.png";
+import Cartoon from "../assets/images/animated_preview.png";
+import Sketch from "../assets/images/sketch_preview.png";
 import { FaArrowRight } from "react-icons/fa";
 import { IoTabletPortraitOutline } from "react-icons/io5";
 import { IoTabletLandscapeOutline } from "react-icons/io5";
@@ -267,7 +267,13 @@ const CharacterSelectionPage = ({ setStage }) => {
                 </button>
                 <button
                   className="px-6 py-2 bg-black text-white rounded-md shadow-md hover:bg-gray-900"
-                  onClick={() => navigate("/editscene")}
+                  onClick={() =>
+                    navigate("/editscene", {
+                      state: {
+                        selectedStyle: selectedStyle,
+                      },
+                    })
+                  }
                 >
                   Next
                 </button>

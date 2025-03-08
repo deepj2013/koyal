@@ -3,12 +3,22 @@ import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
 // import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
-import FinalVideo from "../assets/vedio/cartoon_video_soumya.mp4";
+import AnimatedVideo from "../assets/vedio/portrait_video.mp4";
+import RealisticVideo from "../assets/vedio/realistic_video.mp4";
+import { useLocation } from "react-router-dom";
+import { CharacterStyles } from "../utils/constants";
 
 const FinalVideoPage = () => {
+  const location = useLocation();
+
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
   const videoRef = useState(null);
+
+  const FinalVideo =
+    location.state.selectedStyle === CharacterStyles.CARTOON
+      ? AnimatedVideo
+      : RealisticVideo;
 
   const handleDownload = () => {
     const link = document.createElement("a");

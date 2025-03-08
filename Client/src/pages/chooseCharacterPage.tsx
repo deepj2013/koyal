@@ -5,12 +5,14 @@ import { FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
+import storyElement from "../assets/sample/story_elements.json";
+
+const THEME_TEXT = storyElement.narrative;
+const THEME_TEXT_NEW = storyElement.newNarrative;
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
-  const [themeText, setThemeText] = useState(
-    "In a neon-drenched Tokyo arcade at midnight, the main character's journey becomes a metaphor for navigating fame and solitude amidst the electric pulse of urban life. Through the kaleidoscope of flashing lights and pulsing beats, he moves between digital realms and reality, each game screen reflecting a different facet of his fame."
-  );
+  const [themeText, setThemeText] = useState(THEME_TEXT);
   const [newThemeInput, setNewThemeInput] = useState(""); // Stores user input in modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -90,10 +92,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    setThemeText(
-      newThemeInput ||
-        "Aboard a luxury yacht on the endless ocean, the main character's journey becomes a metaphor for navigating fame and solitude. Through triumph and contemplation, he moves between worlds."
-    );
+    setThemeText(newThemeInput || THEME_TEXT_NEW);
     setIsModalOpen(false);
   };
 
