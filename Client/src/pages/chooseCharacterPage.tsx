@@ -81,11 +81,11 @@ const ChooseCharacterPage = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleContinueClick = () => {
-    if(selected === "yes") {
+    if (selected === "yes") {
       setStage(Stages.VERIFICATION);
       setIsChooseCharModalOpen(true);
     } else {
-      navigate("/characterSelection")
+      navigate("/characterSelection");
     }
   };
 
@@ -105,12 +105,21 @@ const ChooseCharacterPage = () => {
     } else if (stage === Stages.CALIBRATION) {
       setStage(Stages.ACTION_RECORD);
     } else if (stage === Stages.ACTION_RECORD) {
-      navigate("/characterSelection")
+      navigate("/characterSelection");
     }
   };
 
   const getConfirmText = () => {
     return ConfirmButtonTextMap[stage] || "Confirm";
+  };
+
+  const isConfirmDisabled = () => {
+    if (stage === Stages.ACTION_RECORD && !isComplete) {
+      return true;
+    } else if (stage === Stages.IDENTIFICATION && (!gender || !identifier)) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -128,122 +137,121 @@ const ChooseCharacterPage = () => {
           <div>
             <ProgressBar currentStep={3} />
 
-              <div className="w-full bg-transparent border-none shadow-none">
-                <p className="text-[#101828] mb-3">
-                  Describe the theme for the video that Koyal will create{" "}
-                  <span className="text-red-500">*</span>
-                </p>
-                <p className="text-[#475467] text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
-                  Click to edit text or press button to completely change the
-                  theme
-                </p>
-                <textarea
-                  className="w-full h-32 p-3 mb-3 border rounded-md bg-transparent text-gray-700"
-                  rows="4"
-                  value={themeText} // Bound to state
-                  readOnly
-                />
-                <button
-                  onClick={handleOpenModal}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 h-[56px]"
-                >
-                  Describe new theme
-                </button>
-                <p className="text-[#101828] mt-6">
-                  Do you want your likeness in the video?
-                  <span className="text-red-500">*</span>
-                </p>
-                <p className="text-[#475467]  text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
-                  {" "}
-                  You can train your face using our secure personalization
-                  protocol or describe a custom main character for the final
-                  video
-                </p>
-                <div className="flex flex-col space-y-4">
-                  {/* Yes/No Selection */}
-                  <div className="flex space-x-4">
-                    {/* Yes Option */}
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+            <div className="w-full bg-transparent border-none shadow-none">
+              <p className="text-[#101828] mb-3">
+                Describe the theme for the video that Koyal will create{" "}
+                <span className="text-red-500">*</span>
+              </p>
+              <p className="text-[#475467] text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
+                Click to edit text or press button to completely change the
+                theme
+              </p>
+              <textarea
+                className="w-full h-32 p-3 mb-3 border rounded-md bg-transparent text-gray-700"
+                rows="4"
+                value={themeText} // Bound to state
+                readOnly
+              />
+              <button
+                onClick={handleOpenModal}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 h-[56px]"
+              >
+                Describe new theme
+              </button>
+              <p className="text-[#101828] mt-6">
+                Do you want your likeness in the video?
+                <span className="text-red-500">*</span>
+              </p>
+              <p className="text-[#475467]  text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
+                {" "}
+                You can train your face using our secure personalization
+                protocol or describe a custom main character for the final video
+              </p>
+              <div className="flex flex-col space-y-4">
+                {/* Yes/No Selection */}
+                <div className="flex space-x-4">
+                  {/* Yes Option */}
+                  <label
+                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
                           selected === "yes"
                             ? "bg-white text-gray-700 border-gray-400"
                             : "bg-white text-gray-700 border-gray-300"
                         }`}
-                    >
-                      <input
-                        type="radio"
-                        name="likeness"
-                        value="yes"
-                        className="hidden"
-                        onChange={() => setSelected("yes")} // Just update state
-                      />
-                      <span
-                        className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
+                  >
+                    <input
+                      type="radio"
+                      name="likeness"
+                      value="yes"
+                      className="hidden"
+                      onChange={() => setSelected("yes")} // Just update state
+                    />
+                    <span
+                      className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
             ${
               selected === "yes"
                 ? "border-black bg-white"
                 : "border-gray-500 bg-white"
             }`}
-                      >
-                        {selected === "yes" && (
-                          <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                        )}
-                      </span>
-                      Yes
-                    </label>
+                    >
+                      {selected === "yes" && (
+                        <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
+                      )}
+                    </span>
+                    Yes
+                  </label>
 
-                    {/* No Option */}
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                  {/* No Option */}
+                  <label
+                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
             ${
               selected === "no"
                 ? "bg-white text-gray-700 border-gray-400"
                 : "bg-white text-gray-700 border-gray-300"
             }`}
-                    >
-                      <input
-                        type="radio"
-                        name="likeness"
-                        value="no"
-                        className="hidden"
-                        onChange={() => setSelected("no")}
-                      />
-                      <span
-                        className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
+                  >
+                    <input
+                      type="radio"
+                      name="likeness"
+                      value="no"
+                      className="hidden"
+                      onChange={() => setSelected("no")}
+                    />
+                    <span
+                      className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
             ${
               selected === "no"
                 ? "border-black bg-white"
                 : "border-gray-500 bg-white"
             }`}
-                      >
-                        {selected === "no" && (
-                          <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                        )}
-                      </span>
-                      No
-                    </label>
-                  </div>
-
-                  {/* Continue Button - Only Show When Yes/No is Selected */}
-                  {selected && (
-                    <button
-                      className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
-                      onClick={handleContinueClick}
                     >
-                      Continue
-                    </button>
-                  )}
+                      {selected === "no" && (
+                        <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
+                      )}
+                    </span>
+                    No
+                  </label>
                 </div>
 
-                <p className="text-gray-400 mt-6 inline-flex items-center">
-                  If you’ve already trained your own character,
-                  <a className="text-green-600 font-bold ml-1" href="#">
-                    Use an existing character
-                  </a>
-                </p>
+                {/* Continue Button - Only Show When Yes/No is Selected */}
+                {selected && (
+                  <button
+                    className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
+                    onClick={handleContinueClick}
+                  >
+                    Continue
+                  </button>
+                )}
               </div>
-         
+
+              <p className="text-gray-400 mt-6 inline-flex items-center">
+                If you’ve already trained your own character,
+                <a className="text-green-600 font-bold ml-1" href="#">
+                  Use an existing character
+                </a>
+              </p>
+            </div>
+
             <div className="flex justify-end w-full mt-12 mb-12">
               <button className="px-6 py-1 h-[40px] mr-2 border border-gray-300 rounded-md text-gray-500">
                 Previous
@@ -285,7 +293,7 @@ const ChooseCharacterPage = () => {
               onConfirm={onConfirm}
               title="Create New Character"
               confirmText={getConfirmText()}
-              isConfirmDisabled={stage === Stages.ACTION_RECORD && !isComplete }
+              isConfirmDisabled={isConfirmDisabled()}
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg">
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">
@@ -430,7 +438,7 @@ const ChooseCharacterPage = () => {
                       </p>
 
                       {/* Action List */}
-                      <ul className="list-none space-y-4 mt-4 text-left relative">
+                      <ul className="list-none grid grid-rows-6 gap-4 mt-4 text-left relative">
                         {actions
                           .map((action, index) => ({ action, index })) // Convert to object for better readability
                           .filter(
