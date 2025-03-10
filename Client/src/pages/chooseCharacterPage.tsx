@@ -6,18 +6,23 @@ import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 import storyElement from "../assets/sample/story_elements.json";
+import { FaArrowRight } from "react-icons/fa";
+import ImagePreview from "../components/ImagePreview";
 
 const THEME_TEXT = storyElement.narrative;
 const THEME_TEXT_NEW = storyElement.newNarrative;
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
+  const canvasRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   const [themeText, setThemeText] = useState(THEME_TEXT);
   const [newThemeInput, setNewThemeInput] = useState(""); // Stores user input in modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [stage, setStage] = useState("default");
-  const videoRef = useRef(null);
   const [identifier, setIdentifier] = useState("");
   const [gender, setGender] = useState("");
   const [currentAction, setCurrentAction] = useState(0);
@@ -25,6 +30,8 @@ const ChooseCharacterPage = () => {
   const [completedActions, setCompletedActions] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [useChosenCharacter, setUseChosenCharacter] = useState(false);
 
   const actions = [
     "TURN YOUR HEAD RIGHT",
@@ -35,22 +42,46 @@ const ChooseCharacterPage = () => {
     "STANDUP (ENSURE HEAD IN THE FRAME)",
   ];
 
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      setCapturedImage(canvas.toDataURL("image/png"));
+      setUseChosenCharacter(true);
+    }
+  };
+
   useEffect(() => {
-    if (
-      stage !== "default" &&
-      navigator.mediaDevices &&
-      navigator.mediaDevices.getUserMedia
-    ) {
+    // Stop the camera when modal is closed
+    if (!isChooseCharModalOpen && streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    // Start the camera when modal is open and stage is valid
+    if (isChooseCharModalOpen) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
+            streamRef.current = stream;
           }
         })
         .catch((error) => console.error("Error accessing webcam:", error));
     }
-  }, [stage, isChooseCharModalOpen]);
+
+    // Cleanup function to stop the camera when the component unmounts
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [isChooseCharModalOpen]);
 
   useEffect(() => {
     if (stage === "actionRecord") {
@@ -67,13 +98,14 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 1000);
+      }, 10);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
       setCurrentAction(currentAction + 1);
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
+      captureImage();
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -83,7 +115,7 @@ const ChooseCharacterPage = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleContinueClick = () => {
-    if (selected === "yes") {
+    if (selected === "yes" && !isComplete) {
       setStage(Stages.VERIFICATION);
       setIsChooseCharModalOpen(true);
     } else {
@@ -104,7 +136,7 @@ const ChooseCharacterPage = () => {
     } else if (stage === Stages.CALIBRATION) {
       setStage(Stages.ACTION_RECORD);
     } else if (stage === Stages.ACTION_RECORD) {
-      navigate("/characterSelection");
+      setIsChooseCharModalOpen(false);
     }
   };
 
@@ -121,9 +153,16 @@ const ChooseCharacterPage = () => {
     return false;
   };
 
+  const handleNextClick = () => {
+    if (capturedImage || selected === "no") {
+      navigate("/characterSelection");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           <div className="w-full mt-10">
@@ -145,20 +184,32 @@ const ChooseCharacterPage = () => {
                 Click to edit text or press button to completely change the
                 theme
               </p>
-              <textarea
-                className="w-full h-32 p-3 mb-3 border rounded-md bg-transparent text-gray-700"
-                rows="4"
-                value={themeText} // Bound to state
-                readOnly
-              />
-              <button
-                onClick={handleOpenModal}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 h-[56px]"
-              >
-                Describe new theme
-              </button>
+              <div className="flex flex-col items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
+                <div className="w-full">
+                  <textarea
+                    className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                    rows="2"
+                    value={themeText} // Bound to state
+                    onChange={(e) => setThemeText(e.target.value)}
+                  />
+                </div>
+                <div className="w-full flex justify-end mt-2">
+                  <button
+                    className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-end whitespace-nowrap transition-all"
+                    onClick={handleOpenModal}
+                  >
+                    Describe new theme
+                    <span className="ml-2">
+                      {" "}
+                      <FaArrowRight />
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               <p className="text-[#101828] mt-6">
-                Do you want your likeness in the video?
+                {/* Do you want your likeness in the video? */}
+                Inject yourself in the video
                 <span className="text-red-500">*</span>
               </p>
               <p className="text-[#475467]  text-[16px] font-inter font-normal leading-[24px] tracking-normal mb-3">
@@ -169,8 +220,86 @@ const ChooseCharacterPage = () => {
               <div className="flex flex-col space-y-4">
                 {/* Yes/No Selection */}
                 <div className="flex space-x-4">
+                  {isComplete ? (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                          ${
+                            useChosenCharacter
+                              ? "bg-white text-blue border-blue-500"
+                              : "bg-white text-gray-700 border-gray-300"
+                          }`}
+                        onClick={() => setUseChosenCharacter(true)}
+                      >
+                        <span className="border-1">
+                          {capturedImage && (
+                            <img
+                              src={capturedImage}
+                              alt="Captured"
+                              className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
+                                useChosenCharacter
+                                  ? "border-blue-500"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          )}
+                        </span>
+
+                        <span
+                          className={` ml-2 ${
+                            useChosenCharacter && "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          Choosen character
+                        </span>
+                      </label>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                          ${
+                            !useChosenCharacter
+                              ? "bg-white text-blue border-blue-500"
+                              : "bg-white text-gray-700 border-gray-300"
+                          }`}
+                        onClick={() => setUseChosenCharacter(false)}
+                      >
+                        <span
+                          className={`${
+                            !useChosenCharacter && "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          Use existing character
+                        </span>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                    ${
+                      selected === "yes"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-gray-700 border-gray-300"
+                    }`}
+                        onClick={() => setSelected("yes")}
+                      >
+                        Use your likeness
+                      </label>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                    ${
+                      selected === "no"
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-gray-700 border-gray-300"
+                    }`}
+                        onClick={() => setSelected("no")}
+                      >
+                        Create AI Character
+                      </label>
+                    </>
+                  )}
+
                   {/* Yes Option */}
-                  <label
+                  {/* <label
                     className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
                           selected === "yes"
@@ -187,21 +316,21 @@ const ChooseCharacterPage = () => {
                     />
                     <span
                       className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-            ${
-              selected === "yes"
-                ? "border-black bg-white"
-                : "border-gray-500 bg-white"
-            }`}
+                        ${
+                          selected === "yes"
+                            ? "border-black bg-white"
+                            : "border-gray-500 bg-white"
+                        }`}
                     >
                       {selected === "yes" && (
                         <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
                       )}
                     </span>
                     Yes
-                  </label>
+                  </label> */}
 
                   {/* No Option */}
-                  <label
+                  {/* <label
                     className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
             ${
               selected === "no"
@@ -229,7 +358,7 @@ const ChooseCharacterPage = () => {
                       )}
                     </span>
                     No
-                  </label>
+                  </label> */}
                 </div>
 
                 {/* Continue Button - Only Show When Yes/No is Selected */}
@@ -255,7 +384,10 @@ const ChooseCharacterPage = () => {
               <button className="px-6 py-1 h-[40px] mr-2 border border-gray-300 rounded-md text-gray-500">
                 Previous
               </button>
-              <button className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800">
+              <button
+                className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800"
+                onClick={handleNextClick}
+              >
                 Next
               </button>
             </div>
@@ -289,6 +421,7 @@ const ChooseCharacterPage = () => {
             <Modal
               isOpen={isChooseCharModalOpen}
               onClose={() => setIsChooseCharModalOpen(false)}
+              onCancel={() => setIsChooseCharModalOpen(false)}
               onConfirm={onConfirm}
               title="Create New Character"
               confirmText={getConfirmText()}
@@ -452,7 +585,7 @@ const ChooseCharacterPage = () => {
         ${
           completedActions.includes(index)
             ? "border-green-500 text-black bg-white"
-            : "border-gray-400 bg-black text-white"
+            : "bg-black text-white"
         }`}
                             >
                               {/* Number Circle Positioned Outside on the Left */}
