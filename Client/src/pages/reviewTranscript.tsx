@@ -80,12 +80,12 @@ const TranscriptPage = ({ jsonSource }) => {
       const updatedData = [...transcriptData];
   
       // Update only the correct index, maintaining JSON format
-      updatedData[selectedParagraph.index] = [
-        selectedParagraph.start,  // Keep as string to prevent NaN errors
-        selectedParagraph.end,
-        selectedParagraph.text || "New section", // Prevent empty values
-        selectedParagraph.emotion,
-      ];
+      updatedData[selectedParagraph.index] = {
+        start: selectedParagraph.start,  // Keep as string to prevent NaN errors
+        end: selectedParagraph.end,
+        text: selectedParagraph.text || "New section", // Prevent empty values
+        emotion: selectedParagraph.emotion,
+      };
   
       setTranscriptData(updatedData); // Update state
       setSelectedParagraph(null); // Close modal

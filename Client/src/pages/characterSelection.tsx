@@ -94,7 +94,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                           ${
                             selectedStyle === style.name
                               ? "bg-black text-white"
-                              : "bg-white text-black bg-opacity-10 backdrop-blur-md"
+                              : "bg-white text-black bg-opacity-[0.5] backdrop-blur-md"
                           }`}
                       >
                         {style.name}
