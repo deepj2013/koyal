@@ -7,7 +7,6 @@ import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 import storyElement from "../assets/sample/story_elements.json";
 import { FaArrowRight } from "react-icons/fa";
-import ImagePreview from "../components/ImagePreview";
 
 const THEME_TEXT = storyElement.narrative;
 const THEME_TEXT_NEW = storyElement.newNarrative;
@@ -21,7 +20,6 @@ const ChooseCharacterPage = () => {
   const [themeText, setThemeText] = useState(THEME_TEXT);
   const [newThemeInput, setNewThemeInput] = useState(""); // Stores user input in modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
   const [stage, setStage] = useState("default");
   const [identifier, setIdentifier] = useState("");
   const [gender, setGender] = useState("");
@@ -98,7 +96,7 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 10);
+      }, 1000);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
@@ -114,13 +112,9 @@ const ChooseCharacterPage = () => {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleContinueClick = () => {
-    if (selected === "yes" && !isComplete) {
-      setStage(Stages.VERIFICATION);
-      setIsChooseCharModalOpen(true);
-    } else {
-      navigate("/characterSelection");
-    }
+  const handleChooseChar = () => {
+    setStage(Stages.VERIFICATION);
+    setIsChooseCharModalOpen(true);
   };
 
   const handleSaveTheme = () => {
@@ -154,9 +148,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleNextClick = () => {
-    if (capturedImage || selected === "no") {
       navigate("/characterSelection");
-    }
   };
 
   return (
@@ -221,82 +213,64 @@ const ChooseCharacterPage = () => {
                 {/* Yes/No Selection */}
                 <div className="flex space-x-4">
                   {isComplete ? (
-                    <>
-                      <label
-                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                          ${
-                            useChosenCharacter
-                              ? "bg-white text-blue border-blue-500"
-                              : "bg-white text-gray-700 border-gray-300"
-                          }`}
-                        onClick={() => setUseChosenCharacter(true)}
-                      >
-                        <span className="border-1">
-                          {capturedImage && (
-                            <img
-                              src={capturedImage}
-                              alt="Captured"
-                              className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
-                                useChosenCharacter
-                                  ? "border-blue-500"
-                                  : "border-gray-300"
-                              }`}
-                            />
-                          )}
-                        </span>
+                    <label
+                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                        ${
+                          useChosenCharacter
+                            ? "bg-white text-blue border-blue-500"
+                            : "bg-white text-gray-700 border-gray-300"
+                        }`}
+                      onClick={() => setUseChosenCharacter(true)}
+                    >
+                      <span className="border-1">
+                        {capturedImage && (
+                          <img
+                            src={capturedImage}
+                            alt="Captured"
+                            className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
+                              useChosenCharacter
+                                ? "border-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          />
+                        )}
+                      </span>
 
-                        <span
-                          className={` ml-2 ${
-                            useChosenCharacter && "text-blue-500 font-semibold"
-                          }`}
-                        >
-                          Choosen character
-                        </span>
-                      </label>
-                      <label
-                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                      <span
+                        className={` ml-2 ${
+                          useChosenCharacter && "text-blue-500 font-semibold"
+                        }`}
+                      >
+                        Chosen character
+                      </span>
+                    </label>
+                  ) : (
+                    <label
+                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                              bg-white text-gray-700 border-gray-300`}
+                      onClick={handleChooseChar}
+                    >
+                      Use your likeness
+                    </label>
+                  )}
+
+                  <label
+                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${
                             !useChosenCharacter
                               ? "bg-white text-blue border-blue-500"
                               : "bg-white text-gray-700 border-gray-300"
                           }`}
-                        onClick={() => setUseChosenCharacter(false)}
-                      >
-                        <span
-                          className={`${
-                            !useChosenCharacter && "text-blue-500 font-semibold"
-                          }`}
-                        >
-                          Use existing character
-                        </span>
-                      </label>
-                    </>
-                  ) : (
-                    <>
-                      <label
-                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                    ${
-                      selected === "yes"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-gray-700 border-gray-300"
-                    }`}
-                        onClick={() => setSelected("yes")}
-                      >
-                        Use your likeness
-                      </label>
-                      <label
-                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                    ${
-                      selected === "no"
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-gray-700 border-gray-300"
-                    }`}
-                        onClick={() => setSelected("no")}
-                      >
-                        Create AI Character
-                      </label>
-                    </>
-                  )}
+                    onClick={() => setUseChosenCharacter(false)}
+                  >
+                    <span
+                      className={`${
+                        !useChosenCharacter && "text-blue-500 font-semibold"
+                      }`}
+                    >
+                      Create AI Character
+                    </span>
+                  </label>
 
                   {/* Yes Option */}
                   {/* <label
@@ -362,14 +336,14 @@ const ChooseCharacterPage = () => {
                 </div>
 
                 {/* Continue Button - Only Show When Yes/No is Selected */}
-                {selected && (
+                {/* {selected && (
                   <button
                     className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
                     onClick={handleContinueClick}
                   >
                     Continue
                   </button>
-                )}
+                )} */}
               </div>
 
               <p className="text-gray-400 mt-6 inline-flex items-center">

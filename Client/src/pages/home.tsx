@@ -17,9 +17,10 @@ import usecaseimg from "../assets/images/usecase.png";
 import usecaseimgright from "../assets/images/usecaseright.png";
 import usecaseimgleft from "../assets/images/usecaseleft.png";
 import charcha1 from "../assets/images/drake_koyal_charcha.png";
-import charcha01 from "../assets/images/drake_anime.png";
-import charcha02 from "../assets/images/drake_real.png";
-import charcha03 from "../assets/images/drake_sketch.png";
+
+import Real from "../assets/images/realistic_preview.png";
+import Animated from "../assets/images/animated_preview.png";
+import SketchImg from "../assets/images/sketch_preview.png";
 
 import instagramicon from "../assets/images/instagram.png";
 import twittericon from "../assets/images/twitter.png";
@@ -35,7 +36,7 @@ const images = {
   Cartoon: Cartoon,
   Sketch: Sketch,
 };
-const charachaImages = [charcha01, charcha02, charcha03];
+const charachaImages = [Animated, Real, SketchImg];
 
 const Home = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -695,7 +696,7 @@ const Home = () => {
                   Turn audio to video seamlessly
                 </p>
                 <button
-                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold hover:bg-gray-200 custom-btn-border"
+                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold hover:bg-gray-200"
                   onClick={() => setModalOpen(true)}
                 >
                   Join the waitlist
