@@ -88,6 +88,7 @@ import replaced18 from "../assets/images/newEditScene/landscape_realistic/replac
 import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 
 import { CharacterStyles } from "../utils/constants";
+import ImagePreview from "../components/ImagePreview";
 
 const images = {
   realistic: {
@@ -198,22 +199,22 @@ const GenerateVideoPage: React.FC = () => {
     const updatedScenes = [...scenes];
 
     let replacedImage =
-      location.state.selectedStyle === CharacterStyles.ANIMATED
+      location.state?.selectedStyle === CharacterStyles.ANIMATED
         ? animatedImage37
         : img37;
 
     let newDesc =
       "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
 
-      if(location.state.selectedStyle === CharacterStyles.REALISTIC) {
-        if (editingScene.index === 18) {
-          replacedImage = replaced18;
-          newDesc = newDescription18;
-        } else if (editingScene.index === 23) {
-          replacedImage = replaced23;
-          newDesc = newDescription23;
-        }
+    if (location.state?.selectedStyle === CharacterStyles.REALISTIC) {
+      if (editingScene.index === 18) {
+        replacedImage = replaced18;
+        newDesc = newDescription18;
+      } else if (editingScene.index === 23) {
+        replacedImage = replaced23;
+        newDesc = newDescription23;
       }
+    }
 
     updatedScenes[editingScene.index] = {
       ...editingScene,
@@ -245,7 +246,7 @@ const GenerateVideoPage: React.FC = () => {
             return {
               image:
                 images[
-                  location.state.selectedStyle === CharacterStyles.ANIMATED
+                  location.state?.selectedStyle === CharacterStyles.ANIMATED
                     ? "animated"
                     : "realistic"
                 ][promptMatch.number - 1],
@@ -324,7 +325,7 @@ const GenerateVideoPage: React.FC = () => {
               {/* Table Header */}
               <div
                 id="table-header"
-                className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold"
+                className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold"
               >
                 <span className="pl-3">Scene visual</span>
                 <span>Scene description</span>
@@ -341,14 +342,10 @@ const GenerateVideoPage: React.FC = () => {
                 {scenes.map((scene, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 items-center p-4"
+                    className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <img
-                      src={scene.image}
-                      alt="Scene"
-                      className="w-1000 h-50  rounded-lg object-cover border border-gray-300"
-                    />
+                    <ImagePreview imageURL={scene.image} />
 
                     {/* Description */}
                     <p className="text-sm text-gray-700">{scene.description}</p>
@@ -441,7 +438,7 @@ const GenerateVideoPage: React.FC = () => {
                 onClick={() =>
                   navigate("/finalvideo", {
                     state: {
-                      selectedStyle: location.state.selectedStyle,
+                      selectedStyle: location.state?.selectedStyle,
                     },
                   })
                 }
