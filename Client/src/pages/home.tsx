@@ -696,7 +696,7 @@ const Home = () => {
                   Turn audio to video seamlessly
                 </p>
                 <button
-                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold hover:bg-gray-200"
+                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold"
                   onClick={() => setModalOpen(true)}
                 >
                   Join the waitlist
