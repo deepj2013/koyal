@@ -1,0 +1,32 @@
+name: Auto Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main  # Runs this workflow when pushing to main
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # This runs on your own server
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Deploy Frontend
+        run: |
+          cd /root/koyal/Client
+          npm install
+          rm -rf dist/
+          npm run build
+
+          echo "Waiting for dist/ to be created..."
+          while [ ! -d "dist" ]; do sleep 1; done
+
+          echo "Deploying frontend..."
+          sudo rm -rf /var/www/koyal/*
+          sudo cp -r /root/koyal/Client/dist/* /var/www/koyal/
+          sudo chown -R www-data:www-data /var/www/koyal/
+          sudo chmod -R 755 /var/www/koyal/
+
+          echo "Frontend Deployment Successful!"
