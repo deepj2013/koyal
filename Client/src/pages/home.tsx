@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
 import sectionbg from "../assets/vedio/section_bg.mp4";
 
-import logo from "../assets/images/Nav.svg";
+import logo from "../assets/images/koyal_nav.svg";
 import mit from "../assets/images/mit.png";
 import meta from "../assets/images/Meta.png";
 import cali from "../assets/images/cali.png";
@@ -16,7 +16,7 @@ import arrow from "../assets/images/Vector5.svg";
 import usecaseimg from "../assets/images/usecase.png";
 import usecaseimgright from "../assets/images/usecaseright.png";
 import usecaseimgleft from "../assets/images/usecaseleft.png";
-import charcha1 from "../assets/images/drake_koyal_charcha.png";
+import charcha1 from "../assets/images/charcha_mehul.png";
 
 import Real from "../assets/images/realistic_preview.png";
 import Animated from "../assets/images/animated_preview.png";
