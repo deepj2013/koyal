@@ -92,7 +92,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                       />
                       {/* Overlay for Selected Item */}
                       <div
-                        className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold
+                        className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold border-t  border-gray-300
                           ${
                             selectedStyle === style.name
                               ? "bg-black text-white"

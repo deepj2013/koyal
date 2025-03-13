@@ -3,6 +3,7 @@ import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import musicicon from "../assets/images/Audiofile.png"
 import { useNavigate } from "react-router-dom";
+import { uploadFileToS3 } from "../aws/s3-service";
 
 const AudioUploadPage = () => {
     const [currentStep, setCurrentStep] = useState(1);
@@ -40,9 +41,11 @@ const AudioUploadPage = () => {
 
     const navigate = useNavigate();
 
-    const handleNext = () => {
+    const handleNext = async() => {
         if (uploadedFile) {
             setIsUploading(true);
+            const fileUrl  = await uploadFileToS3(uploadedFile, localStorage.getItem("currentUser"))
+            console.log("fileUrl", fileUrl)
             setTimeout(() => {
                 setIsUploading(false);
                 navigate("/lyricedit"); // Redirect to TranscriptPage after loading
