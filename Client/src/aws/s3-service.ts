@@ -50,15 +50,14 @@ export const uploadFileToS3 = async (file: File, folderName: string) => {
   const fileKey = `${folderName}/${file.name}`;
 
   try {
-    // Convert File to Blob
     const fileBuffer = await file.arrayBuffer(); 
 
     const params = {
       Bucket: BUCKET_NAME,
       Key: fileKey,
       Body: fileBuffer, 
-      ContentType: file.type, // ✅ Preserve file type
-      ACL: "public-read", // (Optional) Make file publicly accessible
+      ContentType: file.type, 
+      ACL: "public-read",
     };
 
     const command = new PutObjectCommand(params);
@@ -74,3 +73,21 @@ export const uploadFileToS3 = async (file: File, folderName: string) => {
     throw error;
   }
 };
+
+export const replaceS3File = async (fileKey: string, newJsonData: any) => {
+  try {
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileKey, 
+      Body: JSON.stringify(newJsonData, null, 2),
+      ContentType: "application/json",
+    });
+
+    await s3.send(command);
+    console.log("File replaced successfully in S3!");
+  } catch (error) {
+    console.error("Error replacing file:", error);
+  }
+};
+
+

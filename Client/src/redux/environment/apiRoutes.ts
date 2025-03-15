@@ -5,4 +5,6 @@ export const ApiRoutes = {
   TranscriberResultEndpoint: "/transcriber_endpoint/result",
   SceneEndpoint: "/scene_endpoint/submit",
   SceneResultEndpoint: "/scene_endpoint/result",
+  SceneLLMEndpoint: "/scene_llm_endpoint/submit",
+  StoryElementEndpoint: "scene_llm_endpoint/result",
 } as const;

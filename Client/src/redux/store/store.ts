@@ -12,7 +12,9 @@ import {
 } from "redux-persist";
 import { persistStore } from "redux-persist";
 import uploadAudioReducer from "../features/uploadSlice";
+import lyricEditReducer from "../features/lyricEditSlice";
 import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
+import { lyricEditApi } from "../services/lyricEditService/lyricEditApi";
 
 const persistConfig = {
   key: "root",
@@ -21,7 +23,9 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   uploadAudio: uploadAudioReducer,
+  lyricEdit: lyricEditReducer,
   [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,
+  [lyricEditApi.reducerPath]: lyricEditApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -33,7 +37,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat([uploadAudioApi.middleware]),
+    }).concat([uploadAudioApi.middleware, lyricEditApi.middleware]),
 });
 
 setupListeners(store.dispatch);
