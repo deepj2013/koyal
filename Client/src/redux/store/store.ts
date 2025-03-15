@@ -11,13 +11,18 @@ import {
   REHYDRATE,
 } from "redux-persist";
 import { persistStore } from "redux-persist";
+import uploadAudioReducer from "../features/uploadSlice";
+import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
 
 const persistConfig = {
   key: "root",
   storage: storage,
 };
 
-const rootReducer = combineReducers({ });
+const rootReducer = combineReducers({
+  uploadAudio: uploadAudioReducer,
+  [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,
+});
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -28,7 +33,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat([]),
+    }).concat([uploadAudioApi.middleware]),
 });
 
 setupListeners(store.dispatch);
