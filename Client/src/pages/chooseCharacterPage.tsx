@@ -5,11 +5,17 @@ import { FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
-import storyElement from "../assets/sample/story_elements.json";
 import { FaArrowRight } from "react-icons/fa";
-
-const THEME_TEXT = storyElement.narrative;
-const THEME_TEXT_NEW = storyElement.newNarrative;
+import { LyricEditState } from "../redux/features/lyricEditSlice";
+import { useSelector } from "react-redux";
+import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import { UploadAudioState } from "../redux/features/uploadSlice";
+import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
+import { uploadJsonAsFileToS3 } from "../utils/helper";
+import { AutoImageSlider } from "../components/AutoImageSlider";
+import avatar1 from "../assets/images/avatar1.png";
+import avatar2 from "../assets/images/avatar2.png";
+import avatar3 from "../assets/images/avatar3.png";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -17,8 +23,14 @@ const ChooseCharacterPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  const [themeText, setThemeText] = useState(THEME_TEXT);
-  const [newThemeInput, setNewThemeInput] = useState(""); // Stores user input in modal
+  const { storyEleementFileUrl } = useSelector(LyricEditState);
+  const { sceneDataFileUrl } = useSelector(UploadAudioState);
+
+  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
+  const [getStoryElement, { data: storyElementData }] =
+    useLazyGetStoryElementQuery();
+
+  const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stage, setStage] = useState("default");
   const [identifier, setIdentifier] = useState("");
@@ -29,8 +41,11 @@ const ChooseCharacterPage = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
-  const [useChosenCharacter, setUseChosenCharacter] = useState(false);
+  const [useChosenCharacter, setUseChosenCharacter] = useState(null);
+  const [storyElement, setStoryElement] = useState(null);
+  const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
 
+  const animatedImages = [avatar1, avatar2, avatar3];
   const actions = [
     "TURN YOUR HEAD RIGHT",
     "SQUINT YOUR EYES",
@@ -39,6 +54,13 @@ const ChooseCharacterPage = () => {
     "TILT YOUR HEAD UP",
     "STANDUP (ENSURE HEAD IN THE FRAME)",
   ];
+
+  const handleAICharClick = () => {
+    setUseChosenCharacter(false);
+    setIsCustomAvatarModalOpen(true);
+  };
+
+  const onConfirmAvatarModal = () => {};
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
@@ -51,6 +73,91 @@ const ChooseCharacterPage = () => {
       setUseChosenCharacter(true);
     }
   };
+
+  const handleSaveTheme = () => {
+    // setStoryElement((prev: any) => ({
+    //   ...prev,
+    //   narrative: newThemeInput || THEME_TEXT_NEW,
+    // }));
+    editStory({
+      mode: "edit-story",
+      scenes_path: sceneDataFileUrl,
+      Story_elements: storyEleementFileUrl,
+      story_instructions: newThemeInput,
+    });
+    setIsModalOpen(false);
+  };
+
+  const handleNarrativeChange = (event) => {
+    setStoryElement((prev: any) => ({
+      ...prev,
+      narrative: event.target.value,
+    }));
+    setIsModalOpen(false);
+  };
+
+  const handleSaveChanges = () => {
+    editStory({
+      mode: "edit-character",
+      scenes_path: sceneDataFileUrl,
+      Story_elements: storyEleementFileUrl,
+      new_story: storyElement.narrative,
+    });
+  };
+
+  const onConfirm = () => {
+    if (stage === Stages.VERIFICATION) {
+      setStage(Stages.IDENTIFICATION);
+    } else if (stage === Stages.IDENTIFICATION) {
+      setStage(Stages.CALIBRATION);
+    } else if (stage === Stages.CALIBRATION) {
+      setStage(Stages.ACTION_RECORD);
+    } else if (stage === Stages.ACTION_RECORD) {
+      setIsChooseCharModalOpen(false);
+    }
+  };
+
+  const getConfirmText = () => {
+    return ConfirmButtonTextMap[stage] || "Confirm";
+  };
+
+  const isConfirmDisabled = () => {
+    if (stage === Stages.ACTION_RECORD && !isComplete) {
+      return true;
+    } else if (stage === Stages.IDENTIFICATION && (!gender || !identifier)) {
+      return true;
+    }
+    return false;
+  };
+
+  const handleNextClick = () => {
+    navigate("/characterSelection");
+  };
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleChooseChar = () => {
+    setStage(Stages.VERIFICATION);
+    setIsChooseCharModalOpen(true);
+  };
+
+  useEffect(() => {
+    const fetchStoryElement = async () => {
+      try {
+        const response = await fetch(storyEleementFileUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setStoryElement(jsonData.story_elements);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+      }
+    };
+
+    fetchStoryElement();
+  }, []);
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -109,47 +216,23 @@ const ChooseCharacterPage = () => {
     }
   }, [timeLeft, currentAction, isComplete, stage]);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleChooseChar = () => {
-    setStage(Stages.VERIFICATION);
-    setIsChooseCharModalOpen(true);
-  };
-
-  const handleSaveTheme = () => {
-    setThemeText(newThemeInput || THEME_TEXT_NEW);
-    setIsModalOpen(false);
-  };
-
-  const onConfirm = () => {
-    if (stage === Stages.VERIFICATION) {
-      setStage(Stages.IDENTIFICATION);
-    } else if (stage === Stages.IDENTIFICATION) {
-      setStage(Stages.CALIBRATION);
-    } else if (stage === Stages.CALIBRATION) {
-      setStage(Stages.ACTION_RECORD);
-    } else if (stage === Stages.ACTION_RECORD) {
-      setIsChooseCharModalOpen(false);
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      getStoryElement(sceneLLMResponse?.call_id);
     }
-  };
+  }, [sceneLLMResponse]);
 
-  const getConfirmText = () => {
-    return ConfirmButtonTextMap[stage] || "Confirm";
-  };
-
-  const isConfirmDisabled = () => {
-    if (stage === Stages.ACTION_RECORD && !isComplete) {
-      return true;
-    } else if (stage === Stages.IDENTIFICATION && (!gender || !identifier)) {
-      return true;
+  useEffect(() => {
+    console.log("storyElementData", storyElementData);
+    if (storyElementData) {
+      setStoryElement(storyElementData);
+      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
+        (url) => {
+          console.log("upload successful");
+        }
+      );
     }
-    return false;
-  };
-
-  const handleNextClick = () => {
-      navigate("/characterSelection");
-  };
+  }, [storyElementData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -180,9 +263,9 @@ const ChooseCharacterPage = () => {
                 <div className="w-full">
                   <textarea
                     className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
-                    rows="2"
-                    value={themeText} // Bound to state
-                    onChange={(e) => setThemeText(e.target.value)}
+                    rows={2}
+                    value={storyElement?.narrative} // Bound to state
+                    onChange={(e) => handleNarrativeChange(e)}
                   />
                 </div>
                 <div className="w-full flex justify-end mt-2">
@@ -198,6 +281,12 @@ const ChooseCharacterPage = () => {
                   </button>
                 </div>
               </div>
+              <button
+                className="px-6 py-1 h-[40px] mt-2 bg-black text-white rounded-md hover:bg-gray-800"
+                onClick={handleSaveChanges}
+              >
+                Save
+              </button>
 
               <p className="text-[#101828] mt-6">
                 {/* Do you want your likeness in the video? */}
@@ -228,7 +317,7 @@ const ChooseCharacterPage = () => {
                             src={capturedImage}
                             alt="Captured"
                             className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
-                              useChosenCharacter
+                              useChosenCharacter === true
                                 ? "border-blue-500"
                                 : "border-gray-300"
                             }`}
@@ -238,7 +327,8 @@ const ChooseCharacterPage = () => {
 
                       <span
                         className={` ml-2 ${
-                          useChosenCharacter && "text-blue-500 font-semibold"
+                          useChosenCharacter === true &&
+                          "text-blue-500 font-semibold"
                         }`}
                       >
                         Chosen character
@@ -257,93 +347,22 @@ const ChooseCharacterPage = () => {
                   <label
                     className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${
-                            !useChosenCharacter
+                            useChosenCharacter === false
                               ? "bg-white text-blue border-blue-500"
                               : "bg-white text-gray-700 border-gray-300"
                           }`}
-                    onClick={() => setUseChosenCharacter(false)}
+                    onClick={handleAICharClick}
                   >
                     <span
                       className={`${
-                        !useChosenCharacter && "text-blue-500 font-semibold"
+                        useChosenCharacter === false &&
+                        "text-blue-500 font-semibold"
                       }`}
                     >
                       Create AI Character
                     </span>
                   </label>
-
-                  {/* Yes Option */}
-                  {/* <label
-                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                        ${
-                          selected === "yes"
-                            ? "bg-white text-gray-700 border-gray-400"
-                            : "bg-white text-gray-700 border-gray-300"
-                        }`}
-                  >
-                    <input
-                      type="radio"
-                      name="likeness"
-                      value="yes"
-                      className="hidden"
-                      onChange={() => setSelected("yes")} // Just update state
-                    />
-                    <span
-                      className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-                        ${
-                          selected === "yes"
-                            ? "border-black bg-white"
-                            : "border-gray-500 bg-white"
-                        }`}
-                    >
-                      {selected === "yes" && (
-                        <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                      )}
-                    </span>
-                    Yes
-                  </label> */}
-
-                  {/* No Option */}
-                  {/* <label
-                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-            ${
-              selected === "no"
-                ? "bg-white text-gray-700 border-gray-400"
-                : "bg-white text-gray-700 border-gray-300"
-            }`}
-                  >
-                    <input
-                      type="radio"
-                      name="likeness"
-                      value="no"
-                      className="hidden"
-                      onChange={() => setSelected("no")}
-                    />
-                    <span
-                      className={`w-5 h-5 border-2 rounded-full flex items-center justify-center mr-2 
-            ${
-              selected === "no"
-                ? "border-black bg-white"
-                : "border-gray-500 bg-white"
-            }`}
-                    >
-                      {selected === "no" && (
-                        <span className="w-2.5 h-2.5 bg-black rounded-full"></span>
-                      )}
-                    </span>
-                    No
-                  </label> */}
                 </div>
-
-                {/* Continue Button - Only Show When Yes/No is Selected */}
-                {/* {selected && (
-                  <button
-                    className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
-                    onClick={handleContinueClick}
-                  >
-                    Continue
-                  </button>
-                )} */}
               </div>
 
               <p className="text-gray-400 mt-6 inline-flex items-center">
@@ -380,8 +399,10 @@ const ChooseCharacterPage = () => {
                   </h2>
                   <textarea
                     className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
-                    rows="4"
+                    rows={4}
                     placeholder="Make the video more vibrant and colorful."
+                    value={newThemeInput}
+                    onChange={(e) => setNewThemeInput(e.target.value)}
                   ></textarea>
                   <button
                     onClick={handleSaveTheme}
@@ -610,6 +631,81 @@ const ChooseCharacterPage = () => {
                       )} */}
                     </div>
                   )}
+                </div>
+              </div>
+            </Modal>
+            <Modal
+              isOpen={isCustomAvatarModalOpen}
+              onClose={() => setIsCustomAvatarModalOpen(false)}
+              onCancel={() => setIsCustomAvatarModalOpen(false)}
+              onConfirm={onConfirmAvatarModal}
+              title="Create New Character"
+              confirmText="Finalize the character"
+              isConfirmDisabled={false}
+            >
+              <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg w-[70vw]">
+                <div className="w-[40%] p-6  overflow-hidden flex align-center">
+                  <AutoImageSlider
+                    images={animatedImages}
+                    autoPlay={false}
+                    currentButtonColor="black"
+                  />
+                </div>
+                <div className="w-[60%]  p-6 flex flex-col text-center align-center flex-start">
+                  <div className="flex flex-col  pl-5">
+                    {/* Centering h1 and h2 */}
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      A.V.A.T.A.R.
+                    </h1>
+                    <div className="flex w-full justify-center">
+                      <h2 className="text-md w-[65%] text-gray-700 mb-4 leading-[16px]">
+                        Adaptive virtual avatar with text assisted render
+                      </h2>
+                    </div>
+
+                    {/* Right-aligning h3 and ordered list */}
+                    <div className="w-full flex flex-col items-start text-md text-left">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">
+                        Create your own main character for the video being as
+                        descriptive as possible.
+                      </h3>
+                      <p className="text-md text-gray-700">
+                        Do not mention any clothing yet :)
+                      </p>
+                      <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
+                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"></textarea>
+                        <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
+                          Change Look{" "}
+                          <span className="ml-2">
+                            <FaArrowRight />
+                          </span>
+                        </button>
+                      </div>
+
+                      <div>
+                        <p className="text-lg text-gray-700 my-4">
+                          Use a unique identifier for your character that isn't
+                          part of regular English vocabulary.{" "}
+                        </p>
+
+                        <p className="text-lg text-gray-700">
+                          For example, full name without spaces or nickname.{" "}
+                        </p>
+                        <p className="text-lg text-gray-700 mb-4">
+                          Do not use any numbers or special characters.
+                        </p>
+                      </div>
+                      <div className="w-full">
+                        <input
+                          type="text"
+                          value={identifier}
+                          onChange={(e) => setIdentifier(e.target.value)}
+                          className="border border-gray-900 rounded-lg p-3 w-full mb-4"
+                          placeholder="Enter a name"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Modal>

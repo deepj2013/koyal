@@ -30,6 +30,7 @@ import "../styles/home.css";
 import { TiThMenu } from "react-icons/ti";
 import { ImCross } from "react-icons/im";
 import { INSTAGRAM_URL } from "../utils/constants";
+import { AutoImageSlider } from "../components/AutoImageSlider";
 
 const images = {
   Realistic: Realstic,
@@ -623,7 +624,9 @@ const Home = () => {
             {/* Content Row 2 */}
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto space-y-8 lg:space-y-0">
               <div className="w-full lg:w-[45%] p-6 rounded-lg shadow-lg">
-                <AutoImageSlider images={charachaImages} />
+                <div className="w-full rounded-lg shadow-lg overflow-hidden">
+                  <AutoImageSlider images={charachaImages} currentButtonColor={"white"}/>
+                </div>
               </div>
 
               {/* Right Content */}
@@ -987,38 +990,3 @@ const VideoPlayer = ({ videoSrc }) => {
   );
 };
 
-const AutoImageSlider = ({ images, interval = 3000 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, interval);
-
-    return () => clearInterval(slideInterval);
-  }, [images.length, interval]);
-
-  return (
-    <div className="w-full rounded-lg shadow-lg overflow-hidden">
-      {/* Image Display */}
-      <img
-        src={images[currentIndex]}
-        alt="Sliding Images"
-        className="rounded-lg w-full transition-all duration-700 ease-in-out object-cover"
-      />
-
-      {/* Dots Navigation (Placed Below Image) */}
-      <div className="flex justify-center mt-3">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all mx-1 ${
-              currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
