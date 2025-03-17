@@ -40,7 +40,7 @@ const ChooseCharacterPage = () => {
   const [completedActions, setCompletedActions] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const [capturedImages, setCapturedImages] = useState([]);
   const [useChosenCharacter, setUseChosenCharacter] = useState(null);
   const [storyElement, setStoryElement] = useState(null);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
@@ -69,8 +69,7 @@ const ChooseCharacterPage = () => {
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      setCapturedImage(canvas.toDataURL("image/png"));
-      setUseChosenCharacter(true);
+      return canvas.toDataURL("image/png");
     }
   };
 
@@ -200,6 +199,11 @@ const ChooseCharacterPage = () => {
   useEffect(() => {
     if (stage !== "actionRecord") return; // Prevents countdown from running on other stages
 
+    if (timeLeft === 3 && !isComplete) {
+      const imageCaptured = captureImage();
+      setCapturedImages(p => [...p, imageCaptured]);
+    }
+
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
@@ -210,7 +214,9 @@ const ChooseCharacterPage = () => {
       setCurrentAction(currentAction + 1);
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
-      captureImage();
+      const imageCaptured = captureImage();
+      setCapturedImages(p => [...p, imageCaptured]);
+      setUseChosenCharacter(true);
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -312,9 +318,9 @@ const ChooseCharacterPage = () => {
                       onClick={() => setUseChosenCharacter(true)}
                     >
                       <span className="border-1">
-                        {capturedImage && (
+                        {capturedImages && (
                           <img
-                            src={capturedImage}
+                            src={capturedImages[capturedImages?.length - 1]}
                             alt="Captured"
                             className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
                               useChosenCharacter === true
