@@ -16,6 +16,11 @@ import { AutoImageSlider } from "../components/AutoImageSlider";
 import avatar1 from "../assets/images/avatar1.png";
 import avatar2 from "../assets/images/avatar2.png";
 import avatar3 from "../assets/images/avatar3.png";
+import storyElementData from "../assets/sample/story_elements.json";
+
+const THEME_TEXT = storyElementData.narrative;
+const THEME_TEXT_NEW = storyElementData.newNarrative;
+const AVATAR_TEXT = "indian girl, age 21, sharp features, ponytail";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -25,10 +30,6 @@ const ChooseCharacterPage = () => {
 
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl } = useSelector(UploadAudioState);
-
-  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
-  const [getStoryElement, { data: storyElementData }] =
-    useLazyGetStoryElementQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,8 +43,9 @@ const ChooseCharacterPage = () => {
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [useChosenCharacter, setUseChosenCharacter] = useState(null);
-  const [storyElement, setStoryElement] = useState(null);
+  const [storyElement, setStoryElement] = useState(storyElementData);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
+  const [avatarDescription, setAvatarDescription] = useState(AVATAR_TEXT);
 
   const animatedImages = [avatar1, avatar2, avatar3];
   const actions = [
@@ -60,7 +62,9 @@ const ChooseCharacterPage = () => {
     setIsCustomAvatarModalOpen(true);
   };
 
-  const onConfirmAvatarModal = () => {};
+  const onConfirmAvatarModal = () => {
+    setIsCustomAvatarModalOpen(false)
+  };
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
@@ -75,34 +79,34 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    // setStoryElement((prev: any) => ({
-    //   ...prev,
-    //   narrative: newThemeInput || THEME_TEXT_NEW,
-    // }));
-    editStory({
-      mode: "edit-story",
-      scenes_path: sceneDataFileUrl,
-      Story_elements: storyEleementFileUrl,
-      story_instructions: newThemeInput,
-    });
+    setStoryElement((prev: any) => ({
+      ...prev,
+      narrative: newThemeInput || THEME_TEXT_NEW,
+    }));
+    // editStory({
+    //   mode: "edit-story",
+    //   scenes_path: sceneDataFileUrl,
+    //   Story_elements: storyEleementFileUrl,
+    //   story_instructions: newThemeInput,
+    // });
     setIsModalOpen(false);
   };
 
   const handleNarrativeChange = (event) => {
     setStoryElement((prev: any) => ({
       ...prev,
-      narrative: event.target.value,
+      narrative: THEME_TEXT_NEW,
     }));
     setIsModalOpen(false);
   };
 
   const handleSaveChanges = () => {
-    editStory({
-      mode: "edit-character",
-      scenes_path: sceneDataFileUrl,
-      Story_elements: storyEleementFileUrl,
-      new_story: storyElement.narrative,
-    });
+    // editStory({
+    //   mode: "edit-character",
+    //   scenes_path: sceneDataFileUrl,
+    //   Story_elements: storyEleementFileUrl,
+    //   new_story: storyElement.narrative,
+    // });
   };
 
   const onConfirm = () => {
@@ -142,22 +146,6 @@ const ChooseCharacterPage = () => {
     setIsChooseCharModalOpen(true);
   };
 
-  useEffect(() => {
-    const fetchStoryElement = async () => {
-      try {
-        const response = await fetch(storyEleementFileUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setStoryElement(jsonData.story_elements);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-
-    fetchStoryElement();
-  }, []);
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -215,24 +203,6 @@ const ChooseCharacterPage = () => {
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
   }, [timeLeft, currentAction, isComplete, stage]);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
-    }
-  }, [sceneLLMResponse]);
-
-  useEffect(() => {
-    console.log("storyElementData", storyElementData);
-    if (storyElementData) {
-      setStoryElement(storyElementData);
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
-        (url) => {
-          console.log("upload successful");
-        }
-      );
-    }
-  }, [storyElementData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -669,11 +639,12 @@ const ChooseCharacterPage = () => {
                         Create your own main character for the video being as
                         descriptive as possible.
                       </h3>
-                      <p className="text-md text-gray-700">
-                        Do not mention any clothing yet :)
-                      </p>
+                      
                       <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"></textarea>
+                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none" 
+                        value={avatarDescription}
+                        onChange={(e) => setAvatarDescription(e.target.value)}
+                        ></textarea>
                         <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
                           Change Look{" "}
                           <span className="ml-2">

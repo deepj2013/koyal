@@ -12,8 +12,8 @@ const Login = () => {
 
     const handleLogin = async() => {
         if(email) {
-            await createFolderInS3(email);
-            localStorage.setItem("currentUser", email)
+            // await createFolderInS3(email);
+            // localStorage.setItem("currentUser", email)
             navigate("/upload");
         }
     }

@@ -2,28 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { UploadAudioState } from "../redux/features/uploadSlice";
-import { uploadFileToS3 } from "../aws/s3-service";
-import { convertJsonToFile } from "../utils/helper";
-import {
-  useLazyGetStoryElementQuery,
-  useSceneLLMEndpointMutation,
-} from "../redux/services/lyricEditService/lyricEditApi";
-import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
+import lyrics from "../assets/sample/lyrics.json";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const { sceneDataFileUrl } = useSelector(UploadAudioState);
-
-  const [procesStory, { data: sceneLLMResponse }] =
-    useSceneLLMEndpointMutation();
-  const [fetchStoryElement, { data: storyElement }] =
-    useLazyGetStoryElementQuery();
-
-  const [transcriptData, setTranscriptData] = useState([]);
+  const [transcriptData, setTranscriptData] = useState(lyrics);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
   const regexNoVocals = /no vocals/i;
@@ -89,71 +73,13 @@ const TranscriptPage = () => {
       };
 
       setTranscriptData(updatedData); // Update state
-      const file = convertJsonToFile(updatedData, "scene.json");
-      const fileUrl = await uploadFileToS3(
-        file,
-        localStorage.getItem("currentUser")
-      );
-      console.log("fileUrl", fileUrl);
       setSelectedParagraph(null); // Close modal
     }
   };
 
-  const handleJsonFileUpload = async (data, fileName) => {
-    try {
-      const file = convertJsonToFile(data, fileName);
-      const url = await uploadFileToS3(
-        file,
-        localStorage.getItem("currentUser")
-      );
-      console.log(fileName, url);
-
-      return url;
-    } catch (err) {
-      console.error("Upload failed:", err);
-      throw err;
-    }
-  };
-
   const handleNextClick = () => {
-    procesStory({
-      mode: "create-story",
-      scenes_path: sceneDataFileUrl,
-    });
+    navigate("/choosecharacter");
   };
-
-  useEffect(() => {
-    const fetchJsonData = async () => {
-      try {
-        const response = await fetch(sceneDataFileUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setTranscriptData(jsonData);
-        return jsonData;
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-
-    fetchJsonData();
-  }, []);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      fetchStoryElement(sceneLLMResponse?.call_id);
-    }
-  }, [sceneLLMResponse]);
-
-  useEffect(() => {
-    if (storyElement) {
-      handleJsonFileUpload(storyElement, "story_element.json").then((url) => {
-        dispatch(setStoryEleementFileUrl(url));
-        navigate("/choosecharacter");
-      });
-    }
-  }, [storyElement]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
