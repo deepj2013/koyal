@@ -12,7 +12,7 @@
     "camera_position": "Side angle capturing profile against the window",
     "facial_expression": "Contemplative, slightly melancholic",
     "dialogue": "[NO VOCALS]",
-    "emotion": null
+    "emotion": "melancholy"
   },
   {
     "start": 0.4179591836734694,
@@ -27,7 +27,7 @@
     "camera_position": "Front angle following movement",
     "facial_expression": "Curious, slightly excited",
     "dialogue": "chaeyeongiga jotahaneun raendeom geim! apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 5.178049886621316,
@@ -57,7 +57,7 @@
     "camera_position": "Low angle looking up",
     "facial_expression": "Joyful, carefree",
     "dialogue": "apateu apateu apateu apateu apateu apateu apateu",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 14.837551020408164,
@@ -102,7 +102,7 @@
     "camera_position": "Front angle through shower door",
     "facial_expression": "Satisfied, dreamy",
     "dialogue": "real. daeum hearts, that's what I'm on, yeah",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 29.141043083900225,
@@ -132,7 +132,7 @@
     "camera_position": "Front angle from across coffee table",
     "facial_expression": "Animated, conversational",
     "dialogue": "Don't you want like I want you, baby Don't you need me like I need you",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 38.01106575963719,
@@ -177,7 +177,7 @@
     "camera_position": "Front angle",
     "facial_expression": "happy",
     "dialogue": "ah-pa-ta-pa-ta, ah-pa-ta-pa-ta, uh",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 50.48018140589569,
@@ -237,7 +237,7 @@
     "camera_position": "Low angle looking up at glass",
     "facial_expression": "Celebratory, mischievous",
     "dialogue": " Gumbae, Gumbae, Yo, what's up?",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 69.82240362811791,
@@ -297,7 +297,7 @@
     "camera_position": "Front angle following movement",
     "facial_expression": "Concentrated, slight smile",
     "dialogue": "yeah, yeah, yeah. I'm on my way.",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 89.1414058956916,
@@ -327,7 +327,7 @@
     "camera_position": "Side profile against window",
     "facial_expression": "Curious, slightly melancholic",
     "dialogue": "way Yeah, yeah, yeah, yeah,",
-    "emotion": "euphoric"
+    "emotion": "melancholy"
   },
   {
     "start": 98.80090702947845,

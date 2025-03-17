@@ -8,7 +8,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowImportingTsExtensions": true,  
-     "jsx": "react-jsx"
+     "jsx": "react-jsx",
+     "lib": ["es2016", "dom"]
   },
   "include": ["src"], 
   "exclude": ["node_modules", "dist"]

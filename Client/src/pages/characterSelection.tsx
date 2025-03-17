@@ -17,8 +17,10 @@ import { FaArrowRight } from "react-icons/fa";
 import { IoTabletPortraitOutline } from "react-icons/io5";
 import { IoTabletLandscapeOutline } from "react-icons/io5";
 import { IoSquareOutline } from "react-icons/io5";
+import storyElement from "../assets/sample/story_elements.json";
 
 import { CharacterStyles, VideoOrientationStyles } from "../utils/constants";
+const CHARACTER_DETAILS = storyElement.character_details;
 
 const CharacterSelectionPage = ({ setStage }) => {
   const navigate = useNavigate();
@@ -63,7 +65,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                 {/* Input & Change Look Button */}
                 <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
                   <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none">
-                    mehulagarwal, White linen shirt, khaki shorts
+                    {CHARACTER_DETAILS}
                   </textarea>
                   <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
                     Change Look{" "}
@@ -80,7 +82,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                   {styles.map((style) => (
                     <div
                       key={style.name}
-                      className={`relative rounded-lg transition-all cursor-pointer overflow-hidden`}
+                      className="relative rounded-lg transition-all cursor-pointer overflow-hidden border border-gray-300"
                       onClick={() => setSelectedStyle(style.name)}
                     >
                       <img
@@ -90,11 +92,11 @@ const CharacterSelectionPage = ({ setStage }) => {
                       />
                       {/* Overlay for Selected Item */}
                       <div
-                        className={`absolute bottom-0 w-full py-2 text-center font-semibold
+                        className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold border-t  border-gray-300
                           ${
                             selectedStyle === style.name
                               ? "bg-black text-white"
-                              : "bg-white text-black bg-opacity-10 backdrop-blur-md"
+                              : "bg-white text-black bg-opacity-[0.5] backdrop-blur-md"
                           }`}
                       >
                         {style.name}

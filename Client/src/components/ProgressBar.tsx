@@ -9,7 +9,7 @@ import progresimg6 from "../assets/images/FinalVideo.svg";
 const steps = [
   { id: 1, label: "Upload audio", icon: progresimg1 },
   { id: 2, label: "Review transcript", icon: progresimg2 },
-  { id: 3, label: "Choose character", icon: progresimg3 },
+  { id: 3, label: "Theme and Character", icon: progresimg3 },
   { id: 4, label: "Select style", icon: progresimg4 },
   { id: 5, label: "Edit scenes", icon: progresimg5 },
   { id: 6, label: "Final video", icon: progresimg6 },

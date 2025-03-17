@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
 import sectionbg from "../assets/vedio/section_bg.mp4";
 
-import logo from "../assets/images/Nav.svg";
+import logo from "../assets/images/koyal_nav.svg";
 import mit from "../assets/images/mit.png";
 import meta from "../assets/images/Meta.png";
 import cali from "../assets/images/cali.png";
@@ -16,10 +16,11 @@ import arrow from "../assets/images/Vector5.svg";
 import usecaseimg from "../assets/images/usecase.png";
 import usecaseimgright from "../assets/images/usecaseright.png";
 import usecaseimgleft from "../assets/images/usecaseleft.png";
-import charcha1 from "../assets/images/drake_koyal_charcha.png";
-import charcha01 from "../assets/images/drake_anime.png";
-import charcha02 from "../assets/images/drake_real.png";
-import charcha03 from "../assets/images/drake_sketch.png";
+import charcha1 from "../assets/images/charcha_mehul.png";
+
+import Real from "../assets/images/realistic_preview.png";
+import Animated from "../assets/images/animated_preview.png";
+import SketchImg from "../assets/images/sketch_preview.png";
 
 import instagramicon from "../assets/images/instagram.png";
 import twittericon from "../assets/images/twitter.png";
@@ -29,13 +30,14 @@ import "../styles/home.css";
 import { TiThMenu } from "react-icons/ti";
 import { ImCross } from "react-icons/im";
 import { INSTAGRAM_URL } from "../utils/constants";
+import { AutoImageSlider } from "../components/AutoImageSlider";
 
 const images = {
   Realistic: Realstic,
   Cartoon: Cartoon,
   Sketch: Sketch,
 };
-const charachaImages = [charcha01, charcha02, charcha03];
+const charachaImages = [Animated, Real, SketchImg];
 
 const Home = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -622,7 +624,9 @@ const Home = () => {
             {/* Content Row 2 */}
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto space-y-8 lg:space-y-0">
               <div className="w-full lg:w-[45%] p-6 rounded-lg shadow-lg">
-                <AutoImageSlider images={charachaImages} />
+                <div className="w-full rounded-lg shadow-lg overflow-hidden">
+                  <AutoImageSlider images={charachaImages} currentButtonColor={"white"}/>
+                </div>
               </div>
 
               {/* Right Content */}
@@ -695,7 +699,7 @@ const Home = () => {
                   Turn audio to video seamlessly
                 </p>
                 <button
-                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold hover:bg-gray-200 custom-btn-border"
+                  className="px-6 py-2 bg-[#141414] text-white rounded-full font-semibold"
                   onClick={() => setModalOpen(true)}
                 >
                   Join the waitlist
@@ -986,38 +990,3 @@ const VideoPlayer = ({ videoSrc }) => {
   );
 };
 
-const AutoImageSlider = ({ images, interval = 3000 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, interval);
-
-    return () => clearInterval(slideInterval);
-  }, [images.length, interval]);
-
-  return (
-    <div className="w-full rounded-lg shadow-lg overflow-hidden">
-      {/* Image Display */}
-      <img
-        src={images[currentIndex]}
-        alt="Sliding Images"
-        className="rounded-lg w-full transition-all duration-700 ease-in-out object-cover"
-      />
-
-      {/* Dots Navigation (Placed Below Image) */}
-      <div className="flex justify-center mt-3">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all mx-1 ${
-              currentIndex === index ? "bg-white w-4 h-4" : "bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};

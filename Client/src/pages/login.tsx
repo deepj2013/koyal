@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import homebg from "../assets/vedio/koyal_bg.mp4";
 import logo from "../assets/images/Nav.svg";
 import { useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
+import { createFolderInS3 } from "../aws/s3-service";
 
 const Login = () => {
     const navigate = useNavigate();
+
+    const [email, setEmail] = useState("");
+
+    const handleLogin = async() => {
+        if(email) {
+            await createFolderInS3(email);
+            localStorage.setItem("currentUser", email)
+            navigate("/upload");
+        }
+    }
     return (
         <div className="flex h-screen">
             {/* Left Section: Video */}
@@ -73,6 +84,8 @@ const Login = () => {
                             id="email"
                             type="email"
                             placeholder="yourname@gmail.com"
+                            onChange={e => setEmail(e.target.value)}
+                            value={email}
                             className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                         />
                     </div>
@@ -80,7 +93,7 @@ const Login = () => {
                     {/* Submit Button */}
                     <button
                         className="w-full px-6 py-3 bg-black text-white rounded-md font-semibold hover:bg-gray-800 flex items-center justify-center space-x-2"
-                        onClick={() => navigate("/upload")}
+                        onClick={handleLogin}
                     >
                         <span>Start creating</span>
                         <FaArrowRight/>

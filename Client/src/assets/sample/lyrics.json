@@ -3,13 +3,13 @@
         "start": 0.0,
         "end": 0.4179591836734694,
         "text": "[NO VOCALS]",
-        "emotion": null
+        "emotion": "serene"
     },
     {
         "start": 0.4179591836734694,
         "end": 5.178049886621316,
         "text": "chaeyeongiga jotahaneun raendeom geim! apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 5.178049886621316,
@@ -21,7 +21,7 @@
         "start": 10.00780045351474,
         "end": 14.837551020408164,
         "text": "apateu apateu apateu apateu apateu apateu apateu",
-        "emotion": "euphoric"
+        "emotion": "melancholy"
     },
     {
         "start": 14.837551020408164,
@@ -45,7 +45,7 @@
         "start": 29.141043083900225,
         "end": 33.57605442176871,
         "text": "yeongsangeseo give me something I can feel Don't you want",
-        "emotion": "euphoric"
+        "emotion": "tense"
     },
     {
         "start": 33.57605442176871,
@@ -57,7 +57,7 @@
         "start": 38.01106575963719,
         "end": 42.840816326530614,
         "text": "now Sleep tomorrow but tonight go crazy All you gotta",
-        "emotion": "euphoric"
+        "emotion": "tense"
     },
     {
         "start": 42.840816326530614,
@@ -69,13 +69,13 @@
         "start": 46.85786848072562,
         "end": 50.48018140589569,
         "text": "ah-pa-ta-pa-ta, ah-pa-ta-pa-ta, uh",
-        "emotion": "euphoric"
+        "emotion": "tense"
     },
     {
         "start": 50.48018140589569,
         "end": 55.309931972789116,
         "text": "eoheo",
-        "emotion": "euphoric"
+        "emotion": "melancholy"
     },
     {
         "start": 55.309931972789116,
@@ -87,13 +87,13 @@
         "start": 60.162902494331064,
         "end": 64.96943310657596,
         "text": "apatji apatji eoheo a eoheo I'm talking drink, dance, smoke, freak, party all night. Come on.",
-        "emotion": "euphoric"
+        "emotion": "melancholy"
     },
     {
         "start": 64.96943310657596,
         "end": 69.82240362811791,
         "text": " Gumbae, Gumbae, Yo, what's up?",
-        "emotion": "euphoric"
+        "emotion": "tense"
     },
     {
         "start": 69.82240362811791,
@@ -105,19 +105,19 @@
         "start": 74.65215419501133,
         "end": 79.48190476190476,
         "text": "Because I'm coming to get you, get you, get you. Hold on, hold on.",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 79.48190476190476,
         "end": 84.31165532879818,
         "text": "I'm on my way. Yeah, yeah,",
-        "emotion": "euphoric"
+        "emotion": "tense"
     },
     {
         "start": 84.31165532879818,
         "end": 89.1414058956916,
         "text": "yeah, yeah, yeah. I'm on my way.",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 89.1414058956916,
@@ -129,13 +129,13 @@
         "start": 93.97115646258503,
         "end": 98.80090702947845,
         "text": "way Yeah, yeah, yeah, yeah,",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 98.80090702947845,
         "end": 103.63065759637188,
         "text": "yeah I'm on my way",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 103.63065759637188,
@@ -147,7 +147,7 @@
         "start": 108.4604081632653,
         "end": 113.31337868480726,
         "text": "need you now Sleep tomorrow but tonight go crazy",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 113.31337868480726,
@@ -165,7 +165,7 @@
         "start": 122.97287981859411,
         "end": 127.80263038548753,
         "text": "[NO VOCALS]",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 127.80263038548753,
@@ -189,7 +189,7 @@
         "start": 142.2918820861678,
         "end": 146.7268934240363,
         "text": "[NO VOCALS]",
-        "emotion": "euphoric"
+        "emotion": "serene"
     },
     {
         "start": 146.7268934240363,
@@ -225,6 +225,6 @@
         "start": 168.9019501133787,
         "end": 173.39736961451248,
         "text": "[NO VOCALS]",
-        "emotion": "euphoric"
+        "emotion": "serene"
     }
 ]

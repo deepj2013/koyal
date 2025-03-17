@@ -83,11 +83,12 @@ import animatedImage34 from "../assets/images/newEditScene/portrait_animated/ima
 import animatedImage35 from "../assets/images/newEditScene/portrait_animated/image_35.png";
 import animatedImage36 from "../assets/images/newEditScene/portrait_animated/image_36.png";
 import animatedImage37 from "../assets/images/newEditScene/portrait_animated/image_37.png";
-
 import replaced18 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_18_new.png";
 import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
+import { FaUndo } from "react-icons/fa";
 
 import { CharacterStyles } from "../utils/constants";
+import ImagePreview from "../components/ImagePreview";
 
 const images = {
   realistic: {
@@ -193,27 +194,44 @@ const GenerateVideoPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleRedo = (index) => {
+    const updatedScenes = [...scenes];
+    const { narrative, dialogue, emotion } = promptsData[index];
+    updatedScenes[index] = {
+      description: narrative,
+      dialog: dialogue,
+      emotion: emotion,
+      image:
+        images[
+          location.state?.selectedStyle === CharacterStyles.ANIMATED
+            ? "animated"
+            : "realistic"
+        ][index],
+    };
+    setScenes(updatedScenes);
+  };
+
   // Save Changes and Update Table
   const handleSave = () => {
     const updatedScenes = [...scenes];
 
     let replacedImage =
-      location.state.selectedStyle === CharacterStyles.ANIMATED
+      location.state?.selectedStyle === CharacterStyles.ANIMATED
         ? animatedImage37
         : img37;
 
     let newDesc =
       "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
 
-      if(location.state.selectedStyle === CharacterStyles.REALISTIC) {
-        if (editingScene.index === 18) {
-          replacedImage = replaced18;
-          newDesc = newDescription18;
-        } else if (editingScene.index === 23) {
-          replacedImage = replaced23;
-          newDesc = newDescription23;
-        }
+    if (location.state?.selectedStyle === CharacterStyles.REALISTIC) {
+      if (editingScene.index === 18) {
+        replacedImage = replaced18;
+        newDesc = newDescription18;
+      } else if (editingScene.index === 23) {
+        replacedImage = replaced23;
+        newDesc = newDescription23;
       }
+    }
 
     updatedScenes[editingScene.index] = {
       ...editingScene,
@@ -245,7 +263,7 @@ const GenerateVideoPage: React.FC = () => {
             return {
               image:
                 images[
-                  location.state.selectedStyle === CharacterStyles.ANIMATED
+                  location.state?.selectedStyle === CharacterStyles.ANIMATED
                     ? "animated"
                     : "realistic"
                 ][promptMatch.number - 1],
@@ -324,13 +342,14 @@ const GenerateVideoPage: React.FC = () => {
               {/* Table Header */}
               <div
                 id="table-header"
-                className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold"
+                className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 p-3 bg-gray-100 border-b text-gray-600 text-sm font-semibold"
               >
                 <span className="pl-3">Scene visual</span>
                 <span>Scene description</span>
                 <span>Dialogue</span>
                 <span>Emotion</span>
                 <span className="pr-3 text-center">Edit</span>
+                <span className="pr-3 text-center">Redo</span>
               </div>
 
               {/* Table Rows */}
@@ -341,14 +360,10 @@ const GenerateVideoPage: React.FC = () => {
                 {scenes.map((scene, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-[1fr_2fr_2fr_1fr_0.5fr] gap-4 items-center p-4"
+                    className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <img
-                      src={scene.image}
-                      alt="Scene"
-                      className="w-1000 h-50  rounded-lg object-cover border border-gray-300"
-                    />
+                    <ImagePreview imageURL={scene.image} />
 
                     {/* Description */}
                     <p className="text-sm text-gray-700">{scene.description}</p>
@@ -381,6 +396,14 @@ const GenerateVideoPage: React.FC = () => {
                         onClick={() => handleEditClick(scene, index)}
                       >
                         <Pencil className="w-5 h-5 text-gray-500" />
+                      </button>
+                    </div>
+                    <div className="text-center">
+                      <button
+                        className="p-2 bg-transparent hover:bg-gray-200 rounded-full"
+                        onClick={() => handleRedo(index)}
+                      >
+                        <FaUndo className="w-5 h-5 text-gray-500" />
                       </button>
                     </div>
                   </div>
@@ -441,7 +464,7 @@ const GenerateVideoPage: React.FC = () => {
                 onClick={() =>
                   navigate("/finalvideo", {
                     state: {
-                      selectedStyle: location.state.selectedStyle,
+                      selectedStyle: location.state?.selectedStyle,
                     },
                   })
                 }
