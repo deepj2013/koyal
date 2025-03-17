@@ -1,3 +1,5 @@
+import { uploadFileToS3 } from "../aws/s3-service";
+
 export const convertJsonToFile = (data: any, fileName: string) => {
   try {
     // Convert data to a JSON Blob
@@ -9,6 +11,19 @@ export const convertJsonToFile = (data: any, fileName: string) => {
     return file;
   } catch (err) {
     console.error("failed to convert:", err);
-    throw err; 
+    throw err;
+  }
+};
+
+export const uploadJsonAsFileToS3 = async (data, fileName) => {
+  try {
+    const file = convertJsonToFile(data, fileName);
+    const url = await uploadFileToS3(file, localStorage.getItem("currentUser"));
+    console.log(fileName, url);
+
+    return url;
+  } catch (err) {
+    console.error("Upload failed:", err);
+    throw err;
   }
 };
