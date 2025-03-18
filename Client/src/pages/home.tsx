@@ -625,7 +625,10 @@ const Home = () => {
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto space-y-8 lg:space-y-0">
               <div className="w-full lg:w-[45%] p-6 rounded-lg shadow-lg">
                 <div className="w-full rounded-lg shadow-lg overflow-hidden">
-                  <AutoImageSlider images={charachaImages} currentButtonColor={"white"}/>
+                  <AutoImageSlider
+                    images={charachaImages}
+                    currentButtonColor={"white"}
+                  />
                 </div>
               </div>
 
@@ -789,7 +792,10 @@ const Home = () => {
                 <a href="#" className="text-white hover:text-gray-400">
                   <img src={discardicon} alt="Discord" className="w-6 h-6" />
                 </a> */}
-                <a href={INSTAGRAM_URL} className="text-white hover:text-gray-400">
+                <a
+                  href={INSTAGRAM_URL}
+                  className="text-white hover:text-gray-400"
+                >
                   <img
                     src={instagramicon}
                     alt="Instagram"
@@ -913,6 +919,12 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                WebkitAppearance: "none", // Prevents iOS default styles
+                MozAppearance: "none",
+                appearance: "none",
+              }}
             />
           </div>
 
@@ -927,6 +939,12 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                WebkitAppearance: "none", // Prevents iOS default styles
+                MozAppearance: "none",
+                appearance: "none",
+              }}
             />
           </div>
 
@@ -940,6 +958,12 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                WebkitAppearance: "none", // Prevents iOS default styles
+                MozAppearance: "none",
+                appearance: "none",
+              }}
             />
           </div>
 
@@ -989,4 +1013,3 @@ const VideoPlayer = ({ videoSrc }) => {
     </div>
   );
 };
-
