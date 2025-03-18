@@ -1,8 +1,9 @@
 import { PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import s3 from "./aws-config";
+import { config } from "../config/config";
 
-const BUCKET_NAME = import.meta.env.VITE_S3_BUCKET_NAME;
-const REGION_NAME = import.meta.env.VITE_AWS_REGION;
+const BUCKET_NAME = config.bucketName;
+const REGION_NAME = config.regionName;
 
 /**
  * Creates a virtual folder in an Amazon S3 bucket.
