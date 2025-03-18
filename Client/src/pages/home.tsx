@@ -200,7 +200,7 @@ const Home = () => {
             {/* Left-aligned heading with 30% blank space on the right */}
             <div className="flex flex-row w-full">
               <div className="z-10">
-                <h1 className="text-[32px] md:text-[84px] font-inter font-bold leading-[32px] md:leading-[83px] text-white">
+                <h1 className="text-[32px] md:text-[84px] font-inter font-bold leading-[32px] md:leading-[83px] text-white tracking-[-0.05em]">
                   Turn your audio into engaging <br />
                   storytelling video with <br />
                   consistent characters and <br />
