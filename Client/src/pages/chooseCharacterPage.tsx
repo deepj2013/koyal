@@ -8,14 +8,23 @@ import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import { useSelector } from "react-redux";
-import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import {
+  useEditStoryElementMutation,
+  useLazyGetProcessedCharacterQuery,
+  useLazyGetStyleQuery,
+  useLazyGetTrainedCharacterQuery,
+  usePreprocessCharacterMutation,
+  useSubmitStyleMutation,
+  useTrainCharacterMutation,
+} from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { uploadJsonAsFileToS3 } from "../utils/helper";
+import { dataURLtoFile, uploadJsonAsFileToS3 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import avatar1 from "../assets/images/avatar1.png";
 import avatar2 from "../assets/images/avatar2.png";
 import avatar3 from "../assets/images/avatar3.png";
+import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -29,6 +38,16 @@ const ChooseCharacterPage = () => {
   const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
   const [getStoryElement, { data: storyElementData }] =
     useLazyGetStoryElementQuery();
+  const [preprocessCharacter, { data: processedCharResponse }] =
+    usePreprocessCharacterMutation();
+  const [getCharResult, { data: charResult }] =
+    useLazyGetProcessedCharacterQuery();
+  const [trainCharacter, { data: trainedCharResponse }] =
+    useTrainCharacterMutation();
+  const [getTrainedCharacter, { data: trainedCharacter }] =
+    useLazyGetTrainedCharacterQuery();
+  const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
+  const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,8 +148,28 @@ const ChooseCharacterPage = () => {
     return false;
   };
 
-  const handleNextClick = () => {
-    navigate("/characterSelection");
+  const handleNextClick = async () => {
+    if (useChosenCharacter === null) {
+      return;
+    }
+    if (useChosenCharacter === true) {
+      const folderPath = await createFolderInS3(
+        `${localStorage.getItem("currentUser")}/avatarImages`
+      );
+      console.log("folderPath", folderPath);
+
+      const imageUrls = capturedImages.forEach((currentImage, index) => {
+        const file = dataURLtoFile(currentImage, `image-${index + 1}`);
+        return uploadFileToS3(
+          file,
+          `${localStorage.getItem("currentUser")}/avatarImages`
+        );
+      });
+      preprocessCharacter({
+        images_path: "https://s3.amazonaws.com/PATH/TO/AVATAR_IMAGE_FOLDER",
+        character_name: identifier,
+      });
+    }
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
@@ -201,7 +240,7 @@ const ChooseCharacterPage = () => {
 
     if (timeLeft === 3 && !isComplete) {
       const imageCaptured = captureImage();
-      setCapturedImages(p => [...p, imageCaptured]);
+      setCapturedImages((p) => [...p, imageCaptured]);
     }
 
     if (timeLeft > 0 && !isComplete) {
@@ -215,7 +254,7 @@ const ChooseCharacterPage = () => {
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
       const imageCaptured = captureImage();
-      setCapturedImages(p => [...p, imageCaptured]);
+      setCapturedImages((p) => [...p, imageCaptured]);
       setUseChosenCharacter(true);
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
@@ -229,7 +268,24 @@ const ChooseCharacterPage = () => {
   }, [sceneLLMResponse]);
 
   useEffect(() => {
-    console.log("storyElementData", storyElementData);
+    if (processedCharResponse?.call_id) {
+      getCharResult(processedCharResponse?.call_id);
+    }
+  }, [processedCharResponse]);
+
+  useEffect(() => {
+    if (trainedCharResponse?.call_id) {
+      getTrainedCharacter(trainedCharResponse?.call_id);
+    }
+  }, [trainedCharResponse]);
+
+  useEffect(() => {
+    if (submitStyleData?.call_id) {
+      getStyle(submitStyleData?.call_id);
+    }
+  }, [submitStyleData]);
+
+  useEffect(() => {
     if (storyElementData) {
       setStoryElement(storyElementData);
       uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
@@ -239,6 +295,31 @@ const ChooseCharacterPage = () => {
       );
     }
   }, [storyElementData]);
+
+  useEffect(() => {
+    if (charResult) {
+      trainCharacter({
+        processed_path: charResult?.processed_path,
+        character_name: identifier,
+      });
+    }
+  }, [charResult]);
+
+  useEffect(() => {
+    if (trainedCharacter) {
+      submitStyle({
+        lora_path: trainedCharacter.lora_path,
+        character_name: identifier,
+        character_outfit: storyElement.character_outfit,
+      });
+    }
+  }, [trainedCharacter]);
+
+  useEffect(() => {
+    if (getStyleData) {
+      navigate("/characterSelection");
+    }
+  }, [getStyleData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
