@@ -9,7 +9,7 @@ const router = express.Router()
 
 router.post('/login', adminLoginController)
 router.post('/signup', adminSignupController)
-router.get("/getWaitingList",[adminAuth], getAllWaitingListController);
+router.get("/getWaitingList", getAllWaitingListController);
 
 
 
