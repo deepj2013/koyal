@@ -1,4 +1,5 @@
 export const ApiRoutes = {
+  WaitingList: "api/admin/getWaitingList",
   EmotionEndpoint: "/emotion_endpoint/submit",
   TranscriberEndpoint: "/transcriber_endpoint/submit",
   EmotionResultEndpoint: "/emotion_endpoint/result",

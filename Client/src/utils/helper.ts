@@ -39,3 +39,8 @@ export const dataURLtoFile = (dataUrl, filename) => {
   }
   return new File([u8arr], filename, { type: mime });
 };
+
+export const formatToUTC = (isoString) => {
+  const date = new Date(isoString);
+  return date.toUTCString();
+};

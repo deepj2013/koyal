@@ -14,6 +14,7 @@ import FinalVideoPage from "./pages/finaVedio";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react"; 
 import { persistor, store } from "./redux/store/store";
+import WaitingList from "./pages/waitingList";
 
 const App: React.FC = () => {
   return (
@@ -33,6 +34,7 @@ const App: React.FC = () => {
           />
           <Route path="/editscene" element={<EditScenes />} />
           <Route path="/finalvideo" element={<FinalVideoPage />} />
+          <Route path="/waitingList" element={<WaitingList />} />
         </Routes>
       </PersistGate>
     </Provider>
