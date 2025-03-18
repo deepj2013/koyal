@@ -4,18 +4,31 @@ import Navbar from "../components/Navbar";
 import { FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
-import { ConfirmButtonTextMap, Stages } from "../utils/constants";
+import {
+  AvatarProcessModes,
+  ConfirmButtonTextMap,
+  EditStoryModes,
+  Stages,
+} from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import { useSelector } from "react-redux";
-import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import {
+  useEditStoryElementMutation,
+  useLazyGetProcessedAvatarQuery,
+  useLazyGetProcessedCharacterQuery,
+  useLazyGetStyleQuery,
+  useLazyGetTrainedCharacterQuery,
+  usePreprocessCharacterMutation,
+  useProcessAvatarMutation,
+  useSubmitStyleMutation,
+  useTrainCharacterMutation,
+} from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { uploadJsonAsFileToS3 } from "../utils/helper";
+import { dataURLtoFile, uploadJsonAsFileToS3 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
-import avatar1 from "../assets/images/avatar1.png";
-import avatar2 from "../assets/images/avatar2.png";
-import avatar3 from "../assets/images/avatar3.png";
+import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -29,6 +42,19 @@ const ChooseCharacterPage = () => {
   const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
   const [getStoryElement, { data: storyElementData }] =
     useLazyGetStoryElementQuery();
+  const [preprocessCharacter, { data: processedCharResponse }] =
+    usePreprocessCharacterMutation();
+  const [getCharResult, { data: charResult }] =
+    useLazyGetProcessedCharacterQuery();
+  const [trainCharacter, { data: trainedCharResponse }] =
+    useTrainCharacterMutation();
+  const [getTrainedCharacter, { data: trainedCharacter }] =
+    useLazyGetTrainedCharacterQuery();
+  const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
+  const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
+  const [processAvatar, { data: processedAvatarResponse }] =
+    useProcessAvatarMutation();
+  const [getAvatar, { data: avatarData }] = useLazyGetProcessedAvatarQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,12 +66,12 @@ const ChooseCharacterPage = () => {
   const [completedActions, setCompletedActions] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const [capturedImages, setCapturedImages] = useState([]);
   const [useChosenCharacter, setUseChosenCharacter] = useState(null);
   const [storyElement, setStoryElement] = useState(null);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
+  const [animatedImages, setAnimatedImages] = useState([]);
 
-  const animatedImages = [avatar1, avatar2, avatar3];
   const actions = [
     "TURN YOUR HEAD RIGHT",
     "SQUINT YOUR EYES",
@@ -55,9 +81,27 @@ const ChooseCharacterPage = () => {
     "STANDUP (ENSURE HEAD IN THE FRAME)",
   ];
 
-  const handleAICharClick = () => {
+  const handleAICharClick = async () => {
     setUseChosenCharacter(false);
     setIsCustomAvatarModalOpen(true);
+    const { uriPath } = await createFolderInS3(
+      `${localStorage.getItem("currentUser")}/AVATAR`
+    );
+    processAvatar({
+      images_path: uriPath,
+      character_details: storyElement.character_details,
+    });
+  };
+
+  const handleChangeLook = async () => {
+    const { uriPath } = await createFolderInS3(
+      `${localStorage.getItem("currentUser")}/AVATAR`
+    );
+    processAvatar({
+      mode: AvatarProcessModes.CREATE,
+      images_path: uriPath,
+      character_details: storyElement.character_details,
+    });
   };
 
   const onConfirmAvatarModal = () => {};
@@ -69,18 +113,13 @@ const ChooseCharacterPage = () => {
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      setCapturedImage(canvas.toDataURL("image/png"));
-      setUseChosenCharacter(true);
+      return canvas.toDataURL("image/png");
     }
   };
 
   const handleSaveTheme = () => {
-    // setStoryElement((prev: any) => ({
-    //   ...prev,
-    //   narrative: newThemeInput || THEME_TEXT_NEW,
-    // }));
     editStory({
-      mode: "edit-story",
+      mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
       story_instructions: newThemeInput,
@@ -98,7 +137,7 @@ const ChooseCharacterPage = () => {
 
   const handleSaveChanges = () => {
     editStory({
-      mode: "edit-character",
+      mode: EditStoryModes.EDIT_CHARACTER,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
       new_story: storyElement.narrative,
@@ -130,8 +169,41 @@ const ChooseCharacterPage = () => {
     return false;
   };
 
-  const handleNextClick = () => {
-    navigate("/characterSelection");
+  const callProcessCharacterAPI = (uriPath: string) => {
+    preprocessCharacter({
+      images_path: uriPath,
+      character_name: identifier,
+    });
+  };
+
+  const handleNextClick = async () => {
+    if (useChosenCharacter === null) {
+      return;
+    }
+    if (useChosenCharacter === true) {
+      const { uriPath } = await createFolderInS3(
+        `${localStorage.getItem("currentUser")}/avatarImages`
+      );
+      await Promise.all(
+        capturedImages.map(async (currentImage, index) => {
+          const file = dataURLtoFile(currentImage, `image-${index + 1}`);
+          return uploadFileToS3(
+            file,
+            `${localStorage.getItem("currentUser")}/avatarImages`
+          );
+        })
+      );
+
+      callProcessCharacterAPI(uriPath);
+    } else {
+      const { uriPath } = await createFolderInS3(
+        `${localStorage.getItem("currentUser")}/AVATAR`
+      );
+      processAvatar({
+        mode: AvatarProcessModes.UPSCALE,
+        images_path: uriPath,
+      });
+    }
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
@@ -200,6 +272,11 @@ const ChooseCharacterPage = () => {
   useEffect(() => {
     if (stage !== "actionRecord") return; // Prevents countdown from running on other stages
 
+    if (timeLeft === 3 && !isComplete) {
+      const imageCaptured = captureImage();
+      setCapturedImages((p) => [...p, imageCaptured]);
+    }
+
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
@@ -210,7 +287,9 @@ const ChooseCharacterPage = () => {
       setCurrentAction(currentAction + 1);
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
-      captureImage();
+      const imageCaptured = captureImage();
+      setCapturedImages((p) => [...p, imageCaptured]);
+      setUseChosenCharacter(true);
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -223,16 +302,71 @@ const ChooseCharacterPage = () => {
   }, [sceneLLMResponse]);
 
   useEffect(() => {
-    console.log("storyElementData", storyElementData);
+    if (processedCharResponse?.call_id) {
+      getCharResult(processedCharResponse?.call_id);
+    }
+  }, [processedCharResponse]);
+
+  useEffect(() => {
+    if (trainedCharResponse?.call_id) {
+      getTrainedCharacter(trainedCharResponse?.call_id);
+    }
+  }, [trainedCharResponse]);
+
+  useEffect(() => {
+    if (submitStyleData?.call_id) {
+      getStyle(submitStyleData?.call_id);
+    }
+  }, [submitStyleData]);
+
+  useEffect(() => {
+    if (processedAvatarResponse?.call_id) {
+      getAvatar(processedAvatarResponse?.call_id);
+    }
+  }, [processedAvatarResponse]);
+
+  useEffect(() => {
     if (storyElementData) {
       setStoryElement(storyElementData);
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
-        (url) => {
-          console.log("upload successful");
-        }
-      );
+      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(() => {
+        console.log("upload successful");
+      });
     }
   }, [storyElementData]);
+
+  useEffect(() => {
+    if (charResult) {
+      trainCharacter({
+        processed_path: charResult?.processed_path,
+        character_name: identifier,
+      });
+    }
+  }, [charResult]);
+
+  useEffect(() => {
+    if (trainedCharacter) {
+      submitStyle({
+        lora_path: trainedCharacter.lora_path,
+        character_name: identifier,
+        character_outfit: storyElement.character_outfit,
+      });
+    }
+  }, [trainedCharacter]);
+
+  useEffect(() => {
+    if (getStyleData) {
+      navigate("/characterSelection");
+    }
+  }, [getStyleData]);
+
+  useEffect(() => {
+    if (avatarData?.upscaled_path) {
+      callProcessCharacterAPI(avatarData?.upscaled_path);
+    }
+    if (avatarData) {
+      setAnimatedImages(Object?.values(avatarData));
+    }
+  }, [avatarData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -312,9 +446,9 @@ const ChooseCharacterPage = () => {
                       onClick={() => setUseChosenCharacter(true)}
                     >
                       <span className="border-1">
-                        {capturedImage && (
+                        {capturedImages && (
                           <img
-                            src={capturedImage}
+                            src={capturedImages[capturedImages?.length - 1]}
                             alt="Captured"
                             className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
                               useChosenCharacter === true
@@ -669,13 +803,18 @@ const ChooseCharacterPage = () => {
                         Create your own main character for the video being as
                         descriptive as possible.
                       </h3>
-                      <p className="text-md text-gray-700">
-                        Do not mention any clothing yet :)
-                      </p>
+
                       <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"></textarea>
-                        <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
-                          Change Look{" "}
+                        <textarea
+                          className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                          value={storyElement?.narrative} // Bound to state
+                          onChange={(e) => handleNarrativeChange(e)}
+                        ></textarea>
+                        <button
+                          className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all"
+                          onClick={handleChangeLook}
+                        >
+                          Change Look
                           <span className="ml-2">
                             <FaArrowRight />
                           </span>

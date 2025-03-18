@@ -1,13 +1,28 @@
 import { PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import s3 from "./aws-config";
+import { config } from "../config/config";
 
-const BUCKET_NAME = import.meta.env.VITE_S3_BUCKET_NAME;
-const REGION_NAME = import.meta.env.VITE_AWS_REGION;
+const BUCKET_NAME = config.bucketName;
+const REGION_NAME = config.regionName;
 
-export const createFolderInS3 = async (folderName) => {
-  const folderKey = `${folderName}/`; // Ensure it ends with '/'
+/**
+ * Creates a virtual folder in an Amazon S3 bucket.
+ *
+ * This function ensures that the specified folder path exists in S3 by checking if it already exists.
+ * If the folder does not exist, it creates an empty object with a key ending in `/` to simulate a folder structure.
+ *
+ * @param {string} folderPath - The path of the folder to be created.
+ *                               Example: "my-folder" or "parent-folder/child-folder"
+ * @returns {Promise<{ message: string, folderUrl: string, uriPath: string }>}
+ * - Returns an object containing:
+ * - `message`: A status message indicating if the folder was created or already exists.
+ * - `folderUrl`: The publicly accessible URL of the folder in S3.
+ * - `uriPath`: The URI path of the folder in the S3 bucket.
+ * @throws {Error} - Throws an error if the request to S3 fails.
+ */
+export const createFolderInS3 = async (folderPath) => {
+  const folderKey = folderPath.endsWith("/") ? folderPath : `${folderPath}/`; // Ensure it ends with "/"
 
-  // **Step 1: Check if folder already exists**
   const checkParams = {
     Bucket: BUCKET_NAME,
     Prefix: folderKey, // SearchfolderKey for objects with this prefix
@@ -18,24 +33,35 @@ export const createFolderInS3 = async (folderName) => {
     const checkCommand = new ListObjectsV2Command(checkParams);
     const response = await s3.send(checkCommand);
 
+    const encodedFileKey = folderPath
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/");
+
+    const folderUrl = `https://s3.${REGION_NAME}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}/`;
+    const uriPath = `${BUCKET_NAME}/${folderPath}/`;
+
     if (response.Contents && response.Contents.length > 0) {
-      console.log(`Folder "${folderName}" already exists.`);
-      return "Folder already exists";
+      console.log(`Folder "${folderPath}" already exists.`);
+      return {
+        message: "Folder already exists.",
+        folderUrl,
+        uriPath,
+      };
     }
 
-    // **Step 2: Create folder if it doesn't exist**
     const createParams = {
       Bucket: BUCKET_NAME,
       Key: folderKey,
       Body: "",
-      ContentType: "application/x-directory", // Optional for better folder recognition
+      ContentType: "application/x-directory",
     };
 
     const createCommand = new PutObjectCommand(createParams);
     await s3.send(createCommand);
 
-    console.log(`Folder "${folderName}" created successfully.`);
-    return "Folder created successfully";
+    console.log("Folder uploaded successfully:", folderUrl);
+    return { message: "Folder created successfully", folderUrl, uriPath };
   } catch (error) {
     console.error("Error creating folder:", error);
     throw error;
@@ -50,13 +76,13 @@ export const uploadFileToS3 = async (file: File, folderName: string) => {
   const fileKey = `${folderName}/${file.name}`;
 
   try {
-    const fileBuffer = await file.arrayBuffer(); 
+    const fileBuffer = await file.arrayBuffer();
 
-    const params = {
+    const params : any = {
       Bucket: BUCKET_NAME,
       Key: fileKey,
-      Body: fileBuffer, 
-      ContentType: file.type, 
+      Body: fileBuffer,
+      ContentType: file.type,
       ACL: "public-read",
     };
 
@@ -78,7 +104,7 @@ export const replaceS3File = async (fileKey: string, newJsonData: any) => {
   try {
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
-      Key: fileKey, 
+      Key: fileKey,
       Body: JSON.stringify(newJsonData, null, 2),
       ContentType: "application/json",
     });
@@ -89,5 +115,3 @@ export const replaceS3File = async (fileKey: string, newJsonData: any) => {
     console.error("Error replacing file:", error);
   }
 };
-
-

@@ -15,6 +15,7 @@ import uploadAudioReducer from "../features/uploadSlice";
 import lyricEditReducer from "../features/lyricEditSlice";
 import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
 import { lyricEditApi } from "../services/lyricEditService/lyricEditApi";
+import { chooseCharacterApi } from "../services/chooseCharacterService/chooseCharacterApi";
 
 const persistConfig = {
   key: "root",
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   lyricEdit: lyricEditReducer,
   [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,
   [lyricEditApi.reducerPath]: lyricEditApi.reducer,
+  [chooseCharacterApi.reducerPath]: chooseCharacterApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -37,7 +39,11 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat([uploadAudioApi.middleware, lyricEditApi.middleware]),
+    }).concat([
+      uploadAudioApi.middleware,
+      lyricEditApi.middleware,
+      chooseCharacterApi.middleware,
+    ]),
 });
 
 setupListeners(store.dispatch);
