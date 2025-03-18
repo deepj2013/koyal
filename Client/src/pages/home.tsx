@@ -920,7 +920,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               onChange={(e) => setName(e.target.value)}
               required
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "#acacaf",
                 WebkitAppearance: "none", // Prevents iOS default styles
                 MozAppearance: "none",
                 appearance: "none",
@@ -940,7 +940,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "#acacaf",
                 WebkitAppearance: "none", // Prevents iOS default styles
                 MozAppearance: "none",
                 appearance: "none",
@@ -959,7 +959,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               style={{
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                backgroundColor: "#acacaf",
                 WebkitAppearance: "none", // Prevents iOS default styles
                 MozAppearance: "none",
                 appearance: "none",
