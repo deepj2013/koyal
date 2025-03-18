@@ -4,16 +4,23 @@ import Navbar from "../components/Navbar";
 import { FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
-import { ConfirmButtonTextMap, Stages } from "../utils/constants";
+import {
+  AvatarProcessModes,
+  ConfirmButtonTextMap,
+  EditStoryModes,
+  Stages,
+} from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import { useSelector } from "react-redux";
 import {
   useEditStoryElementMutation,
+  useLazyGetProcessedAvatarQuery,
   useLazyGetProcessedCharacterQuery,
   useLazyGetStyleQuery,
   useLazyGetTrainedCharacterQuery,
   usePreprocessCharacterMutation,
+  useProcessAvatarMutation,
   useSubmitStyleMutation,
   useTrainCharacterMutation,
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
@@ -21,9 +28,6 @@ import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { dataURLtoFile, uploadJsonAsFileToS3 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
-import avatar1 from "../assets/images/avatar1.png";
-import avatar2 from "../assets/images/avatar2.png";
-import avatar3 from "../assets/images/avatar3.png";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 
 const ChooseCharacterPage = () => {
@@ -48,6 +52,9 @@ const ChooseCharacterPage = () => {
     useLazyGetTrainedCharacterQuery();
   const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
   const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
+  const [processAvatar, { data: processedAvatarResponse }] =
+    useProcessAvatarMutation();
+  const [getAvatar, { data: avatarData }] = useLazyGetProcessedAvatarQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,8 +70,8 @@ const ChooseCharacterPage = () => {
   const [useChosenCharacter, setUseChosenCharacter] = useState(null);
   const [storyElement, setStoryElement] = useState(null);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
+  const [animatedImages, setAnimatedImages] = useState([]);
 
-  const animatedImages = [avatar1, avatar2, avatar3];
   const actions = [
     "TURN YOUR HEAD RIGHT",
     "SQUINT YOUR EYES",
@@ -74,9 +81,27 @@ const ChooseCharacterPage = () => {
     "STANDUP (ENSURE HEAD IN THE FRAME)",
   ];
 
-  const handleAICharClick = () => {
+  const handleAICharClick = async () => {
     setUseChosenCharacter(false);
     setIsCustomAvatarModalOpen(true);
+    const { uriPath } = await createFolderInS3(
+      `${localStorage.getItem("currentUser")}/AVATAR`
+    );
+    processAvatar({
+      images_path: uriPath,
+      character_details: storyElement.character_details,
+    });
+  };
+
+  const handleChangeLook = async () => {
+    const { uriPath } = await createFolderInS3(
+      `${localStorage.getItem("currentUser")}/AVATAR`
+    );
+    processAvatar({
+      mode: AvatarProcessModes.CREATE,
+      images_path: uriPath,
+      character_details: storyElement.character_details,
+    });
   };
 
   const onConfirmAvatarModal = () => {};
@@ -93,12 +118,8 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    // setStoryElement((prev: any) => ({
-    //   ...prev,
-    //   narrative: newThemeInput || THEME_TEXT_NEW,
-    // }));
     editStory({
-      mode: "edit-story",
+      mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
       story_instructions: newThemeInput,
@@ -116,7 +137,7 @@ const ChooseCharacterPage = () => {
 
   const handleSaveChanges = () => {
     editStory({
-      mode: "edit-character",
+      mode: EditStoryModes.EDIT_CHARACTER,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
       new_story: storyElement.narrative,
@@ -148,26 +169,39 @@ const ChooseCharacterPage = () => {
     return false;
   };
 
+  const callProcessCharacterAPI = (uriPath: string) => {
+    preprocessCharacter({
+      images_path: uriPath,
+      character_name: identifier,
+    });
+  };
+
   const handleNextClick = async () => {
     if (useChosenCharacter === null) {
       return;
     }
     if (useChosenCharacter === true) {
-      const folderPath = await createFolderInS3(
+      const { uriPath } = await createFolderInS3(
         `${localStorage.getItem("currentUser")}/avatarImages`
       );
-      console.log("folderPath", folderPath);
+      await Promise.all(
+        capturedImages.map(async (currentImage, index) => {
+          const file = dataURLtoFile(currentImage, `image-${index + 1}`);
+          return uploadFileToS3(
+            file,
+            `${localStorage.getItem("currentUser")}/avatarImages`
+          );
+        })
+      );
 
-      const imageUrls = capturedImages.forEach((currentImage, index) => {
-        const file = dataURLtoFile(currentImage, `image-${index + 1}`);
-        return uploadFileToS3(
-          file,
-          `${localStorage.getItem("currentUser")}/avatarImages`
-        );
-      });
-      preprocessCharacter({
-        images_path: "https://s3.amazonaws.com/PATH/TO/AVATAR_IMAGE_FOLDER",
-        character_name: identifier,
+      callProcessCharacterAPI(uriPath);
+    } else {
+      const { uriPath } = await createFolderInS3(
+        `${localStorage.getItem("currentUser")}/AVATAR`
+      );
+      processAvatar({
+        mode: AvatarProcessModes.UPSCALE,
+        images_path: uriPath,
       });
     }
   };
@@ -286,13 +320,17 @@ const ChooseCharacterPage = () => {
   }, [submitStyleData]);
 
   useEffect(() => {
+    if (processedAvatarResponse?.call_id) {
+      getAvatar(processedAvatarResponse?.call_id);
+    }
+  }, [processedAvatarResponse]);
+
+  useEffect(() => {
     if (storyElementData) {
       setStoryElement(storyElementData);
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
-        (url) => {
-          console.log("upload successful");
-        }
-      );
+      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(() => {
+        console.log("upload successful");
+      });
     }
   }, [storyElementData]);
 
@@ -320,6 +358,15 @@ const ChooseCharacterPage = () => {
       navigate("/characterSelection");
     }
   }, [getStyleData]);
+
+  useEffect(() => {
+    if (avatarData?.upscaled_path) {
+      callProcessCharacterAPI(avatarData?.upscaled_path);
+    }
+    if (avatarData) {
+      setAnimatedImages(Object?.values(avatarData));
+    }
+  }, [avatarData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -756,13 +803,18 @@ const ChooseCharacterPage = () => {
                         Create your own main character for the video being as
                         descriptive as possible.
                       </h3>
-                      <p className="text-md text-gray-700">
-                        Do not mention any clothing yet :)
-                      </p>
+
                       <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"></textarea>
-                        <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
-                          Change Look{" "}
+                        <textarea
+                          className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                          value={storyElement?.narrative} // Bound to state
+                          onChange={(e) => handleNarrativeChange(e)}
+                        ></textarea>
+                        <button
+                          className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all"
+                          onClick={handleChangeLook}
+                        >
+                          Change Look
                           <span className="ml-2">
                             <FaArrowRight />
                           </span>

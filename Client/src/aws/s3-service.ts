@@ -12,7 +12,11 @@ const REGION_NAME = import.meta.env.VITE_AWS_REGION;
  *
  * @param {string} folderPath - The path of the folder to be created.
  *                               Example: "my-folder" or "parent-folder/child-folder"
- * @returns {Promise<string>} - A message indicating whether the folder was created or already exists.
+ * @returns {Promise<{ message: string, folderUrl: string, uriPath: string }>}
+ * - Returns an object containing:
+ * - `message`: A status message indicating if the folder was created or already exists.
+ * - `folderUrl`: The publicly accessible URL of the folder in S3.
+ * - `uriPath`: The URI path of the folder in the S3 bucket.
  * @throws {Error} - Throws an error if the request to S3 fails.
  */
 export const createFolderInS3 = async (folderPath) => {
@@ -28,9 +32,21 @@ export const createFolderInS3 = async (folderPath) => {
     const checkCommand = new ListObjectsV2Command(checkParams);
     const response = await s3.send(checkCommand);
 
+    const encodedFileKey = folderPath
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/");
+
+    const folderUrl = `https://s3.${REGION_NAME}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}/`;
+    const uriPath = `${BUCKET_NAME}/${folderPath}/`;
+
     if (response.Contents && response.Contents.length > 0) {
       console.log(`Folder "${folderPath}" already exists.`);
-      return "Folder already exists";
+      return {
+        message: "Folder already exists.",
+        folderUrl,
+        uriPath,
+      };
     }
 
     const createParams = {
@@ -43,10 +59,8 @@ export const createFolderInS3 = async (folderPath) => {
     const createCommand = new PutObjectCommand(createParams);
     await s3.send(createCommand);
 
-    const encodedFileKey = encodeURIComponent(folderPath);
-    const folderUrl = `https://s3.${REGION_NAME}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}`;
     console.log("Folder uploaded successfully:", folderUrl);
-    return folderUrl;
+    return { message: "Folder created successfully", folderUrl, uriPath };
   } catch (error) {
     console.error("Error creating folder:", error);
     throw error;
@@ -63,7 +77,7 @@ export const uploadFileToS3 = async (file: File, folderName: string) => {
   try {
     const fileBuffer = await file.arrayBuffer();
 
-    const params = {
+    const params : any = {
       Bucket: BUCKET_NAME,
       Key: fileKey,
       Body: fileBuffer,

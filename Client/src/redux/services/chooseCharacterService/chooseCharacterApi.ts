@@ -51,6 +51,19 @@ export const chooseCharacterApi = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
+    processAvatar: builder.mutation({
+      query: (data) => ({
+        url: ApiRoutes.ProcessAvatar,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getProcessedAvatar: builder.query({
+      query: (callId: string) => ({
+        url: `${ApiRoutes.GetProcessedAvatar}/${callId}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -59,7 +72,9 @@ export const {
   usePreprocessCharacterMutation,
   useSubmitStyleMutation,
   useTrainCharacterMutation,
+  useProcessAvatarMutation,
   useLazyGetProcessedCharacterQuery,
   useLazyGetTrainedCharacterQuery,
   useLazyGetStyleQuery,
+  useLazyGetProcessedAvatarQuery,
 } = chooseCharacterApi;

@@ -13,5 +13,7 @@ export const ApiRoutes = {
   GetTrainedCharacter: "train_character_endpoint/result",
   SubmitStyle: "style_endpoint/submit",
   GetStyleEndpoint: "/style_endpoint/result",
+  ProcessAvatar: "avatar_endpoint/submit",
+  GetProcessedAvatar: "avatar_endpoint/result",
 } as const;
 
