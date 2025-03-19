@@ -6,7 +6,7 @@ import logo from "../assets/images/koyal_nav.svg";
 import mit from "../assets/images/mit.png";
 import meta from "../assets/images/Meta.png";
 import cali from "../assets/images/cali.png";
-import Realstic from "../assets/vedio/realistic_video_drake.mp4";
+import Realstic from "../assets/vedio/clean_mehul_no_face_lipsync.mp4";
 import Cartoon from "../assets/vedio/cartoon_video_soumya.mp4";
 import Sketch from "../assets/vedio/sketch_video_prakhar.mp4";
 import bgcircle from "../assets/images/bgcircle.png";

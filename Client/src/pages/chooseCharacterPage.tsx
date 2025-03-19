@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, act } from "react";
 import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import { FaCheck } from "react-icons/fa";
@@ -12,7 +12,7 @@ import {
 } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   useEditStoryElementMutation,
   useLazyGetProcessedAvatarQuery,
@@ -26,12 +26,28 @@ import {
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { dataURLtoFile, uploadJsonAsFileToS3 } from "../utils/helper";
+import {
+  dataURLtoFile,
+  shuffleArrayExceptLast,
+  uploadJsonAsFileToS3,
+} from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
+import { setLoraPath, setStyleImagesUrl } from "../redux/features/appSlice";
+
+const ACTIONS = [
+  "TURN YOUR HEAD RIGHT",
+  "SQUINT YOUR EYES",
+  "TILT YOUR HEAD DOWN",
+  "OPEN YOUR MOUTH",
+  "TILT YOUR HEAD UP",
+  "STANDUP (ENSURE HEAD IN THE FRAME)",
+];
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -59,7 +75,8 @@ const ChooseCharacterPage = () => {
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stage, setStage] = useState("default");
-  const [identifier, setIdentifier] = useState("");
+  const [charchaIdentifier, setCharchaIdentifier] = useState("");
+  const [avatarIdentifier, setAvatarIdentifier] = useState("");
   const [gender, setGender] = useState("");
   const [currentAction, setCurrentAction] = useState(0);
   const [timeLeft, setTimeLeft] = useState(7);
@@ -67,30 +84,26 @@ const ChooseCharacterPage = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
   const [capturedImages, setCapturedImages] = useState([]);
-  const [useChosenCharacter, setUseChosenCharacter] = useState(null);
+  const [useCharcha, setUseCharcha] = useState(null);
   const [storyElement, setStoryElement] = useState(null);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
   const [animatedImages, setAnimatedImages] = useState([]);
-
-  const actions = [
-    "TURN YOUR HEAD RIGHT",
-    "SQUINT YOUR EYES",
-    "TILT YOUR HEAD DOWN",
-    "OPEN YOUR MOUTH",
-    "TILT YOUR HEAD UP",
-    "STANDUP (ENSURE HEAD IN THE FRAME)",
-  ];
+  const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
+  const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
+  const [actions, setActions] = useState([]);
 
   const handleAICharClick = async () => {
-    setUseChosenCharacter(false);
     setIsCustomAvatarModalOpen(true);
-    const { uriPath } = await createFolderInS3(
+    const { message, uriPath } = await createFolderInS3(
       `${localStorage.getItem("currentUser")}/AVATAR`
     );
-    processAvatar({
-      images_path: uriPath,
-      character_details: storyElement.character_details,
-    });
+
+    // if (!message?.includes("already exists.")) {
+      processAvatar({
+        images_path: uriPath,
+        character_details: storyElement.character_details,
+      });
+    // }
   };
 
   const handleChangeLook = async () => {
@@ -104,7 +117,11 @@ const ChooseCharacterPage = () => {
     });
   };
 
-  const onConfirmAvatarModal = () => {};
+  const onConfirmAvatarModal = () => {
+    setIsCustomAvatarModalOpen(false);
+    setIsAvatarFinalized(true);
+    setUseCharcha(false);
+  };
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
@@ -150,10 +167,20 @@ const ChooseCharacterPage = () => {
     } else if (stage === Stages.IDENTIFICATION) {
       setStage(Stages.CALIBRATION);
     } else if (stage === Stages.CALIBRATION) {
+      const imageCaptured = captureImage();
+      setCapturedImages((p) => [...p, imageCaptured]);
       setStage(Stages.ACTION_RECORD);
     } else if (stage === Stages.ACTION_RECORD) {
       setIsChooseCharModalOpen(false);
+      setIsCharchaFinalized(true);
+      setUseCharcha(true);
     }
+  };
+
+  const onRecreate = () => {
+    setIsCharchaFinalized(false);
+    setStage(Stages.VERIFICATION);
+    setCharchaIdentifier("")
   };
 
   const getConfirmText = () => {
@@ -163,7 +190,7 @@ const ChooseCharacterPage = () => {
   const isConfirmDisabled = () => {
     if (stage === Stages.ACTION_RECORD && !isComplete) {
       return true;
-    } else if (stage === Stages.IDENTIFICATION && (!gender || !identifier)) {
+    } else if (stage === Stages.IDENTIFICATION && !gender) {
       return true;
     }
     return false;
@@ -172,24 +199,24 @@ const ChooseCharacterPage = () => {
   const callProcessCharacterAPI = (uriPath: string) => {
     preprocessCharacter({
       images_path: uriPath,
-      character_name: identifier,
+      character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
     });
   };
 
   const handleNextClick = async () => {
-    if (useChosenCharacter === null) {
+    if (useCharcha === null) {
       return;
     }
-    if (useChosenCharacter === true) {
+    if (useCharcha === true) {
       const { uriPath } = await createFolderInS3(
-        `${localStorage.getItem("currentUser")}/avatarImages`
+        `${localStorage.getItem("currentUser")}/charchaImages`
       );
       await Promise.all(
         capturedImages.map(async (currentImage, index) => {
           const file = dataURLtoFile(currentImage, `image-${index + 1}`);
           return uploadFileToS3(
             file,
-            `${localStorage.getItem("currentUser")}/avatarImages`
+            `${localStorage.getItem("currentUser")}/charchaImages`
           );
         })
       );
@@ -210,7 +237,12 @@ const ChooseCharacterPage = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleChooseChar = () => {
-    setStage(Stages.VERIFICATION);
+    if (isCharchaFinalized) {
+      setCurrentAction(5);
+      setStage(Stages.ACTION_RECORD);
+    } else {
+      setStage(Stages.VERIFICATION);
+    }
     setIsChooseCharModalOpen(true);
   };
 
@@ -228,6 +260,7 @@ const ChooseCharacterPage = () => {
       }
     };
 
+    setActions(shuffleArrayExceptLast(ACTIONS));
     fetchStoryElement();
   }, []);
 
@@ -262,10 +295,10 @@ const ChooseCharacterPage = () => {
 
   useEffect(() => {
     if (stage === "actionRecord") {
-      setTimeLeft(7); // Reset timer
-      setCurrentAction(0); // Reset actions to start from the first action
-      setCompletedActions([]); // Clear completed actions
-      setIsComplete(false); // Reset completion state
+      setTimeLeft(isCharchaFinalized ? 0 : 7); // Reset timer
+      setCurrentAction(isCharchaFinalized ? 5 : 0); // Reset actions to start from the first action
+      setCompletedActions(isCharchaFinalized ? [1, 2, 3, 4, 5] : []); // Clear completed actions
+      setIsComplete(isCharchaFinalized ? true : false); // Reset completion state
     }
   }, [stage]);
 
@@ -289,7 +322,6 @@ const ChooseCharacterPage = () => {
     } else if (currentAction === actions.length - 1 && !isComplete) {
       const imageCaptured = captureImage();
       setCapturedImages((p) => [...p, imageCaptured]);
-      setUseChosenCharacter(true);
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -338,16 +370,17 @@ const ChooseCharacterPage = () => {
     if (charResult) {
       trainCharacter({
         processed_path: charResult?.processed_path,
-        character_name: identifier,
+        character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
       });
     }
   }, [charResult]);
 
   useEffect(() => {
     if (trainedCharacter) {
+      dispatch(setLoraPath(trainedCharacter.lora_path));
       submitStyle({
         lora_path: trainedCharacter.lora_path,
-        character_name: identifier,
+        character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
         character_outfit: storyElement.character_outfit,
       });
     }
@@ -355,7 +388,12 @@ const ChooseCharacterPage = () => {
 
   useEffect(() => {
     if (getStyleData) {
-      navigate("/characterSelection");
+      navigate("/characterSelection", {
+        state: {
+          characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
+        },
+      });
+      dispatch(setStyleImagesUrl(getStyleData));
     }
   }, [getStyleData]);
 
@@ -435,67 +473,109 @@ const ChooseCharacterPage = () => {
               <div className="flex flex-col space-y-4">
                 {/* Yes/No Selection */}
                 <div className="flex space-x-4">
-                  {isComplete ? (
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                  {isCharchaFinalized ? (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
-                          useChosenCharacter
+                          useCharcha
                             ? "bg-white text-blue border-blue-500"
                             : "bg-white text-gray-700 border-gray-300"
                         }`}
-                      onClick={() => setUseChosenCharacter(true)}
-                    >
-                      <span className="border-1">
-                        {capturedImages && (
-                          <img
-                            src={capturedImages[capturedImages?.length - 1]}
-                            alt="Captured"
-                            className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
-                              useChosenCharacter === true
-                                ? "border-blue-500"
-                                : "border-gray-300"
-                            }`}
-                          />
-                        )}
-                      </span>
-
-                      <span
-                        className={` ml-2 ${
-                          useChosenCharacter === true &&
-                          "text-blue-500 font-semibold"
-                        }`}
+                        onClick={handleChooseChar}
                       >
-                        Chosen character
-                      </span>
-                    </label>
+                        <span className="border-1">
+                          {capturedImages && (
+                            <img
+                              src={capturedImages[0]}
+                              alt="Captured"
+                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                useCharcha === true
+                                  ? "border-blue-500"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          )}
+                        </span>
+
+                        <span
+                          className={` ml-2 ${
+                            useCharcha === true && "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          {charchaIdentifier}
+                        </span>
+                      </label>
+                    </>
                   ) : (
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                               bg-white text-gray-700 border-gray-300`}
-                      onClick={handleChooseChar}
-                    >
-                      Use your likeness
-                    </label>
+                        onClick={handleChooseChar}
+                      >
+                        Use your likeness
+                      </label>
+                    </>
                   )}
 
-                  <label
-                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                  {isAvatarFinalized ? (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                      ${
+                        useCharcha === false
+                          ? "bg-white text-blue border-blue-500"
+                          : "bg-white text-gray-700 border-gray-300"
+                      }`}
+                        onClick={handleAICharClick}
+                      >
+                        <span className="border-1">
+                          {animatedImages && (
+                            <img
+                              src={animatedImages[0]}
+                              alt="Captured"
+                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                useCharcha === false
+                                  ? "border-blue-500"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          )}
+                        </span>
+
+                        <span
+                          className={`ml-2 ${
+                            useCharcha === false &&
+                            "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          {avatarIdentifier}
+                        </span>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${
-                            useChosenCharacter === false
+                            useCharcha === false
                               ? "bg-white text-blue border-blue-500"
                               : "bg-white text-gray-700 border-gray-300"
                           }`}
-                    onClick={handleAICharClick}
-                  >
-                    <span
-                      className={`${
-                        useChosenCharacter === false &&
-                        "text-blue-500 font-semibold"
-                      }`}
-                    >
-                      Create AI Character
-                    </span>
-                  </label>
+                        onClick={handleAICharClick}
+                      >
+                        <span
+                          className={`${
+                            useCharcha === false &&
+                            "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          Create AI Avatar
+                        </span>
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -555,6 +635,7 @@ const ChooseCharacterPage = () => {
               title="Create New Character"
               confirmText={getConfirmText()}
               isConfirmDisabled={isConfirmDisabled()}
+              onRestart={stage === Stages.ACTION_RECORD && isCharchaFinalized && onRecreate}
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg">
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">
@@ -626,8 +707,8 @@ const ChooseCharacterPage = () => {
                       {/* Input for Unique Identifier */}
                       <input
                         type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
+                        value={charchaIdentifier}
+                        onChange={(e) => setCharchaIdentifier(e.target.value)}
                         className="border border-gray-900 rounded-lg p-3 w-full mb-4"
                         placeholder="Enter unique identifier"
                       />
@@ -837,8 +918,8 @@ const ChooseCharacterPage = () => {
                       <div className="w-full">
                         <input
                           type="text"
-                          value={identifier}
-                          onChange={(e) => setIdentifier(e.target.value)}
+                          value={avatarIdentifier}
+                          onChange={(e) => setAvatarIdentifier(e.target.value)}
                           className="border border-gray-900 rounded-lg p-3 w-full mb-4"
                           placeholder="Enter a name"
                         />

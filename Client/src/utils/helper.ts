@@ -44,3 +44,12 @@ export const formatToUTC = (isoString) => {
   const date = new Date(isoString);
   return date.toUTCString();
 };
+
+export const shuffleArrayExceptLast = (array) => {
+  const shuffled = array.slice(0, -1); // Exclude the last element
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return [...shuffled, array[array.length - 1]]; // Append the last item back
+};
