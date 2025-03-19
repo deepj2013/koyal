@@ -34,7 +34,7 @@ const App: React.FC = () => {
           />
           <Route path="/editscene" element={<EditScenes />} />
           <Route path="/finalvideo" element={<FinalVideoPage />} />
-          <Route path="/waitingList" element={<WaitingList />} />
+          <Route path="/waitList" element={<WaitingList />} />
         </Routes>
       </PersistGate>
     </Provider>
