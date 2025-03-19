@@ -7,6 +7,7 @@ interface ModalProps {
   confirmText?: string;
   onConfirm?: () => void;
   isConfirmDisabled?: boolean;
+  onRestart?: () => void;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -18,6 +19,7 @@ export const Modal: React.FC<ModalProps> = ({
   onConfirm,
   isConfirmDisabled,
   onCancel,
+  onRestart
 }) => {
   if (!isOpen) return null;
 
@@ -48,17 +50,27 @@ export const Modal: React.FC<ModalProps> = ({
             </button>
           )}
 
-          {onConfirm && (
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 rounded-lg transition 
+          <div>
+            {onRestart && (
+              <button
+                onClick={onRestart}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 mr-4"
+              >
+                Re-create new character
+              </button>
+            )}
+            {onConfirm && (
+              <button
+                onClick={onConfirm}
+                className="px-4 py-2 rounded-lg transition 
                bg-blue-600 text-white hover:bg-blue-700 
                disabled:opacity-50 disabled:bg-blue-600 disabled:text-gray-200 disabled:cursor-not-allowed"
-              disabled={isConfirmDisabled}
-            >
-              {confirmText ? confirmText : "Confirm"}
-            </button>
-          )}
+                disabled={isConfirmDisabled}
+              >
+                {confirmText ? confirmText : "Confirm"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
