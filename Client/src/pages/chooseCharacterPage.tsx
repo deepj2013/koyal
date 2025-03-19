@@ -6,21 +6,23 @@ import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
-import { LyricEditState } from "../redux/features/lyricEditSlice";
-import { useSelector } from "react-redux";
-import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
-import { UploadAudioState } from "../redux/features/uploadSlice";
-import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { uploadJsonAsFileToS3 } from "../utils/helper";
+import { shuffleArrayExceptLast } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import avatar1 from "../assets/images/avatar1.png";
 import avatar2 from "../assets/images/avatar2.png";
 import avatar3 from "../assets/images/avatar3.png";
 import storyElementData from "../assets/sample/story_elements.json";
 
-const THEME_TEXT = storyElementData.narrative;
 const THEME_TEXT_NEW = storyElementData.newNarrative;
 const AVATAR_TEXT = "indian girl, age 21, sharp features, ponytail";
+const ACTIONS = [
+  "TURN YOUR HEAD RIGHT",
+  "SQUINT YOUR EYES",
+  "TILT YOUR HEAD DOWN",
+  "OPEN YOUR MOUTH",
+  "TILT YOUR HEAD UP",
+  "STANDUP (ENSURE HEAD IN THE FRAME)",
+];
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -28,44 +30,37 @@ const ChooseCharacterPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  const { storyEleementFileUrl } = useSelector(LyricEditState);
-  const { sceneDataFileUrl } = useSelector(UploadAudioState);
-
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stage, setStage] = useState("default");
-  const [identifier, setIdentifier] = useState("");
+  const [charchaIdentifier, setCharchaIdentifier] = useState("");
+  const [avatarIdentifier, setAvatarIdentifier] = useState("");
   const [gender, setGender] = useState("");
   const [currentAction, setCurrentAction] = useState(0);
   const [timeLeft, setTimeLeft] = useState(7);
   const [completedActions, setCompletedActions] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [isChooseCharModalOpen, setIsChooseCharModalOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [useChosenCharacter, setUseChosenCharacter] = useState(null);
+  const [useCharcha, setUseCharcha] = useState(null);
   const [storyElement, setStoryElement] = useState(storyElementData);
   const [isCustomAvatarModalOpen, setIsCustomAvatarModalOpen] = useState(false);
   const [avatarDescription, setAvatarDescription] = useState(AVATAR_TEXT);
+  const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
+  const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
+  const [actions, setActions] = useState([]);
+  const [capturedImages, setCapturedImages] = useState([]);
 
   const animatedImages = [avatar1, avatar2, avatar3];
-  const actions = [
-    "TURN YOUR HEAD RIGHT",
-    "SQUINT YOUR EYES",
-    "TILT YOUR HEAD DOWN",
-    "OPEN YOUR MOUTH",
-    "TILT YOUR HEAD UP",
-    "STANDUP (ENSURE HEAD IN THE FRAME)",
-  ];
 
   const handleAICharClick = () => {
-    setUseChosenCharacter(false);
     setIsCustomAvatarModalOpen(true);
   };
 
   const onConfirmAvatarModal = () => {
-    setIsCustomAvatarModalOpen(false)
+    setIsCustomAvatarModalOpen(false);
+    setIsAvatarFinalized(true);
+    setUseCharcha(false);
   };
-
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
@@ -73,42 +68,28 @@ const ChooseCharacterPage = () => {
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      setCapturedImage(canvas.toDataURL("image/png"));
-      setUseChosenCharacter(true);
+      return canvas.toDataURL("image/png");
     }
   };
 
   const handleSaveTheme = () => {
-    setNewThemeInput("")
+    setNewThemeInput("");
     setStoryElement((prev: any) => ({
       ...prev,
       narrative: THEME_TEXT_NEW,
     }));
-    // editStory({
-    //   mode: "edit-story",
-    //   scenes_path: sceneDataFileUrl,
-    //   Story_elements: storyEleementFileUrl,
-    //   story_instructions: newThemeInput,
-    // });
     setIsModalOpen(false);
   };
 
   const handleNarrativeChange = (event) => {
     setStoryElement((prev: any) => ({
       ...prev,
-      narrative: THEME_TEXT_NEW,
+      narrative: event.target.value,
     }));
     setIsModalOpen(false);
   };
 
-  const handleSaveChanges = () => {
-    // editStory({
-    //   mode: "edit-character",
-    //   scenes_path: sceneDataFileUrl,
-    //   Story_elements: storyEleementFileUrl,
-    //   new_story: storyElement.narrative,
-    // });
-  };
+  const handleSaveChanges = () => {};
 
   const onConfirm = () => {
     if (stage === Stages.VERIFICATION) {
@@ -116,10 +97,20 @@ const ChooseCharacterPage = () => {
     } else if (stage === Stages.IDENTIFICATION) {
       setStage(Stages.CALIBRATION);
     } else if (stage === Stages.CALIBRATION) {
+      const imageCaptured = captureImage();
+      setCapturedImages((p) => [...p, imageCaptured]);
       setStage(Stages.ACTION_RECORD);
     } else if (stage === Stages.ACTION_RECORD) {
       setIsChooseCharModalOpen(false);
+      setIsCharchaFinalized(true);
+      setUseCharcha(true);
     }
+  };
+
+  const onRecreate = () => {
+    setIsCharchaFinalized(false);
+    setStage(Stages.VERIFICATION);
+    setCharchaIdentifier("");
   };
 
   const getConfirmText = () => {
@@ -129,7 +120,7 @@ const ChooseCharacterPage = () => {
   const isConfirmDisabled = () => {
     if (stage === Stages.ACTION_RECORD && !isComplete) {
       return true;
-    } else if (stage === Stages.IDENTIFICATION && (!gender || !identifier)) {
+    } else if (stage === Stages.IDENTIFICATION && !gender) {
       return true;
     }
     return false;
@@ -143,10 +134,18 @@ const ChooseCharacterPage = () => {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleChooseChar = () => {
-    setStage(Stages.VERIFICATION);
+    if (isCharchaFinalized) {
+      setCurrentAction(5);
+      setStage(Stages.ACTION_RECORD);
+    } else {
+      setStage(Stages.VERIFICATION);
+    }
     setIsChooseCharModalOpen(true);
   };
 
+  useEffect(() => {
+    setActions(shuffleArrayExceptLast(ACTIONS));
+  }, []);
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -179,27 +178,31 @@ const ChooseCharacterPage = () => {
 
   useEffect(() => {
     if (stage === "actionRecord") {
-      setTimeLeft(7); // Reset timer
-      setCurrentAction(0); // Reset actions to start from the first action
-      setCompletedActions([]); // Clear completed actions
-      setIsComplete(false); // Reset completion state
+      setTimeLeft(isCharchaFinalized ? 0 : 7); // Reset timer
+      setCurrentAction(isCharchaFinalized ? 5 : 0); // Reset actions to start from the first action
+      setCompletedActions(isCharchaFinalized ? [1, 2, 3, 4, 5] : []); // Clear completed actions
+      setIsComplete(isCharchaFinalized ? true : false); // Reset completion state
     }
   }, [stage]);
 
   useEffect(() => {
     if (stage !== "actionRecord") return; // Prevents countdown from running on other stages
 
+    if (timeLeft === 3 && !isComplete) {
+      const imageCaptured = captureImage();
+      setCapturedImages((p) => [...p, imageCaptured]);
+    }
+
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 1000);
+      }, 10);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
       setCurrentAction(currentAction + 1);
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
-      captureImage();
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -272,67 +275,109 @@ const ChooseCharacterPage = () => {
               <div className="flex flex-col space-y-4">
                 {/* Yes/No Selection */}
                 <div className="flex space-x-4">
-                  {isComplete ? (
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                  {isCharchaFinalized ? (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
-                          useChosenCharacter
+                          useCharcha
                             ? "bg-white text-blue border-blue-500"
                             : "bg-white text-gray-700 border-gray-300"
                         }`}
-                      onClick={() => setUseChosenCharacter(true)}
-                    >
-                      <span className="border-1">
-                        {capturedImage && (
-                          <img
-                            src={capturedImage}
-                            alt="Captured"
-                            className={`w-[2.5rem] h-[2.5rem] rounded-full border-[2px] ${
-                              useChosenCharacter === true
-                                ? "border-blue-500"
-                                : "border-gray-300"
-                            }`}
-                          />
-                        )}
-                      </span>
-
-                      <span
-                        className={` ml-2 ${
-                          useChosenCharacter === true &&
-                          "text-blue-500 font-semibold"
-                        }`}
+                        onClick={handleChooseChar}
                       >
-                        Chosen character
-                      </span>
-                    </label>
+                        <span className="border-1">
+                          {capturedImages && (
+                            <img
+                              src={capturedImages[0]}
+                              alt="Captured"
+                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                useCharcha === true
+                                  ? "border-blue-500"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          )}
+                        </span>
+
+                        <span
+                          className={` ml-2 ${
+                            useCharcha === true && "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          {charchaIdentifier}
+                        </span>
+                      </label>
+                    </>
                   ) : (
-                    <label
-                      className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                               bg-white text-gray-700 border-gray-300`}
-                      onClick={handleChooseChar}
-                    >
-                      Use your likeness
-                    </label>
+                        onClick={handleChooseChar}
+                      >
+                        Use your likeness
+                      </label>
+                    </>
                   )}
 
-                  <label
-                    className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                  {isAvatarFinalized ? (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
+                      ${
+                        useCharcha === false
+                          ? "bg-white text-blue border-blue-500"
+                          : "bg-white text-gray-700 border-gray-300"
+                      }`}
+                        onClick={handleAICharClick}
+                      >
+                        <span className="border-1">
+                          {animatedImages && (
+                            <img
+                              src={animatedImages[0]}
+                              alt="Captured"
+                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                useCharcha === false
+                                  ? "border-blue-500"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          )}
+                        </span>
+
+                        <span
+                          className={`ml-2 ${
+                            useCharcha === false &&
+                            "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          {avatarIdentifier}
+                        </span>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label
+                        className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${
-                            useChosenCharacter === false
+                            useCharcha === false
                               ? "bg-white text-blue border-blue-500"
                               : "bg-white text-gray-700 border-gray-300"
                           }`}
-                    onClick={handleAICharClick}
-                  >
-                    <span
-                      className={`${
-                        useChosenCharacter === false &&
-                        "text-blue-500 font-semibold"
-                      }`}
-                    >
-                      Create AI Character
-                    </span>
-                  </label>
+                        onClick={handleAICharClick}
+                      >
+                        <span
+                          className={`${
+                            useCharcha === false &&
+                            "text-blue-500 font-semibold"
+                          }`}
+                        >
+                          Create AI Avatar
+                        </span>
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -392,6 +437,11 @@ const ChooseCharacterPage = () => {
               title="Create New Character"
               confirmText={getConfirmText()}
               isConfirmDisabled={isConfirmDisabled()}
+              onRestart={
+                stage === Stages.ACTION_RECORD &&
+                isCharchaFinalized &&
+                onRecreate
+              }
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg">
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">
@@ -463,8 +513,8 @@ const ChooseCharacterPage = () => {
                       {/* Input for Unique Identifier */}
                       <input
                         type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
+                        value={charchaIdentifier}
+                        onChange={(e) => setCharchaIdentifier(e.target.value)}
                         className="border border-gray-900 rounded-lg p-3 w-full mb-4"
                         placeholder="Enter unique identifier"
                       />
@@ -640,11 +690,12 @@ const ChooseCharacterPage = () => {
                         Create your own main character for the video being as
                         descriptive as possible.
                       </h3>
-                      
+
                       <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                        <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none" 
-                        value={avatarDescription}
-                        onChange={(e) => setAvatarDescription(e.target.value)}
+                        <textarea
+                          className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                          value={avatarDescription}
+                          onChange={(e) => setAvatarDescription(e.target.value)}
                         ></textarea>
                         <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
                           Change Look{" "}
@@ -670,8 +721,8 @@ const ChooseCharacterPage = () => {
                       <div className="w-full">
                         <input
                           type="text"
-                          value={identifier}
-                          onChange={(e) => setIdentifier(e.target.value)}
+                          value={avatarIdentifier}
+                          onChange={(e) => setAvatarIdentifier(e.target.value)}
                           className="border border-gray-900 rounded-lg p-3 w-full mb-4"
                           placeholder="Enter a name"
                         />
