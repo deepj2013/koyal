@@ -11,6 +11,7 @@ import {
   REHYDRATE,
 } from "redux-persist";
 import { persistStore } from "redux-persist";
+import AppReducer from "../features/appSlice";
 import uploadAudioReducer from "../features/uploadSlice";
 import lyricEditReducer from "../features/lyricEditSlice";
 import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
@@ -24,6 +25,7 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
+  app: AppReducer,
   uploadAudio: uploadAudioReducer,
   lyricEdit: lyricEditReducer,
   [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,

@@ -13,7 +13,10 @@ import {
   useSceneEndpointMutation,
   useTranscriberEndpointMutation,
 } from "../redux/services/uploadAudioService/uploadAudioApi";
-import { setSceneDataFileUrl } from "../redux/features/uploadSlice";
+import {
+  setAudioType,
+  setSceneDataFileUrl,
+} from "../redux/features/uploadSlice";
 import { convertJsonToFile } from "../utils/helper";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
@@ -271,6 +274,7 @@ const AudioUploadPage = () => {
                         } focus:ring-2 focus:ring-black`}
                         onClick={() => {
                           setSelectedAudioType(type); // Ensure selection happens first
+                          dispatch(setAudioType(type));
                           setTimeout(
                             () => document.getElementById("file-input").click(),
                             0

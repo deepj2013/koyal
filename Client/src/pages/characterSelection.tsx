@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaUpload,
   FaFileAlt,
@@ -7,7 +7,7 @@ import {
   FaFilm,
   FaCheck,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import Realstic from "../assets/images/realistic_preview.png";
@@ -19,20 +19,147 @@ import { IoTabletLandscapeOutline } from "react-icons/io5";
 import { IoSquareOutline } from "react-icons/io5";
 import storyElement from "../assets/sample/story_elements.json";
 
-import { CharacterStyles, VideoOrientationStyles } from "../utils/constants";
-const CHARACTER_DETAILS = storyElement.character_details;
+import {
+  CharacterStyles,
+  EditStoryModes,
+  VideoOrientationStyles,
+} from "../utils/constants";
+import {
+  useEditStoryElementMutation,
+  useLazyGetStyleQuery,
+  useSubmitStyleMutation,
+} from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import { UploadAudioState } from "../redux/features/uploadSlice";
+import { LyricEditState } from "../redux/features/lyricEditSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
+import { convertJsonToFile, uploadJsonAsFileToS3 } from "../utils/helper";
+import { uploadFileToS3 } from "../aws/s3-service";
+import { AppState, setStyleImagesUrl } from "../redux/features/appSlice";
 
-const CharacterSelectionPage = ({ setStage }) => {
+const CHARACTER_DETAILS = storyElement.character_details;
+const styles = [
+  { name: CharacterStyles.REALISTIC, image: Realstic },
+  { name: CharacterStyles.ANIMATED, image: Animated },
+  { name: CharacterStyles.SKETCH, image: Sketch },
+];
+
+const CharacterSelectionPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+
+  const { loraPath, styleImagesUrl } = useSelector(AppState);
+
+  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
+  const [getStoryElement, { data: storyElementData }] =
+    useLazyGetStoryElementQuery();
+  const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
+  const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
+
+  const { storyEleementFileUrl } = useSelector(LyricEditState);
+  const { sceneDataFileUrl, audioType } = useSelector(UploadAudioState);
+
   const [selectedStyle, setSelectedStyle] = useState("Animated");
   const [selected, setSelected] = useState<string | null>(null);
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
+  const [storyElement, setStoryElement] = useState(null);
+  const [styleImages, setStyleImages] = useState<any>(styles);
 
-  const styles = [
-    { name: CharacterStyles.REALISTIC, image: Realstic },
-    { name: CharacterStyles.ANIMATED, image: Animated },
-    { name: CharacterStyles.SKETCH, image: Sketch },
-  ];
+  const handleChangeLook = async () => {
+    const file = convertJsonToFile({ storyElement }, "story_element.json");
+    const fileUrl = await uploadFileToS3(
+      file,
+      localStorage.getItem("currentUser")
+    );
+    submitStyle({
+      lora_path: loraPath,
+      character_name: location.state?.characterName,
+      character_outfit: storyElement.character_outfit,
+    });
+  };
+
+  const handleNarrativeChange = (event) => {
+    setStoryElement((prev: any) => ({
+      ...prev,
+      narrative: event.target.value,
+    }));
+  };
+
+  const handleNext = () => {
+    navigate("/editscene", {
+      state: {
+        selectedStyle,
+        orientationStyle,
+        lipsync:
+          selected === "yes" && selectedStyle !== CharacterStyles.ANIMATED,
+      },
+    });
+  };
+
+  useEffect(() => {
+    const fetchStoryElement = async () => {
+      try {
+        const response = await fetch(storyEleementFileUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setStoryElement(jsonData.story_elements);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+      }
+    };
+
+    fetchStoryElement();
+  }, []);
+
+  useEffect(() => {
+    if (styleImagesUrl) {
+      setStyleImages((prevStyles) =>
+        prevStyles.map((style) => ({
+          ...style,
+          image: styleImagesUrl[style.name.toLowerCase()] || style.image,
+        }))
+      );
+    }
+
+    editStory({
+      mode: EditStoryModes.CREATE_PROMPT,
+      scenes_path: sceneDataFileUrl,
+      story_elements: storyEleementFileUrl,
+      character_name: location.state?.characterName,
+      media_type: audioType.toLowerCase(),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      getStoryElement(sceneLLMResponse?.call_id);
+    }
+  }, [sceneLLMResponse]);
+
+  useEffect(() => {
+    if (storyElementData) {
+      uploadJsonAsFileToS3(storyElementData, "proto_prompts.json").then(
+        (url) => {
+          console.log("upload proto_prompts.json successful", url);
+        }
+      );
+    }
+  }, [storyElementData]);
+
+  useEffect(() => {
+    if (submitStyleData?.call_id) {
+      getStyle(submitStyleData?.call_id);
+    }
+  }, [submitStyleData]);
+
+  useEffect(() => {
+    if (getStyleData) {
+      dispatch(setStyleImagesUrl(getStyleData));
+    }
+  }, [getStyleData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,10 +191,17 @@ const CharacterSelectionPage = ({ setStage }) => {
 
                 {/* Input & Change Look Button */}
                 <div className="flex items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                  <textarea className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none">
+                  <textarea
+                    className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                    value={storyElement?.narrative} // Bound to state
+                    onChange={(e) => handleNarrativeChange(e)}
+                  >
                     {CHARACTER_DETAILS}
                   </textarea>
-                  <button className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all">
+                  <button
+                    className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center whitespace-nowrap transition-all"
+                    onClick={handleChangeLook}
+                  >
                     Change Look{" "}
                     <span className="ml-2">
                       <FaArrowRight />
@@ -79,7 +213,7 @@ const CharacterSelectionPage = ({ setStage }) => {
               {/* Character Styles */}
               <div className="flex flex-col mt-6 space-y-6">
                 <div className="flex space-x-6 px-8">
-                  {styles.map((style) => (
+                  {styleImages.map((style) => (
                     <div
                       key={style.name}
                       className="relative rounded-lg transition-all cursor-pointer overflow-hidden border border-gray-300"
@@ -269,13 +403,7 @@ const CharacterSelectionPage = ({ setStage }) => {
                 </button>
                 <button
                   className="px-6 py-2 bg-black text-white rounded-md shadow-md hover:bg-gray-900"
-                  onClick={() =>
-                    navigate("/editscene", {
-                      state: {
-                        selectedStyle: selectedStyle,
-                      },
-                    })
-                  }
+                  onClick={handleNext}
                 >
                   Next
                 </button>
