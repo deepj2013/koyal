@@ -79,9 +79,10 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
+    setNewThemeInput("")
     setStoryElement((prev: any) => ({
       ...prev,
-      narrative: newThemeInput || THEME_TEXT_NEW,
+      narrative: THEME_TEXT_NEW,
     }));
     // editStory({
     //   mode: "edit-story",
