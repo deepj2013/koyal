@@ -200,7 +200,6 @@ const GenerateVideoPage: React.FC = () => {
   const { loraPath, protoPromptsUrl, characterName } = useSelector(AppState);
   const { storyEleementFileUrl } = useSelector(LyricEditState);
 
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
@@ -216,21 +215,10 @@ const GenerateVideoPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleRedo = (index) => {
-    const updatedScenes = [...scenes];
-    const { narrative, dialogue, emotion } = promptsData[index];
-    updatedScenes[index] = {
-      description: narrative,
-      dialog: dialogue,
-      emotion: emotion,
-      image:
-        images[
-          location.state?.selectedStyle === CharacterStyles.ANIMATED
-            ? "animated"
-            : "realistic"
-        ][index],
-    };
-    setScenes(updatedScenes);
+  const handleRedo = async(index) => {
+    const fluxPromptsData = await generateImage(index);
+    const { image_path, prompt_index } = fluxPromptsData;
+    replaceGeneratedImage(image_path, prompt_index);
   };
 
   const callProcessFluxPromptsApi = async (index: number) => {
@@ -275,6 +263,26 @@ const GenerateVideoPage: React.FC = () => {
     };
     setScenes(updatedScenes);
     setIsModalOpen(false);
+  };
+
+  const generateImage = async (index: number) => {
+    const data = await callProcessFluxPromptsApi(index);
+    return await getFluxPrompts(data.call_id);
+  };
+  
+  const replaceGeneratedImage = (imageUrl, index) => {
+    setScenes((prev) => {
+      const updatedJson = [...prev];
+
+      const ind = Number(index);
+      if (updatedJson[ind]) {
+        updatedJson[ind] = {
+          ...updatedJson[ind],
+          image: imageUrl,
+        };
+      }
+      return updatedJson;
+    });
   };
 
   useEffect(() => {
@@ -361,6 +369,7 @@ const GenerateVideoPage: React.FC = () => {
   }, []);
 
 
+
   useEffect(() => {
     const fetchProtoPrompts = async () => {
       try {
@@ -369,6 +378,7 @@ const GenerateVideoPage: React.FC = () => {
           throw new Error("Failed to fetch JSON file");
         }
         const jsonData = await response.json();
+        setPromptsJson(jsonData.prompts);
         return jsonData.prompts;
       } catch (error) {
         console.error("Error fetching JSON:", error);
@@ -381,21 +391,9 @@ const GenerateVideoPage: React.FC = () => {
         const prompts: any = await fetchProtoPrompts();
 
         for (const [index] of prompts.entries()) {
-          const data = await callProcessFluxPromptsApi(index);
-          const fluxPromptsData = await getFluxPrompts(data.call_id);
-          setScenes((prev) => {
-            const updatedJson = [...prev];
-
-            const { image_path, prompt_index } = fluxPromptsData;
-            const ind = Number(prompt_index)
-            if (updatedJson[ind]) {
-              updatedJson[ind] = {
-                ...updatedJson[ind],
-                image: image_path,
-              };
-            }
-            return updatedJson;
-          });
+          const fluxPromptsData = await generateImage(index);
+          const { image_path, prompt_index } = fluxPromptsData;
+          replaceGeneratedImage(image_path, prompt_index);
         }
       } catch (error) {
         console.error("Error processing prompts:", error);
