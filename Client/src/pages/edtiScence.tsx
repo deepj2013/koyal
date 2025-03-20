@@ -89,6 +89,13 @@ import { FaUndo } from "react-icons/fa";
 
 import { CharacterStyles } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
+import { useSelector } from "react-redux";
+import { AppState } from "../redux/features/appSlice";
+import { LyricEditState } from "../redux/features/lyricEditSlice";
+import {
+  getFluxPrompts,
+  processFluxPrompts,
+} from "../redux/services/editSceneService/editSceneService";
 
 const images = {
   realistic: {
@@ -178,14 +185,29 @@ const newDescription18 =
 const newDescription23 =
   "mehulagarwal dances with his shadow being lit up by dramatic floor lamp lighting.";
 
+const emotions = {
+  euphoric: "bg-yellow-300",
+  serene: "bg-blue-300",
+  melancholy: "bg-purple-300",
+  tense: "bg-red-300",
+  default: "bg-gray-200",
+};
+
 const GenerateVideoPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { loraPath, protoPromptsUrl, characterName } = useSelector(AppState);
+  const { storyEleementFileUrl } = useSelector(LyricEditState);
+
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
   const [scenes, setScenes] = useState<any[]>([]);
   const [tableBodyHeight, setTableBodyHeight] = useState("auto");
+  const [storyElement, setStoryElement] = useState(null);
+  const [promptsJson, setPromptsJson] = useState([]);
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
@@ -209,6 +231,19 @@ const GenerateVideoPage: React.FC = () => {
         ][index],
     };
     setScenes(updatedScenes);
+  };
+
+  const callProcessFluxPromptsApi = async (index: number) => {
+    const response = await processFluxPrompts({
+      proto_prompts: protoPromptsUrl,
+      character_lora_path: loraPath,
+      character_name: characterName,
+      character_outfit: storyElement?.character_details,
+      prompt_indices: index,
+      style: location.state?.selectedStyle?.toLowerCase(),
+      orientation: location.state?.orientationStyle?.toLowerCase(),
+    });
+    return response;
   };
 
   // Save Changes and Update Table
@@ -240,14 +275,6 @@ const GenerateVideoPage: React.FC = () => {
     };
     setScenes(updatedScenes);
     setIsModalOpen(false);
-  };
-
-  const emotions = {
-    euphoric: "bg-yellow-300",
-    serene: "bg-blue-300",
-    melancholy: "bg-purple-300",
-    tense: "bg-red-300",
-    default: "bg-gray-200",
   };
 
   useEffect(() => {
@@ -314,6 +341,68 @@ const GenerateVideoPage: React.FC = () => {
     return () => {
       window.removeEventListener("resize", updateTableHeight);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchStoryElement = async () => {
+      try {
+        const response = await fetch(storyEleementFileUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setStoryElement(jsonData.story_elements);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+      }
+    };
+
+    fetchStoryElement();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchProtoPrompts = async () => {
+      try {
+        const response = await fetch(protoPromptsUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        return jsonData.prompts;
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+        return []; // Return an empty array to avoid further issues
+      }
+    };
+
+    const processPrompts = async () => {
+      try {
+        const prompts: any = await fetchProtoPrompts();
+
+        for (const [index] of prompts.entries()) {
+          const data = await callProcessFluxPromptsApi(index);
+          const fluxPromptsData = await getFluxPrompts(data.call_id);
+          setScenes((prev) => {
+            const updatedJson = [...prev];
+
+            const { image_path, prompt_index } = fluxPromptsData;
+            const ind = Number(prompt_index)
+            if (updatedJson[ind]) {
+              updatedJson[ind] = {
+                ...updatedJson[ind],
+                image: image_path,
+              };
+            }
+            return updatedJson;
+          });
+        }
+      } catch (error) {
+        console.error("Error processing prompts:", error);
+      }
+    };
+
+    processPrompts();
   }, []);
 
   return (

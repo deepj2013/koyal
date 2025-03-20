@@ -16,5 +16,6 @@ export const ApiRoutes = {
   GetStyleEndpoint: "/style_endpoint/result",
   ProcessAvatar: "avatar_endpoint/submit",
   GetProcessedAvatar: "avatar_endpoint/result",
+  ProcessFluxPrompts: "flux_prompts_endpoint/submit",
+  GetFluxPrompts: "flux_prompts_endpoint/result",
 } as const;
-

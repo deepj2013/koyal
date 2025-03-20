@@ -33,7 +33,11 @@ import {
 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
-import { setLoraPath, setStyleImagesUrl } from "../redux/features/appSlice";
+import {
+  setCharacterName,
+  setLoraPath,
+  setStyleImagesUrl,
+} from "../redux/features/appSlice";
 
 const ACTIONS = [
   "TURN YOUR HEAD RIGHT",
@@ -99,10 +103,10 @@ const ChooseCharacterPage = () => {
     );
 
     // if (!message?.includes("already exists.")) {
-      processAvatar({
-        images_path: uriPath,
-        character_details: storyElement.character_details,
-      });
+    processAvatar({
+      images_path: uriPath,
+      character_details: storyElement.character_details,
+    });
     // }
   };
 
@@ -113,7 +117,7 @@ const ChooseCharacterPage = () => {
     processAvatar({
       mode: AvatarProcessModes.CREATE,
       images_path: uriPath,
-      character_details: storyElement.character_details,
+      character_details: storyElement?.character_details,
     });
   };
 
@@ -135,7 +139,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    editStory({
+   editStory({
       mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
@@ -180,7 +184,7 @@ const ChooseCharacterPage = () => {
   const onRecreate = () => {
     setIsCharchaFinalized(false);
     setStage(Stages.VERIFICATION);
-    setCharchaIdentifier("")
+    setCharchaIdentifier("");
   };
 
   const getConfirmText = () => {
@@ -313,15 +317,15 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 1000);
+      }, 10);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
       setCurrentAction(currentAction + 1);
       setTimeLeft(7);
     } else if (currentAction === actions.length - 1 && !isComplete) {
-      const imageCaptured = captureImage();
-      setCapturedImages((p) => [...p, imageCaptured]);
+      // const imageCaptured = captureImage();
+      // setCapturedImages((p) => [...p, imageCaptured]);
       setCompletedActions((prev) => [...prev, currentAction]);
       setIsComplete(true); // User must manually click "Continue to Narrative"
     }
@@ -381,7 +385,7 @@ const ChooseCharacterPage = () => {
       submitStyle({
         lora_path: trainedCharacter.lora_path,
         character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
-        character_outfit: storyElement.character_outfit,
+        character_outfit: storyElement?.character_outfit,
       });
     }
   }, [trainedCharacter]);
@@ -393,6 +397,9 @@ const ChooseCharacterPage = () => {
           characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
         },
       });
+      dispatch(
+        setCharacterName(useCharcha ? charchaIdentifier : avatarIdentifier)
+      );
       dispatch(setStyleImagesUrl(getStyleData));
     }
   }, [getStyleData]);
@@ -635,7 +642,11 @@ const ChooseCharacterPage = () => {
               title="Create New Character"
               confirmText={getConfirmText()}
               isConfirmDisabled={isConfirmDisabled()}
-              onRestart={stage === Stages.ACTION_RECORD && isCharchaFinalized && onRecreate}
+              onRestart={
+                stage === Stages.ACTION_RECORD &&
+                isCharchaFinalized &&
+                onRecreate
+              }
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg">
                 <div className="w-[50%] p-6  overflow-hidden flex align-center">

@@ -18,6 +18,7 @@ import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
 import { lyricEditApi } from "../services/lyricEditService/lyricEditApi";
 import { chooseCharacterApi } from "../services/chooseCharacterService/chooseCharacterApi";
 import { waitingListApi } from "../services/waitingListService/waitingListApi";
+import { editSceneApi } from "../services/editSceneService/editSceneApi";
 
 const persistConfig = {
   key: "root",
@@ -32,6 +33,7 @@ const rootReducer = combineReducers({
   [lyricEditApi.reducerPath]: lyricEditApi.reducer,
   [chooseCharacterApi.reducerPath]: chooseCharacterApi.reducer,
   [waitingListApi.reducerPath]: waitingListApi.reducer,
+  [editSceneApi.reducerPath]: editSceneApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -48,6 +50,7 @@ export const store = configureStore({
       lyricEditApi.middleware,
       chooseCharacterApi.middleware,
       waitingListApi.middleware,
+      editSceneApi.middleware
     ]),
 });
 

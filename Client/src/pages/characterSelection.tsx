@@ -35,7 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { convertJsonToFile, uploadJsonAsFileToS3 } from "../utils/helper";
 import { uploadFileToS3 } from "../aws/s3-service";
-import { AppState, setStyleImagesUrl } from "../redux/features/appSlice";
+import { AppState, setProtoPromptsUrl, setStyleImagesUrl } from "../redux/features/appSlice";
 
 const CHARACTER_DETAILS = storyElement.character_details;
 const styles = [
@@ -129,7 +129,7 @@ const CharacterSelectionPage = () => {
       scenes_path: sceneDataFileUrl,
       story_elements: storyEleementFileUrl,
       character_name: location.state?.characterName,
-      media_type: audioType.toLowerCase(),
+      media_type: audioType?.toLowerCase(),
     });
   }, []);
 
@@ -143,6 +143,7 @@ const CharacterSelectionPage = () => {
     if (storyElementData) {
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json").then(
         (url) => {
+          dispatch(setProtoPromptsUrl(url));
           console.log("upload proto_prompts.json successful", url);
         }
       );
