@@ -195,20 +195,20 @@ const GenerateVideoPage: React.FC = () => {
   };
 
   const handleRedo = (index) => {
-    const updatedScenes = [...scenes];
-    const { narrative, dialogue, emotion } = promptsData[index];
-    updatedScenes[index] = {
-      description: narrative,
-      dialog: dialogue,
-      emotion: emotion,
-      image:
-        images[
-          location.state?.selectedStyle === CharacterStyles.ANIMATED
-            ? "animated"
-            : "realistic"
-        ][index],
-    };
-    setScenes(updatedScenes);
+    // const updatedScenes = [...scenes];
+    // const { narrative, dialogue, emotion } = promptsData[index];
+    // updatedScenes[index] = {
+    //   description: narrative,
+    //   dialog: dialogue,
+    //   emotion: emotion,
+    //   image:
+    //     images[
+    //       location.state?.selectedStyle === CharacterStyles.ANIMATED
+    //         ? "animated"
+    //         : "realistic"
+    //     ][index],
+    // };
+    // setScenes(updatedScenes);
   };
 
   // Save Changes and Update Table
