@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Modal } from "../components/Modal";
 import { ConfirmButtonTextMap, Stages } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
-import { shuffleArrayExceptLast } from "../utils/helper";
+import { getRandomActions } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import avatar1 from "../assets/images/avatar1.png";
 import avatar2 from "../assets/images/avatar2.png";
@@ -15,14 +15,6 @@ import storyElementData from "../assets/sample/story_elements.json";
 
 const THEME_TEXT_NEW = storyElementData.newNarrative;
 const AVATAR_TEXT = "indian girl, age 21, sharp features, ponytail";
-const ACTIONS = [
-  "TURN YOUR HEAD RIGHT",
-  "SQUINT YOUR EYES",
-  "TILT YOUR HEAD DOWN",
-  "OPEN YOUR MOUTH",
-  "TILT YOUR HEAD UP",
-  "STANDUP (ENSURE HEAD IN THE FRAME)",
-];
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -144,7 +136,7 @@ const ChooseCharacterPage = () => {
   };
 
   useEffect(() => {
-    setActions(shuffleArrayExceptLast(ACTIONS));
+    setActions(getRandomActions());
   }, []);
 
   useEffect(() => {
