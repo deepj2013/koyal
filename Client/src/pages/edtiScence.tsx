@@ -87,15 +87,19 @@ import replaced18 from "../assets/images/newEditScene/landscape_realistic/replac
 import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 import { FaUndo } from "react-icons/fa";
 
-import { CharacterStyles } from "../utils/constants";
+import { CharacterStyles, EditStoryModes } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
-import { useSelector } from "react-redux";
-import { AppState } from "../redux/features/appSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { AppState, setProtoPromptsUrl } from "../redux/features/appSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import {
   getFluxPrompts,
   processFluxPrompts,
 } from "../redux/services/editSceneService/editSceneService";
+import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import { UploadAudioState } from "../redux/features/uploadSlice";
+import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
+import { uploadJsonAsFileToS3 } from "../utils/helper";
 
 const images = {
   realistic: {
@@ -180,11 +184,6 @@ const images = {
   },
 };
 
-const newDescription18 =
-  "mehulagarwal scribbles on hotel notepad at night, sketching the skyline visible from the moonlit window, adding whimsical details like stars and planets";
-const newDescription23 =
-  "mehulagarwal dances with his shadow being lit up by dramatic floor lamp lighting.";
-
 const emotions = {
   euphoric: "bg-yellow-300",
   serene: "bg-blue-300",
@@ -196,26 +195,31 @@ const emotions = {
 const GenerateVideoPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+
+  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
+  const [getStoryElement, { data: storyElementData }] =
+    useLazyGetStoryElementQuery();
 
   const { loraPath, protoPromptsUrl, characterName } = useSelector(AppState);
   const { storyEleementFileUrl } = useSelector(LyricEditState);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
   const [scenes, setScenes] = useState<any[]>([]);
   const [tableBodyHeight, setTableBodyHeight] = useState("auto");
   const [storyElement, setStoryElement] = useState(null);
   const [promptsJson, setPromptsJson] = useState([]);
+  const [currentEditIndex, setCurrentEditIndex] = useState(null);
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
-    setEditingScene({ ...scene, index });
+    setCurrentEditIndex(index);
     setNewDescription("");
     setIsModalOpen(true);
   };
 
-  const handleRedo = async(index) => {
+  const handleRedo = async (index) => {
     const fluxPromptsData = await generateImage(index);
     const { image_path, prompt_index } = fluxPromptsData;
     replaceGeneratedImage(image_path, prompt_index);
@@ -236,32 +240,12 @@ const GenerateVideoPage: React.FC = () => {
 
   // Save Changes and Update Table
   const handleSave = () => {
-    const updatedScenes = [...scenes];
-
-    let replacedImage =
-      location.state?.selectedStyle === CharacterStyles.ANIMATED
-        ? animatedImage37
-        : img37;
-
-    let newDesc =
-      "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
-
-    if (location.state?.selectedStyle === CharacterStyles.REALISTIC) {
-      if (editingScene.index === 18) {
-        replacedImage = replaced18;
-        newDesc = newDescription18;
-      } else if (editingScene.index === 23) {
-        replacedImage = replaced23;
-        newDesc = newDescription23;
-      }
-    }
-
-    updatedScenes[editingScene.index] = {
-      ...editingScene,
-      description: newDesc,
-      image: replacedImage,
-    };
-    setScenes(updatedScenes);
+    editStory({
+      mode: EditStoryModes.EDIT_PROMPT,
+      prompts_path: protoPromptsUrl,
+      prompt_index: currentEditIndex,
+      edit_instruction: newDescription,
+    });
     setIsModalOpen(false);
   };
 
@@ -269,7 +253,7 @@ const GenerateVideoPage: React.FC = () => {
     const data = await callProcessFluxPromptsApi(index);
     return await getFluxPrompts(data.call_id);
   };
-  
+
   const replaceGeneratedImage = (imageUrl, index) => {
     setScenes((prev) => {
       const updatedJson = [...prev];
@@ -368,8 +352,6 @@ const GenerateVideoPage: React.FC = () => {
     fetchStoryElement();
   }, []);
 
-
-
   useEffect(() => {
     const fetchProtoPrompts = async () => {
       try {
@@ -402,6 +384,29 @@ const GenerateVideoPage: React.FC = () => {
 
     processPrompts();
   }, []);
+
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      getStoryElement(sceneLLMResponse?.call_id);
+    }
+  }, [sceneLLMResponse]);
+
+  useEffect(() => {
+    if (storyElementData) {
+      generateImage(currentEditIndex).then((fluxPromptsData) => {
+        const { image_path, prompt_index } = fluxPromptsData;
+        replaceGeneratedImage(image_path, prompt_index);
+      });
+      uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
+        .then((url) => {
+          dispatch(setProtoPromptsUrl(url));
+          console.log("upload proto_prompts.json successful", url);
+        })
+        .catch((err) => {
+          console.log("Error while replacing proto_prompts.json :", err);
+        });
+    }
+  }, [storyElementData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
