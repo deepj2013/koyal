@@ -557,6 +557,7 @@ const GenerateVideoPage: React.FC = () => {
                   navigate("/finalvideo", {
                     state: {
                       selectedStyle: location.state?.selectedStyle,
+                      orientationStyle: location.state?.orientationStyle,
                     },
                   })
                 }

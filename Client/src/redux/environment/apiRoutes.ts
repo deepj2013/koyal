@@ -18,4 +18,8 @@ export const ApiRoutes = {
   GetProcessedAvatar: "avatar_endpoint/result",
   ProcessFluxPrompts: "flux_prompts_endpoint/submit",
   GetFluxPrompts: "flux_prompts_endpoint/result",
+  ProcessVideo: "i2v_endpoint/submit",
+  GetProcessedVideo: "i2v_endpoint/result",
+  ProcessFinalVideo: "vid_cut_endpoint/submit",
+  GetFinalVideo: "vid_cut_endpoint/result",
 } as const;
