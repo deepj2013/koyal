@@ -28,7 +28,7 @@ import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import {
   dataURLtoFile,
-  shuffleArrayExceptLast,
+  getRandomActions,
   uploadJsonAsFileToS3,
 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
@@ -38,15 +38,6 @@ import {
   setLoraPath,
   setStyleImagesUrl,
 } from "../redux/features/appSlice";
-
-const ACTIONS = [
-  "TURN YOUR HEAD RIGHT",
-  "SQUINT YOUR EYES",
-  "TILT YOUR HEAD DOWN",
-  "OPEN YOUR MOUTH",
-  "TILT YOUR HEAD UP",
-  "STANDUP (ENSURE HEAD IN THE FRAME)",
-];
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -264,7 +255,7 @@ const ChooseCharacterPage = () => {
       }
     };
 
-    setActions(shuffleArrayExceptLast(ACTIONS));
+    setActions(getRandomActions());
     fetchStoryElement();
   }, []);
 
