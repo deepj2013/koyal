@@ -5,8 +5,9 @@ export const AutoImageSlider = ({
   interval = 3000,
   autoPlay = true,
   currentButtonColor,
+  defaultIndex= 0
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(defaultIndex);
 
   useEffect(() => {
     if (!autoPlay) return;

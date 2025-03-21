@@ -38,6 +38,7 @@ import {
   setLoraPath,
   setStyleImagesUrl,
 } from "../redux/features/appSlice";
+import ImagePreview from "../components/ImagePreview";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-   editStory({
+    editStory({
       mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
       Story_elements: storyEleementFileUrl,
@@ -156,6 +157,13 @@ const ChooseCharacterPage = () => {
     });
   };
 
+  const closeCharchaModal = () => {
+    setIsChooseCharModalOpen(false);
+    setCapturedImages([]);
+    setCharchaIdentifier("");
+    setGender("");
+  };
+
   const onConfirm = () => {
     if (stage === Stages.VERIFICATION) {
       setStage(Stages.IDENTIFICATION);
@@ -176,6 +184,7 @@ const ChooseCharacterPage = () => {
     setIsCharchaFinalized(false);
     setStage(Stages.VERIFICATION);
     setCharchaIdentifier("");
+    setCapturedImages([]);
   };
 
   const getConfirmText = () => {
@@ -474,6 +483,7 @@ const ChooseCharacterPage = () => {
                   {isCharchaFinalized ? (
                     <>
                       <label
+                        htmlFor=""
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
                           useCharcha
@@ -482,16 +492,27 @@ const ChooseCharacterPage = () => {
                         }`}
                         onClick={handleChooseChar}
                       >
-                        <span className="border-1">
+                        <span
+                          className="border-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
                           {capturedImages && (
-                            <img
-                              src={capturedImages[0]}
-                              alt="Captured"
-                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
-                                useCharcha === true
-                                  ? "border-blue-500"
-                                  : "border-gray-300"
-                              }`}
+                            <ImagePreview
+                              imageURL={capturedImages[0]}
+                              expandIconOnHover={true}
+                              customImageUI={
+                                <img
+                                  src={capturedImages[0]}
+                                  alt="Captured"
+                                  className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                    useCharcha === true
+                                      ? "border-blue-500"
+                                      : "border-gray-300"
+                                  }`}
+                                />
+                              }
                             />
                           )}
                         </span>
@@ -520,6 +541,7 @@ const ChooseCharacterPage = () => {
                   {isAvatarFinalized ? (
                     <>
                       <label
+                        htmlFor=""
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                       ${
                         useCharcha === false
@@ -528,16 +550,27 @@ const ChooseCharacterPage = () => {
                       }`}
                         onClick={handleAICharClick}
                       >
-                        <span className="border-1">
+                        <span
+                          className="border-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
                           {animatedImages && (
-                            <img
-                              src={animatedImages[0]}
-                              alt="Captured"
-                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
-                                useCharcha === false
-                                  ? "border-blue-500"
-                                  : "border-gray-300"
-                              }`}
+                            <ImagePreview
+                              imageURL={animatedImages[0]}
+                              expandIconOnHover={true}
+                              customImageUI={
+                                <img
+                                  src={animatedImages[0]}
+                                  alt="Captured"
+                                  className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                    useCharcha === false
+                                      ? "border-blue-500"
+                                      : "border-gray-300"
+                                  }`}
+                                />
+                              }
                             />
                           )}
                         </span>
@@ -627,8 +660,8 @@ const ChooseCharacterPage = () => {
             )}
             <Modal
               isOpen={isChooseCharModalOpen}
-              onClose={() => setIsChooseCharModalOpen(false)}
-              onCancel={() => setIsChooseCharModalOpen(false)}
+              onClose={closeCharchaModal}
+              onCancel={closeCharchaModal}
               onConfirm={onConfirm}
               title="Create New Character"
               confirmText={getConfirmText()}
@@ -866,6 +899,7 @@ const ChooseCharacterPage = () => {
                     images={animatedImages}
                     autoPlay={false}
                     currentButtonColor="black"
+                    defaultIndex={1}
                   />
                 </div>
                 <div className="w-[60%]  p-6 flex flex-col text-center align-center flex-start">
