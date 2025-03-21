@@ -42,7 +42,7 @@ const ChooseCharacterPage = () => {
   const [actions, setActions] = useState([]);
   const [capturedImages, setCapturedImages] = useState([]);
 
-  const animatedImages = [avatar1, avatar2, avatar3];
+  const animatedImages = [avatar2, avatar1, avatar3];
 
   const handleAICharClick = () => {
     setIsCustomAvatarModalOpen(true);
@@ -662,6 +662,7 @@ const ChooseCharacterPage = () => {
                     images={animatedImages}
                     autoPlay={false}
                     currentButtonColor="black"
+                    defaultIndex={1}
                   />
                 </div>
                 <div className="w-[60%]  p-6 flex flex-col text-center align-center flex-start">
