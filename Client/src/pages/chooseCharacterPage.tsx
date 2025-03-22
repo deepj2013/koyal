@@ -862,7 +862,7 @@ const ChooseCharacterPage = () => {
               onConfirm={onConfirmAvatarModal}
               title="Create New Character"
               confirmText="Finalize the character"
-              isConfirmDisabled={false}
+              isConfirmDisabled={!avatarIdentifier}
             >
               <div className="flex w-full h-full px-10 py-6 flex-start rounded-lg w-[70vw]">
                 <div className="w-[40%] p-6  overflow-hidden flex align-center">
