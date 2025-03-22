@@ -3,6 +3,8 @@ export interface AppModel {
   loraPath: string | null;
   styleImagesUrl: string | null;
   protoPromptsUrl: string | null;
+  lyricsJsonUrl: string | null;
+  scenesJson: any;
 }
 
 

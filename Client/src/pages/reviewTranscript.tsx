@@ -11,6 +11,7 @@ import {
   useSceneLLMEndpointMutation,
 } from "../redux/services/lyricEditService/lyricEditApi";
 import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
+import { setLyricsJsonUrl } from "../redux/features/appSlice";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ const TranscriptPage = () => {
         file,
         localStorage.getItem("currentUser")
       );
+      dispatch(setLyricsJsonUrl(fileUrl));
       console.log("fileUrl", fileUrl);
       setSelectedParagraph(null); // Close modal
     }

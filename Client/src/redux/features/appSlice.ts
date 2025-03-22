@@ -6,6 +6,8 @@ const initialState: AppModel = {
   loraPath: null,
   styleImagesUrl: null,
   protoPromptsUrl: null,
+  lyricsJsonUrl: null,
+  scenesJson: null,
 };
 
 const appSlice = createSlice({
@@ -24,6 +26,12 @@ const appSlice = createSlice({
     setProtoPromptsUrl: (state, action) => {
       state.protoPromptsUrl = action.payload;
     },
+    setLyricsJsonUrl: (state, action) => {
+      state.lyricsJsonUrl = action.payload;
+    },
+    setScenesJson: (state, action) => {
+      state.scenesJson = action.payload;
+    },
   },
 });
 
@@ -32,6 +40,8 @@ export const {
   setStyleImagesUrl,
   setProtoPromptsUrl,
   setCharacterName,
+  setLyricsJsonUrl,
+  setScenesJson
 } = appSlice.actions;
 
 export default appSlice.reducer;

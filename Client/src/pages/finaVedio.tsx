@@ -11,13 +11,14 @@ import {
 } from "../redux/services/finalVideoService/finalVideoApi";
 import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
+import { formatTime } from "../utils/helper";
 
 const FinalVideoPage = () => {
   const location = useLocation();
 
-  const { selectedStyle, orientationStyle } = location?.state;
+  const { selectedStyle, orientationStyle } = location?.state || {};
 
-  const { protoPromptsUrl, characterName } = useSelector(AppState);
+  const { protoPromptsUrl, characterName, scenesJson } = useSelector(AppState);
 
   const [processVideo, { data: processVideoData }] = useProcessVideoMutation();
   const [getProcessedVideo, { data: getProcessedVideoData }] =
@@ -30,6 +31,8 @@ const FinalVideoPage = () => {
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
   const [finalVideo, setFinalVideo] = useState(null);
+  const [previewImages, setPreviewImages] = useState([]);
+
   const videoRef = useState<any>(null);
 
   const handleDownload = () => {
@@ -51,12 +54,23 @@ const FinalVideoPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    setPreviewImages(scenesJson);
+  }, [scenesJson]);
+
   // Handle Play Button Click
   const handlePlay = () => {
     if (videoRef?.current) {
       videoRef?.current.play(); // Play the video
     }
     setShowPlayButton(false); // Hide Play Button
+  };
+
+  const handleSkipTo = (time) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      videoRef.current.play();
+    }
   };
 
   useEffect(() => {
@@ -74,7 +88,6 @@ const FinalVideoPage = () => {
     }
   }, [processVideoData]);
 
-
   useEffect(() => {
     if (getProcessedVideoData?.video_folder_path) {
       processFinalVideo({
@@ -83,7 +96,6 @@ const FinalVideoPage = () => {
       });
     }
   }, [getProcessedVideoData]);
-
 
   useEffect(() => {
     if (processFinalVideoData?.call_id) {
@@ -148,6 +160,26 @@ const FinalVideoPage = () => {
                   <Play className="w-10 h-10" />
                 </button>
               )}
+            </div>
+            <div className="relative z-50 w-[80%]">
+              <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
+                {previewImages.map((preview, index) => (
+                  <button
+                    key={index}
+                    className="relative w-32 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
+                    onClick={() => handleSkipTo(preview.start)}
+                  >
+                    <img
+                      src={preview.image}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
+                      Shot {index + 1}: {formatTime(preview.start)}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Video Title */}

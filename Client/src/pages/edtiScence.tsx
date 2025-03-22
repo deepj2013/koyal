@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Pencil, X } from "lucide-react";
-import muxData from "../assets/sample/lyrics.json";
-import promptsData from "../assets/sample/proto_prompts.json";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -90,7 +88,11 @@ import { FaUndo } from "react-icons/fa";
 import { CharacterStyles, EditStoryModes } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
 import { useDispatch, useSelector } from "react-redux";
-import { AppState, setProtoPromptsUrl } from "../redux/features/appSlice";
+import {
+  AppState,
+  setProtoPromptsUrl,
+  setScenesJson,
+} from "../redux/features/appSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import {
   getFluxPrompts,
@@ -201,7 +203,8 @@ const GenerateVideoPage: React.FC = () => {
   const [getStoryElement, { data: storyElementData }] =
     useLazyGetStoryElementQuery();
 
-  const { loraPath, protoPromptsUrl, characterName } = useSelector(AppState);
+  const { loraPath, protoPromptsUrl, characterName, lyricsJsonUrl } =
+    useSelector(AppState);
   const { storyEleementFileUrl } = useSelector(LyricEditState);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -211,6 +214,7 @@ const GenerateVideoPage: React.FC = () => {
   const [storyElement, setStoryElement] = useState(null);
   const [promptsJson, setPromptsJson] = useState([]);
   const [currentEditIndex, setCurrentEditIndex] = useState(null);
+  const [lyrics, setLyrics] = useState<any[]>([]);
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
@@ -254,6 +258,16 @@ const GenerateVideoPage: React.FC = () => {
     return await getFluxPrompts(data.call_id);
   };
 
+  const generateVideo = () => {
+    navigate("/finalvideo", {
+      state: {
+        selectedStyle: location.state?.selectedStyle,
+        orientationStyle: location.state?.orientationStyle,
+      },
+    });
+    dispatch(setScenesJson(scenes));
+  };
+
   const replaceGeneratedImage = (imageUrl, index) => {
     setScenes((prev) => {
       const updatedJson = [...prev];
@@ -270,36 +284,41 @@ const GenerateVideoPage: React.FC = () => {
   };
 
   useEffect(() => {
-    try {
-      const mergedScenes = muxData
-        .map((muxItem) => {
-          const promptMatch = promptsData?.find(
-            (prompt) =>
-              prompt.start === muxItem.start && prompt.end === muxItem.end
-          );
+    if (lyrics?.length > 0 && promptsJson.length > 0) {
+      try {
+        const mergedScenes = lyrics
+          .map((muxItem) => {
+            const promptMatch = promptsJson?.find(
+              (prompt) =>
+                prompt.start === muxItem.start && prompt.end === muxItem.end
+            );
 
-          if (promptMatch) {
-            return {
-              image:
-                images[
-                  location.state?.selectedStyle === CharacterStyles.ANIMATED
-                    ? "animated"
-                    : "realistic"
-                ][promptMatch.number - 1],
-              description: promptMatch.narrative,
-              dialogue: promptMatch.dialogue || muxItem[2],
-              emotion: promptMatch.emotion || muxItem[3],
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
+            if (promptMatch) {
+              const { start, end } = promptMatch;
+              return {
+                image:
+                  images[
+                    location.state?.selectedStyle === CharacterStyles.ANIMATED
+                      ? "animated"
+                      : "realistic"
+                  ][promptMatch.number - 1],
+                description: promptMatch.narrative,
+                dialogue: promptMatch.dialogue || muxItem[2],
+                emotion: promptMatch.emotion || muxItem[3],
+                start,
+                end,
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
 
-      setScenes(mergedScenes);
-    } catch (error) {
-      console.error("Error loading scene data", error);
+        setScenes(mergedScenes);
+      } catch (error) {
+        console.error("Error loading scene data", error);
+      }
     }
-  }, []);
+  }, [lyrics, promptsJson]);
 
   useEffect(() => {
     const updateTableHeight = () => {
@@ -383,6 +402,24 @@ const GenerateVideoPage: React.FC = () => {
     };
 
     processPrompts();
+  }, []);
+
+  useEffect(() => {
+    const fetchLyrics = async () => {
+      try {
+        const response = await fetch(lyricsJsonUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setLyrics(jsonData);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+        return []; 
+      }
+    };
+
+    fetchLyrics();
   }, []);
 
   useEffect(() => {
@@ -553,14 +590,7 @@ const GenerateVideoPage: React.FC = () => {
             <div className="mt-6" id="create-btn">
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() =>
-                  navigate("/finalvideo", {
-                    state: {
-                      selectedStyle: location.state?.selectedStyle,
-                      orientationStyle: location.state?.orientationStyle,
-                    },
-                  })
-                }
+                onClick={generateVideo}
               >
                 Create Video
               </button>
