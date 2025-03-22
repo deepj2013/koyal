@@ -116,7 +116,7 @@ const AudioUploadPage = () => {
               ) : (
                 <div className="pl-0 p-4 rounded-lg">
                   <div className="flex space-x-4">
-                    {["Music", "Podcast", "Voiceover"].map((type) => (
+                    {["Music", "Podcast", "Narration"].map((type) => (
                       <button
                         key={type}
                         className={`px-6 py-3 border rounded-md ${
