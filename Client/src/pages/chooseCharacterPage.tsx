@@ -116,9 +116,25 @@ const ChooseCharacterPage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+  
+      const video = videoRef.current;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+  
+      // Determine the square crop size (smallest dimension)
+      const squareSize = Math.min(videoWidth, videoHeight);
+      
+      // Calculate cropping start points (center-cropping)
+      const startX = (videoWidth - squareSize) / 2;
+      const startY = (videoHeight - squareSize) / 2;
+  
+      // Set canvas size to the square size
+      canvas.width = squareSize;
+      canvas.height = squareSize;
+  
+      // Draw the  square portion from the video onto the canvas
+      context.drawImage(video, startX, startY, squareSize, squareSize, 0, 0, squareSize, squareSize);
+
       return canvas.toDataURL("image/png");
     }
   };
