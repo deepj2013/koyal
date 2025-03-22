@@ -33,11 +33,7 @@ import {
 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
-import {
-  setCharacterName,
-  setLoraPath,
-  setStyleImagesUrl,
-} from "../redux/features/appSlice";
+import { setCharacterName } from "../redux/features/appSlice";
 import ImagePreview from "../components/ImagePreview";
 
 const ChooseCharacterPage = () => {
@@ -60,10 +56,7 @@ const ChooseCharacterPage = () => {
     useLazyGetProcessedCharacterQuery();
   const [trainCharacter, { data: trainedCharResponse }] =
     useTrainCharacterMutation();
-  const [getTrainedCharacter, { data: trainedCharacter }] =
-    useLazyGetTrainedCharacterQuery();
-  const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
-  const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
+
   const [processAvatar, { data: processedAvatarResponse }] =
     useProcessAvatarMutation();
   const [getAvatar, { data: avatarData }] = useLazyGetProcessedAvatarQuery();
@@ -345,15 +338,18 @@ const ChooseCharacterPage = () => {
 
   useEffect(() => {
     if (trainedCharResponse?.call_id) {
-      getTrainedCharacter(trainedCharResponse?.call_id);
+      navigate("/characterSelection", {
+        state: {
+          characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
+          callId: trainedCharResponse?.call_id,
+          charName: useCharcha ? charchaIdentifier : avatarIdentifier,
+        },
+      });
+      dispatch(
+        setCharacterName(useCharcha ? charchaIdentifier : avatarIdentifier)
+      );
     }
   }, [trainedCharResponse]);
-
-  useEffect(() => {
-    if (submitStyleData?.call_id) {
-      getStyle(submitStyleData?.call_id);
-    }
-  }, [submitStyleData]);
 
   useEffect(() => {
     if (processedAvatarResponse?.call_id) {
@@ -378,31 +374,6 @@ const ChooseCharacterPage = () => {
       });
     }
   }, [charResult]);
-
-  useEffect(() => {
-    if (trainedCharacter) {
-      dispatch(setLoraPath(trainedCharacter.lora_path));
-      submitStyle({
-        lora_path: trainedCharacter.lora_path,
-        character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
-        character_outfit: storyElement?.character_outfit,
-      });
-    }
-  }, [trainedCharacter]);
-
-  useEffect(() => {
-    if (getStyleData) {
-      navigate("/characterSelection", {
-        state: {
-          characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
-        },
-      });
-      dispatch(
-        setCharacterName(useCharcha ? charchaIdentifier : avatarIdentifier)
-      );
-      dispatch(setStyleImagesUrl(getStyleData));
-    }
-  }, [getStyleData]);
 
   useEffect(() => {
     if (avatarData?.upscaled_path) {
