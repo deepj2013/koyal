@@ -328,7 +328,7 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 10);
+      }, 1000);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
