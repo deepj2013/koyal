@@ -44,6 +44,7 @@ import {
 } from "../redux/features/appSlice";
 import { Modal } from "../components/Modal";
 import AdvertiserSection from "../components/layouts/AdvertiserSection";
+import CountdownTimer from "../components/CountdownTimer";
 
 const CHARACTER_DETAILS = storyElement.character_details;
 const styles = [
@@ -190,7 +191,19 @@ const CharacterSelectionPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Modal isOpen={isLoading} onClose={() => {}} title="While you wait, have a look at these samples...">
+      <Modal
+        isOpen={isLoading}
+        onClose={() => {}}
+        title={
+          <h1 className="text-xl">
+            While you wait for{" "}
+            <span>
+              <CountdownTimer seconds={100} />
+            </span>
+            , have a look at these samples...
+          </h1>
+        }
+      >
         <AdvertiserSection
           activeOption={activeOption}
           setActiveOption={setActiveOption}
