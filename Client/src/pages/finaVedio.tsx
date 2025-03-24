@@ -22,7 +22,7 @@ const FinalVideoPage = () => {
   const videoRef = useState(null);
 
   const FinalVideo =
-    location.state.selectedStyle === CharacterStyles.ANIMATED
+    location.state?.selectedStyle === CharacterStyles.ANIMATED
       ? AnimatedVideo
       : RealisticVideo;
 
