@@ -167,8 +167,10 @@ const ChooseCharacterPage = () => {
   };
 
   const closeCharchaModal = () => {
+    if(!isCharchaFinalized) {
+      setCapturedImages([]);
+    }
     setIsChooseCharModalOpen(false);
-    setCapturedImages([]);
     setCharchaIdentifier("");
     setGender("");
   };
@@ -326,7 +328,7 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 1000);
+      }, 10);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
@@ -545,11 +547,11 @@ const ChooseCharacterPage = () => {
                         >
                           {animatedImages && (
                             <ImagePreview
-                              imageURL={animatedImages[0]}
+                              imageURL={animatedImages[1]}
                               expandIconOnHover={true}
                               customImageUI={
                                 <img
-                                  src={animatedImages[0]}
+                                  src={animatedImages[1]}
                                   alt="Captured"
                                   className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
                                     useCharcha === false

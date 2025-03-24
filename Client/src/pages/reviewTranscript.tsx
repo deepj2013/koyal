@@ -339,6 +339,12 @@ const TranscriptPage = () => {
                     rows={6}
                   ></textarea>
                 </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NOTE: changing timestamps will create a new scene that may
+                    not be beat aligned.
+                  </label>
+                </div>
 
                 <div className="flex justify-end">
                   <button
