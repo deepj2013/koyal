@@ -12,6 +12,7 @@ import avatar1 from "../assets/images/avatar1.png";
 import avatar2 from "../assets/images/avatar2.png";
 import avatar3 from "../assets/images/avatar3.png";
 import storyElementData from "../assets/sample/story_elements.json";
+import ImagePreview from "../components/ImagePreview";
 
 const THEME_TEXT_NEW = storyElementData.newNarrative;
 const AVATAR_TEXT = "indian girl, age 21, sharp features, ponytail";
@@ -57,9 +58,25 @@ const ChooseCharacterPage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+  
+      const video = videoRef.current;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+  
+      // Determine the square crop size (smallest dimension)
+      const squareSize = Math.min(videoWidth, videoHeight);
+      
+      // Calculate cropping start points (center-cropping)
+      const startX = (videoWidth - squareSize) / 2;
+      const startY = (videoHeight - squareSize) / 2;
+  
+      // Set canvas size to the square size
+      canvas.width = squareSize;
+      canvas.height = squareSize;
+  
+      // Draw the  square portion from the video onto the canvas
+      context.drawImage(video, startX, startY, squareSize, squareSize, 0, 0, squareSize, squareSize);
+
       return canvas.toDataURL("image/png");
     }
   };
@@ -83,6 +100,16 @@ const ChooseCharacterPage = () => {
 
   const handleSaveChanges = () => {};
 
+
+  const closeCharchaModal = () => {
+    if(!isCharchaFinalized) {
+      setCapturedImages([]);
+    }
+    setIsChooseCharModalOpen(false);
+    setCharchaIdentifier("");
+    setGender("");
+  };
+
   const onConfirm = () => {
     if (stage === Stages.VERIFICATION) {
       setStage(Stages.IDENTIFICATION);
@@ -103,7 +130,9 @@ const ChooseCharacterPage = () => {
     setIsCharchaFinalized(false);
     setStage(Stages.VERIFICATION);
     setCharchaIdentifier("");
+    setCapturedImages([]);
   };
+
 
   const getConfirmText = () => {
     return ConfirmButtonTextMap[stage] || "Confirm";
@@ -270,6 +299,7 @@ const ChooseCharacterPage = () => {
                   {isCharchaFinalized ? (
                     <>
                       <label
+                        htmlFor=""
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                         ${
                           useCharcha
@@ -278,16 +308,27 @@ const ChooseCharacterPage = () => {
                         }`}
                         onClick={handleChooseChar}
                       >
-                        <span className="border-1">
+                        <span
+                          className="border-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
                           {capturedImages && (
-                            <img
-                              src={capturedImages[0]}
-                              alt="Captured"
-                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
-                                useCharcha === true
-                                  ? "border-blue-500"
-                                  : "border-gray-300"
-                              }`}
+                            <ImagePreview
+                              imageURL={capturedImages[0]}
+                              expandIconOnHover={true}
+                              customImageUI={
+                                <img
+                                  src={capturedImages[0]}
+                                  alt="Captured"
+                                  className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                    useCharcha === true
+                                      ? "border-blue-500"
+                                      : "border-gray-300"
+                                  }`}
+                                />
+                              }
                             />
                           )}
                         </span>
@@ -316,6 +357,7 @@ const ChooseCharacterPage = () => {
                   {isAvatarFinalized ? (
                     <>
                       <label
+                        htmlFor=""
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                       ${
                         useCharcha === false
@@ -324,16 +366,27 @@ const ChooseCharacterPage = () => {
                       }`}
                         onClick={handleAICharClick}
                       >
-                        <span className="border-1">
+                        <span
+                          className="border-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
                           {animatedImages && (
-                            <img
-                              src={animatedImages[0]}
-                              alt="Captured"
-                              className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
-                                useCharcha === false
-                                  ? "border-blue-500"
-                                  : "border-gray-300"
-                              }`}
+                            <ImagePreview
+                              imageURL={animatedImages[1]}
+                              expandIconOnHover={true}
+                              customImageUI={
+                                <img
+                                  src={animatedImages[1]}
+                                  alt="Captured"
+                                  className={`w-[3rem] h-[3rem] rounded-full border-[2px] ${
+                                    useCharcha === false
+                                      ? "border-blue-500"
+                                      : "border-gray-300"
+                                  }`}
+                                />
+                              }
                             />
                           )}
                         </span>
@@ -423,8 +476,8 @@ const ChooseCharacterPage = () => {
             )}
             <Modal
               isOpen={isChooseCharModalOpen}
-              onClose={() => setIsChooseCharModalOpen(false)}
-              onCancel={() => setIsChooseCharModalOpen(false)}
+              onClose={closeCharchaModal}
+              onCancel={closeCharchaModal}
               onConfirm={onConfirm}
               title="Create New Character"
               confirmText={getConfirmText()}

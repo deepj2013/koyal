@@ -42,27 +42,52 @@ const TranscriptPage = () => {
     const newSection = {
       start, // Use previous end time as start
       end, // Empty end time
-      text: "New section", // Default text
+      text: "", // Default text
       emotion, // Inherit emotion
     };
 
-    currentData.splice(index + 1, 0, newSection);
+    currentData.splice(index, 1, newSection);
     setTranscriptData(currentData);
-
-    // Automatically open the newly added section for editing
 
     setSelectedParagraph({
       start,
       end,
-      text: newSection.text,
+      text: newSection.text || "",
       emotion,
-      index: index + 1,
+      index: index,
     });
   };
 
   const handleSave = async () => {
     if (selectedParagraph && selectedParagraph.index !== undefined) {
       const updatedData = [...transcriptData];
+      const editedObj = {
+        start: selectedParagraph.start,
+        end: selectedParagraph.end,
+        text: selectedParagraph.text || null,
+        emotion: selectedParagraph.emotion,
+      };
+      let res = [editedObj];
+
+      if (transcriptData[selectedParagraph.index]?.start < editedObj?.start) {
+        const prefixObj = {
+          start: transcriptData[selectedParagraph.index]?.start,
+          end: editedObj.start,
+          text: null,
+          emotion: selectedParagraph.emotion,
+        };
+        res = [prefixObj, ...res];
+      }
+
+      if (transcriptData[selectedParagraph.index]?.end > editedObj?.end) {
+        const postfixObj = {
+          start: editedObj?.end,
+          end: transcriptData[selectedParagraph.index].end,
+          text: null,
+          emotion: selectedParagraph.emotion,
+        };
+        res = [...res, postfixObj];
+      }
 
       // Update only the correct index, maintaining JSON format
       updatedData[selectedParagraph.index] = {
@@ -71,6 +96,9 @@ const TranscriptPage = () => {
         text: selectedParagraph.text || "New section", // Prevent empty values
         emotion: selectedParagraph.emotion,
       };
+
+      updatedData.splice(selectedParagraph.index, 1, ...res);
+
 
       setTranscriptData(updatedData); // Update state
       setSelectedParagraph(null); // Close modal
@@ -133,28 +161,17 @@ const TranscriptPage = () => {
 
                 return (
                   <div key={index} className="relative mb-4">
-                    {regexNoVocals.test(text) ? (
+                    {regexNoVocals.test(text) || !text ? (
                       <div className="flex items-start">
                         {/* Add Section Buttons */}
                         <div className="flex flex-col">
                           {/* Hide + button when a new section is added */}
-                          {!text && (
-                            <button
-                              className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200"
-                              onClick={() => handleAddSection(index)}
-                            >
-                              +
-                            </button>
-                          )}
-                          <div className="bg-yellow-100 p-2 rounded mt-1">
-                            <div className="text-2xl text-gray-800">🎵</div>
-                          </div>
-                          <button
-                            className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 mt-1"
+                          <div
+                            className="bg-yellow-100 p-2 rounded mt-1 cursor-pointer"
                             onClick={() => handleAddSection(index)}
                           >
-                            +
-                          </button>
+                            <div className="text-2xl text-gray-800">🎵</div>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -253,6 +270,12 @@ const TranscriptPage = () => {
                     className="w-full border border-gray-300 p-2 rounded-md"
                     rows={6}
                   ></textarea>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NOTE: changing timestamps will create a new scene that may
+                    not be beat aligned.
+                  </label>
                 </div>
 
                 <div className="flex justify-end">

@@ -5,14 +5,20 @@ import { Download, Play } from "lucide-react";
  import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
 import AnimatedVideo from "../assets/vedio/portrait_video.mp4";
 import RealisticVideo from "../assets/vedio/realistic_video.mp4";
+import muxData from "../assets/sample/lyrics.json";
+import promptsData from "../assets/sample/proto_prompts.json";
 import { useLocation } from "react-router-dom";
 import { CharacterStyles } from "../utils/constants";
+import { images } from "./edtiScence";
+import { formatTime } from "../utils/helper";
 
 const FinalVideoPage = () => {
   const location = useLocation();
 
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
+  const [previewImages, setPreviewImages] = useState([]);
+
   const videoRef = useState(null);
 
   const FinalVideo =
@@ -39,12 +45,55 @@ const FinalVideoPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    try {
+      const mergedScenes = muxData
+        .map((muxItem) => {
+          const promptMatch = promptsData?.find(
+            (prompt) =>
+              prompt.start === muxItem.start && prompt.end === muxItem.end
+          );
+
+          if (promptMatch) {
+            const { start, end } = promptMatch;
+            return {
+              image:
+                images[
+                  location.state?.selectedStyle === CharacterStyles.ANIMATED
+                    ? "animated"
+                    : "realistic"
+                ][promptMatch.number - 1],
+              description: promptMatch.narrative,
+              dialogue: promptMatch.dialogue || muxItem[2],
+              emotion: promptMatch.emotion || muxItem[3],
+              start,
+              end,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+        setPreviewImages(mergedScenes);
+    } catch (error) {
+      console.error("Error loading scene data", error);
+    }
+  }, []);
+
+
   // Handle Play Button Click
   const handlePlay = () => {
     if (videoRef.current) {
       videoRef.current.play(); // Play the video
     }
     setShowPlayButton(false); // Hide Play Button
+  };
+
+  const handleSkipTo = (time) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      videoRef.current.play();
+    }
   };
 
   return (
@@ -96,6 +145,26 @@ const FinalVideoPage = () => {
                   <Play className="w-10 h-10" />
                 </button>
               )}
+            </div>
+            <div className="relative z-50 w-[80%]">
+              <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
+                {previewImages.map((preview, index) => (
+                  <button
+                    key={index}
+                    className="relative w-32 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
+                    onClick={() => handleSkipTo(preview.start)}
+                  >
+                    <img
+                      src={preview.image}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
+                      Shot {index + 1}: {formatTime(preview.start)}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Video Title */}

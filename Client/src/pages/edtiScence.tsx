@@ -90,7 +90,7 @@ import { FaUndo } from "react-icons/fa";
 import { CharacterStyles } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
 
-const images = {
+export const images = {
   realistic: {
     0: img0,
     1: img1,
