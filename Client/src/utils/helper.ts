@@ -45,11 +45,25 @@ export const formatToUTC = (isoString) => {
   return date.toUTCString();
 };
 
-export const shuffleArrayExceptLast = (array) => {
-  const shuffled = array.slice(0, -1); // Exclude the last element
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return [...shuffled, array[array.length - 1]]; // Append the last item back
+export const getRandomActions = () => {
+  const actions = [
+    "TURN HEAD LEFT",
+    "TILT HEAD UP",
+    "TILT HEAD DOWN",
+    "TURN HEAD RIGHT",
+    "OPEN YOUR MOUTH",
+    "SMILE WITH TEETH",
+    "SQUINT YOUR EYES",
+  ];
+
+  const shuffledActions = actions.sort(() => Math.random() - 0.5);
+  const selectedActions = shuffledActions.slice(0, 5);
+
+  return [...selectedActions, "STANDUP (ENSURE HEAD IN THE FRAME)"];
+};
+
+export const formatTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 };

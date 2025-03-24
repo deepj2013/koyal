@@ -1,4 +1,10 @@
 export interface AppModel {
+  characterName: string
   loraPath: string | null;
   styleImagesUrl: string | null;
+  protoPromptsUrl: string | null;
+  lyricsJsonUrl: string | null;
+  scenesJson: any;
 }
+
+

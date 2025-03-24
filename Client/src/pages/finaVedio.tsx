@@ -2,33 +2,48 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
- import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
-import AnimatedVideo from "../assets/vedio/portrait_video.mp4";
-import RealisticVideo from "../assets/vedio/realistic_video.mp4";
 import { useLocation } from "react-router-dom";
-import { CharacterStyles } from "../utils/constants";
+import {
+  useLazyGetFinalVideoQuery,
+  useLazyGetProcessedVideoQuery,
+  useProcessFinalVideoMutation,
+  useProcessVideoMutation,
+} from "../redux/services/finalVideoService/finalVideoApi";
+import { AppState } from "../redux/features/appSlice";
+import { useSelector } from "react-redux";
+import { formatTime } from "../utils/helper";
 
 const FinalVideoPage = () => {
   const location = useLocation();
 
+  const { selectedStyle, orientationStyle } = location?.state || {};
+
+  const { protoPromptsUrl, characterName, scenesJson } = useSelector(AppState);
+
+  const [processVideo, { data: processVideoData }] = useProcessVideoMutation();
+  const [getProcessedVideo, { data: getProcessedVideoData }] =
+    useLazyGetProcessedVideoQuery();
+  const [processFinalVideo, { data: processFinalVideoData }] =
+    useProcessFinalVideoMutation();
+  const [getFinalVideo, { data: getFinalVideoData }] =
+    useLazyGetFinalVideoQuery();
+
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
-  const videoRef = useState(null);
+  const [finalVideo, setFinalVideo] = useState(null);
+  const [previewImages, setPreviewImages] = useState([]);
 
-  const FinalVideo =
-    location.state.selectedStyle === CharacterStyles.ANIMATED
-      ? AnimatedVideo
-      : RealisticVideo;
+  const videoRef = useState<any>(null);
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = FinalVideo; // Video file path
+    link.href = finalVideo; // Video file path
     link.download = "Final_Video.mp4"; // File name
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
-  
+
   // Remove "5 minutes remaining" after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -39,13 +54,60 @@ const FinalVideoPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    setPreviewImages(scenesJson);
+  }, [scenesJson]);
+
   // Handle Play Button Click
   const handlePlay = () => {
-    if (videoRef.current) {
-      videoRef.current.play(); // Play the video
+    if (videoRef?.current) {
+      videoRef?.current.play(); // Play the video
     }
     setShowPlayButton(false); // Hide Play Button
   };
+
+  const handleSkipTo = (time) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+      videoRef.current.play();
+    }
+  };
+
+  useEffect(() => {
+    processVideo({
+      proto_prompts: protoPromptsUrl,
+      character_name: characterName,
+      style: selectedStyle?.toLowerCase(),
+      orientation: orientationStyle?.toLowerCase(),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (processVideoData?.call_id) {
+      getProcessedVideo(processVideoData?.call_id);
+    }
+  }, [processVideoData]);
+
+  useEffect(() => {
+    if (getProcessedVideoData?.video_folder_path) {
+      processFinalVideo({
+        proto_prompts: protoPromptsUrl,
+        video_folder_path: processVideoData?.video_folder_path,
+      });
+    }
+  }, [getProcessedVideoData]);
+
+  useEffect(() => {
+    if (processFinalVideoData?.call_id) {
+      getFinalVideo(processFinalVideoData?.call_id);
+    }
+  }, [processFinalVideoData]);
+
+  useEffect(() => {
+    if (getFinalVideoData?.final_video_path) {
+      setFinalVideo(getFinalVideoData?.final_video_path);
+    }
+  }, [getFinalVideoData]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -74,7 +136,7 @@ const FinalVideoPage = () => {
               <video
                 ref={videoRef}
                 className="w-full h-full"
-                src={FinalVideo}
+                src={finalVideo}
                 controls={!isGenerating} // Enable controls after 10 sec
                 autoPlay={false} // AutoPlay disabled initially
               />
@@ -83,7 +145,9 @@ const FinalVideoPage = () => {
               {isGenerating && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
                   <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-white mt-4 text-lg">5 minutes remaining... </p>
+                  <p className="text-white mt-4 text-lg">
+                    5 minutes remaining...{" "}
+                  </p>
                 </div>
               )}
 
@@ -96,6 +160,26 @@ const FinalVideoPage = () => {
                   <Play className="w-10 h-10" />
                 </button>
               )}
+            </div>
+            <div className="relative z-50 w-[80%]">
+              <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
+                {previewImages.map((preview, index) => (
+                  <button
+                    key={index}
+                    className="relative w-32 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
+                    onClick={() => handleSkipTo(preview.start)}
+                  >
+                    <img
+                      src={preview.image}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
+                      Shot {index + 1}: {formatTime(preview.start)}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Video Title */}

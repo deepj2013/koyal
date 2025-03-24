@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Pencil, X } from "lucide-react";
-import muxData from "../assets/sample/lyrics.json";
-import promptsData from "../assets/sample/proto_prompts.json";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -87,8 +85,23 @@ import replaced18 from "../assets/images/newEditScene/landscape_realistic/replac
 import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 import { FaUndo } from "react-icons/fa";
 
-import { CharacterStyles } from "../utils/constants";
+import { CharacterStyles, EditStoryModes } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  AppState,
+  setProtoPromptsUrl,
+  setScenesJson,
+} from "../redux/features/appSlice";
+import { LyricEditState } from "../redux/features/lyricEditSlice";
+import {
+  getFluxPrompts,
+  processFluxPrompts,
+} from "../redux/services/editSceneService/editSceneService";
+import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
+import { UploadAudioState } from "../redux/features/uploadSlice";
+import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
+import { uploadJsonAsFileToS3 } from "../utils/helper";
 
 const images = {
   realistic: {
@@ -173,114 +186,139 @@ const images = {
   },
 };
 
-const newDescription18 =
-  "mehulagarwal scribbles on hotel notepad at night, sketching the skyline visible from the moonlit window, adding whimsical details like stars and planets";
-const newDescription23 =
-  "mehulagarwal dances with his shadow being lit up by dramatic floor lamp lighting.";
+const emotions = {
+  euphoric: "bg-yellow-300",
+  serene: "bg-blue-300",
+  melancholy: "bg-purple-300",
+  tense: "bg-red-300",
+  default: "bg-gray-200",
+};
 
 const GenerateVideoPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+
+  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
+  const [getStoryElement, { data: storyElementData }] =
+    useLazyGetStoryElementQuery();
+
+  const { loraPath, protoPromptsUrl, characterName, lyricsJsonUrl } =
+    useSelector(AppState);
+  const { storyEleementFileUrl } = useSelector(LyricEditState);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
   const [scenes, setScenes] = useState<any[]>([]);
   const [tableBodyHeight, setTableBodyHeight] = useState("auto");
+  const [storyElement, setStoryElement] = useState(null);
+  const [promptsJson, setPromptsJson] = useState([]);
+  const [currentEditIndex, setCurrentEditIndex] = useState(null);
+  const [lyrics, setLyrics] = useState<any[]>([]);
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
-    setEditingScene({ ...scene, index });
+    setCurrentEditIndex(index);
     setNewDescription("");
     setIsModalOpen(true);
   };
 
-  const handleRedo = (index) => {
-    const updatedScenes = [...scenes];
-    const { narrative, dialogue, emotion } = promptsData[index];
-    updatedScenes[index] = {
-      description: narrative,
-      dialog: dialogue,
-      emotion: emotion,
-      image:
-        images[
-          location.state?.selectedStyle === CharacterStyles.ANIMATED
-            ? "animated"
-            : "realistic"
-        ][index],
-    };
-    setScenes(updatedScenes);
+  const handleRedo = async (index) => {
+    const fluxPromptsData = await generateImage(index);
+    const { image_path, prompt_index } = fluxPromptsData;
+    replaceGeneratedImage(image_path, prompt_index);
+  };
+
+  const callProcessFluxPromptsApi = async (index: number) => {
+    const response = await processFluxPrompts({
+      proto_prompts: protoPromptsUrl,
+      character_lora_path: loraPath,
+      character_name: characterName,
+      character_outfit: storyElement?.character_details,
+      prompt_indices: index,
+      style: location.state?.selectedStyle?.toLowerCase(),
+      orientation: location.state?.orientationStyle?.toLowerCase(),
+    });
+    return response;
   };
 
   // Save Changes and Update Table
   const handleSave = () => {
-    const updatedScenes = [...scenes];
-
-    let replacedImage =
-      location.state?.selectedStyle === CharacterStyles.ANIMATED
-        ? animatedImage37
-        : img37;
-
-    let newDesc =
-      "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
-
-    if (location.state?.selectedStyle === CharacterStyles.REALISTIC) {
-      if (editingScene.index === 18) {
-        replacedImage = replaced18;
-        newDesc = newDescription18;
-      } else if (editingScene.index === 23) {
-        replacedImage = replaced23;
-        newDesc = newDescription23;
-      }
-    }
-
-    updatedScenes[editingScene.index] = {
-      ...editingScene,
-      description: newDesc,
-      image: replacedImage,
-    };
-    setScenes(updatedScenes);
+    editStory({
+      mode: EditStoryModes.EDIT_PROMPT,
+      prompts_path: protoPromptsUrl,
+      prompt_index: currentEditIndex,
+      edit_instruction: newDescription,
+    });
     setIsModalOpen(false);
   };
 
-  const emotions = {
-    euphoric: "bg-yellow-300",
-    serene: "bg-blue-300",
-    melancholy: "bg-purple-300",
-    tense: "bg-red-300",
-    default: "bg-gray-200",
+  const generateImage = async (index: number) => {
+    const data = await callProcessFluxPromptsApi(index);
+    return await getFluxPrompts(data.call_id);
+  };
+
+  const generateVideo = () => {
+    navigate("/finalvideo", {
+      state: {
+        selectedStyle: location.state?.selectedStyle,
+        orientationStyle: location.state?.orientationStyle,
+      },
+    });
+    dispatch(setScenesJson(scenes));
+  };
+
+  const replaceGeneratedImage = (imageUrl, index) => {
+    setScenes((prev) => {
+      const updatedJson = [...prev];
+
+      const ind = Number(index);
+      if (updatedJson[ind]) {
+        updatedJson[ind] = {
+          ...updatedJson[ind],
+          image: imageUrl,
+        };
+      }
+      return updatedJson;
+    });
   };
 
   useEffect(() => {
-    try {
-      const mergedScenes = muxData
-        .map((muxItem) => {
-          const promptMatch = promptsData?.find(
-            (prompt) =>
-              prompt.start === muxItem.start && prompt.end === muxItem.end
-          );
+    if (lyrics?.length > 0 && promptsJson.length > 0) {
+      try {
+        const mergedScenes = lyrics
+          .map((muxItem) => {
+            const promptMatch = promptsJson?.find(
+              (prompt) =>
+                prompt.start === muxItem.start && prompt.end === muxItem.end
+            );
 
-          if (promptMatch) {
-            return {
-              image:
-                images[
-                  location.state?.selectedStyle === CharacterStyles.ANIMATED
-                    ? "animated"
-                    : "realistic"
-                ][promptMatch.number - 1],
-              description: promptMatch.narrative,
-              dialogue: promptMatch.dialogue || muxItem[2],
-              emotion: promptMatch.emotion || muxItem[3],
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
+            if (promptMatch) {
+              const { start, end } = promptMatch;
+              return {
+                image:
+                  images[
+                    location.state?.selectedStyle === CharacterStyles.ANIMATED
+                      ? "animated"
+                      : "realistic"
+                  ][promptMatch.number - 1],
+                description: promptMatch.narrative,
+                dialogue: promptMatch.dialogue || muxItem[2],
+                emotion: promptMatch.emotion || muxItem[3],
+                start,
+                end,
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
 
-      setScenes(mergedScenes);
-    } catch (error) {
-      console.error("Error loading scene data", error);
+        setScenes(mergedScenes);
+      } catch (error) {
+        console.error("Error loading scene data", error);
+      }
     }
-  }, []);
+  }, [lyrics, promptsJson]);
 
   useEffect(() => {
     const updateTableHeight = () => {
@@ -315,6 +353,97 @@ const GenerateVideoPage: React.FC = () => {
       window.removeEventListener("resize", updateTableHeight);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchStoryElement = async () => {
+      try {
+        const response = await fetch(storyEleementFileUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setStoryElement(jsonData.story_elements);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+      }
+    };
+
+    fetchStoryElement();
+  }, []);
+
+  useEffect(() => {
+    const fetchProtoPrompts = async () => {
+      try {
+        const response = await fetch(protoPromptsUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setPromptsJson(jsonData.prompts);
+        return jsonData.prompts;
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+        return []; // Return an empty array to avoid further issues
+      }
+    };
+
+    const processPrompts = async () => {
+      try {
+        const prompts: any = await fetchProtoPrompts();
+
+        for (const [index] of prompts.entries()) {
+          const fluxPromptsData = await generateImage(index);
+          const { image_path, prompt_index } = fluxPromptsData;
+          replaceGeneratedImage(image_path, prompt_index);
+        }
+      } catch (error) {
+        console.error("Error processing prompts:", error);
+      }
+    };
+
+    processPrompts();
+  }, []);
+
+  useEffect(() => {
+    const fetchLyrics = async () => {
+      try {
+        const response = await fetch(lyricsJsonUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch JSON file");
+        }
+        const jsonData = await response.json();
+        setLyrics(jsonData);
+      } catch (error) {
+        console.error("Error fetching JSON:", error);
+        return []; 
+      }
+    };
+
+    fetchLyrics();
+  }, []);
+
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      getStoryElement(sceneLLMResponse?.call_id);
+    }
+  }, [sceneLLMResponse]);
+
+  useEffect(() => {
+    if (storyElementData) {
+      generateImage(currentEditIndex).then((fluxPromptsData) => {
+        const { image_path, prompt_index } = fluxPromptsData;
+        replaceGeneratedImage(image_path, prompt_index);
+      });
+      uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
+        .then((url) => {
+          dispatch(setProtoPromptsUrl(url));
+          console.log("upload proto_prompts.json successful", url);
+        })
+        .catch((err) => {
+          console.log("Error while replacing proto_prompts.json :", err);
+        });
+    }
+  }, [storyElementData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -461,13 +590,7 @@ const GenerateVideoPage: React.FC = () => {
             <div className="mt-6" id="create-btn">
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() =>
-                  navigate("/finalvideo", {
-                    state: {
-                      selectedStyle: location.state?.selectedStyle,
-                    },
-                  })
-                }
+                onClick={generateVideo}
               >
                 Create Video
               </button>

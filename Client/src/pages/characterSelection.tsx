@@ -27,6 +27,7 @@ import {
 import {
   useEditStoryElementMutation,
   useLazyGetStyleQuery,
+  useLazyGetTrainedCharacterQuery,
   useSubmitStyleMutation,
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
@@ -35,7 +36,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { convertJsonToFile, uploadJsonAsFileToS3 } from "../utils/helper";
 import { uploadFileToS3 } from "../aws/s3-service";
-import { AppState, setStyleImagesUrl } from "../redux/features/appSlice";
+import {
+  AppState,
+  setLoraPath,
+  setProtoPromptsUrl,
+  setStyleImagesUrl,
+} from "../redux/features/appSlice";
+import { Modal } from "../components/Modal";
+import AdvertiserSection from "../components/layouts/AdvertiserSection";
+import CountdownTimer from "../components/CountdownTimer";
 
 const CHARACTER_DETAILS = storyElement.character_details;
 const styles = [
@@ -49,7 +58,10 @@ const CharacterSelectionPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const { loraPath, styleImagesUrl } = useSelector(AppState);
+  const { loraPath } = useSelector(AppState);
+
+  const [getTrainedCharacter, { data: trainedCharacter, isLoading }] =
+    useLazyGetTrainedCharacterQuery();
 
   const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
   const [getStoryElement, { data: storyElementData }] =
@@ -65,6 +77,7 @@ const CharacterSelectionPage = () => {
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
   const [storyElement, setStoryElement] = useState(null);
   const [styleImages, setStyleImages] = useState<any>(styles);
+  const [activeOption, setActiveOption] = useState("advertisers");
 
   const handleChangeLook = async () => {
     const file = convertJsonToFile({ storyElement }, "story_element.json");
@@ -115,21 +128,12 @@ const CharacterSelectionPage = () => {
   }, []);
 
   useEffect(() => {
-    if (styleImagesUrl) {
-      setStyleImages((prevStyles) =>
-        prevStyles.map((style) => ({
-          ...style,
-          image: styleImagesUrl[style.name.toLowerCase()] || style.image,
-        }))
-      );
-    }
-
     editStory({
       mode: EditStoryModes.CREATE_PROMPT,
       scenes_path: sceneDataFileUrl,
       story_elements: storyEleementFileUrl,
-      character_name: location.state?.characterName,
-      media_type: audioType.toLowerCase(),
+      character_name: location?.state?.characterName,
+      media_type: audioType?.toLowerCase(),
     });
   }, []);
 
@@ -143,11 +147,27 @@ const CharacterSelectionPage = () => {
     if (storyElementData) {
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json").then(
         (url) => {
+          dispatch(setProtoPromptsUrl(url));
           console.log("upload proto_prompts.json successful", url);
         }
       );
     }
   }, [storyElementData]);
+
+  useEffect(() => {
+    getTrainedCharacter(location?.state?.callId);
+  }, []);
+
+  useEffect(() => {
+    if (trainedCharacter?.lora_path) {
+      dispatch(setLoraPath(trainedCharacter.lora_path));
+      submitStyle({
+        lora_path: trainedCharacter.lora_path,
+        character_name: location?.state?.characterName,
+        character_outfit: storyElement?.character_outfit,
+      });
+    }
+  }, [trainedCharacter]);
 
   useEffect(() => {
     if (submitStyleData?.call_id) {
@@ -157,12 +177,38 @@ const CharacterSelectionPage = () => {
 
   useEffect(() => {
     if (getStyleData) {
+      if (getStyleData) {
+        setStyleImages((prevStyles) =>
+          prevStyles.map((style) => ({
+            ...style,
+            image: getStyleData[style.name.toLowerCase()] || style.image,
+          }))
+        );
+      }
       dispatch(setStyleImagesUrl(getStyleData));
     }
   }, [getStyleData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Modal
+        isOpen={isLoading}
+        onClose={() => {}}
+        title={
+          <h1 className="text-xl">
+            While you wait for{" "}
+            <span>
+              <CountdownTimer seconds={100} />
+            </span>
+            , have a look at these samples...
+          </h1>
+        }
+      >
+        <AdvertiserSection
+          activeOption={activeOption}
+          setActiveOption={setActiveOption}
+        />
+      </Modal>
       <Navbar />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
