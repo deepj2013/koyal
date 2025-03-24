@@ -80,6 +80,7 @@ const ChooseCharacterPage = () => {
   const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
   const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
   const [actions, setActions] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleAICharClick = async () => {
     setIsCustomAvatarModalOpen(true);
@@ -116,24 +117,34 @@ const ChooseCharacterPage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
-  
+
       const video = videoRef.current;
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
-  
+
       // Determine the square crop size (smallest dimension)
       const squareSize = Math.min(videoWidth, videoHeight);
-      
+
       // Calculate cropping start points (center-cropping)
       const startX = (videoWidth - squareSize) / 2;
       const startY = (videoHeight - squareSize) / 2;
-  
+
       // Set canvas size to the square size
       canvas.width = squareSize;
       canvas.height = squareSize;
-  
+
       // Draw the  square portion from the video onto the canvas
-      context.drawImage(video, startX, startY, squareSize, squareSize, 0, 0, squareSize, squareSize);
+      context.drawImage(
+        video,
+        startX,
+        startY,
+        squareSize,
+        squareSize,
+        0,
+        0,
+        squareSize,
+        squareSize
+      );
 
       return canvas.toDataURL("image/png");
     }
@@ -167,7 +178,7 @@ const ChooseCharacterPage = () => {
   };
 
   const closeCharchaModal = () => {
-    if(!isCharchaFinalized) {
+    if (!isCharchaFinalized) {
       setCapturedImages([]);
     }
     setIsChooseCharModalOpen(false);
@@ -196,6 +207,11 @@ const ChooseCharacterPage = () => {
     setStage(Stages.VERIFICATION);
     setCharchaIdentifier("");
     setCapturedImages([]);
+  };
+
+  const onConfirmSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate('/')
   };
 
   const getConfirmText = () => {
@@ -236,15 +252,12 @@ const ChooseCharacterPage = () => {
         })
       );
 
-      callProcessCharacterAPI(uriPath);
+      setShowSuccessModal(true);
     } else {
       const { uriPath } = await createFolderInS3(
         `${localStorage.getItem("currentUser")}/AVATAR`
       );
-      processAvatar({
-        mode: AvatarProcessModes.UPSCALE,
-        images_path: uriPath,
-      });
+      setShowSuccessModal(true);
     }
   };
 
@@ -952,6 +965,32 @@ const ChooseCharacterPage = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </Modal>
+            <Modal
+              isOpen={showSuccessModal}
+              onClose={() => {}}
+              onCancel={() => {}}
+              onConfirm={onConfirmSuccessModal}
+              title=""
+              confirmText="Confirm"
+              isConfirmDisabled={false}
+            >
+              <div className="flex flex-col items-center justify-center px-8 py-6 text-center space-y-4 w-[60vw] max-w-lg">
+                {/* Success Icon */}
+                <div className="w-16 h-16 flex items-center justify-center bg-green-100 rounded-full">
+                  ✅ {/* Replace with an actual icon if needed */}
+                </div>
+
+                {/* Success Message */}
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  You're done with the process, thanks!
+                </h1>
+
+                {/* Subtitle (Optional) */}
+                <p className="text-gray-600 text-sm">
+                  You may now proceed with the next steps or close this window.
+                </p>
               </div>
             </Modal>
           </div>
