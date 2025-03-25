@@ -12,6 +12,7 @@ import {
 import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
 import { formatTime } from "../utils/helper";
+import { FaInfoCircle, FaUndo } from "react-icons/fa";
 
 const FinalVideoPage = () => {
   const location = useLocation();
@@ -164,29 +165,49 @@ const FinalVideoPage = () => {
             <div className="relative z-50 w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <button
-                    key={index}
-                    className="relative w-32 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
-                    onClick={() => handleSkipTo(preview.start)}
-                  >
-                    <img
-                      src={preview.image}
-                      alt={`Preview ${index}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
-                      Shot {index + 1}: {formatTime(preview.start)}
-                    </span>
-                  </button>
+                  <div className="border border-gray-300  rounded-lg">
+                    <div className="flex w-full relative">
+                      {/* Preview Button */}
+                      <button
+                        key={index}
+                        className="relative w-32 overflow-hidden border border-gray-300 hover:border-white transition-all"
+                        onClick={() => handleSkipTo(preview.start)}
+                      >
+                        <img
+                          src={preview.image}
+                          alt={`Preview ${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+
+                      <div className="absolute top-1 right-1 bg-white rounded-full shadow-md">
+                        <FaInfoCircle
+                          className="w-3 h-3 text-gray-500 hover:text-blue-500 cursor-pointer"
+                          title={preview?.description}
+                        />
+                      </div>
+
+                      <div className="flex items-center">
+                        <button
+                          key={index}
+                          className="relative"
+                         
+                        >
+                          <FaUndo className="mx-2 w-4 h-4 text-gray-500 hover:text-black transition-colors duration-200" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex text-center w-full">
+                      <span className="bg-black bg-opacity-60 text-white text-xs px-2 py-1 w-full">
+                        Shot {index + 1}: {formatTime(preview.start)}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Video Title */}
-            {/* <p className="text-gray-600 text-sm mt-3">Add video title</p> */}
-
-            {/* Download Button (Enabled After 10 sec) */}
-            <div className="relative mt-10">
+            <div className="relative mt-4 mb-10">
               <button
                 className={`flex h-[40px] items-center px-6 py-3 ${
                   isGenerating

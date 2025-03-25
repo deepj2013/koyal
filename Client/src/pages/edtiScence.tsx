@@ -81,8 +81,6 @@ import animatedImage34 from "../assets/images/newEditScene/portrait_animated/ima
 import animatedImage35 from "../assets/images/newEditScene/portrait_animated/image_35.png";
 import animatedImage36 from "../assets/images/newEditScene/portrait_animated/image_36.png";
 import animatedImage37 from "../assets/images/newEditScene/portrait_animated/image_37.png";
-import replaced18 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_18_new.png";
-import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 import { FaUndo } from "react-icons/fa";
 
 import { CharacterStyles, EditStoryModes } from "../utils/constants";

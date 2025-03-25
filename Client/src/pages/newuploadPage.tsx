@@ -18,6 +18,7 @@ import {
   setSceneDataFileUrl,
 } from "../redux/features/uploadSlice";
 import { convertJsonToFile } from "../utils/helper";
+import { setLyricsJsonUrl } from "../redux/features/appSlice";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {
@@ -188,8 +189,10 @@ const AudioUploadPage = () => {
     if (sceneResult) {
       handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
         (url) => {
+          console.log("scene json url:", url);
           setUploadProgress(100);
           dispatch(setSceneDataFileUrl(url));
+          dispatch(setLyricsJsonUrl(url));
         }
       );
     }
