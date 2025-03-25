@@ -21,7 +21,7 @@ const App: React.FC = () => {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<ChooseCharacterPage />} />
           <Route path="/start" element={<PublicPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/upload" element={<AudioUploadPage />} />
