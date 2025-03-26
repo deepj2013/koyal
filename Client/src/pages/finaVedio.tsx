@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
- import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
+import FinalVideo from "../assets/vedio/no_face_mehul_captioned.mp4";
 import AnimatedVideo from "../assets/vedio/portrait_video.mp4";
 import RealisticVideo from "../assets/vedio/realistic_video.mp4";
 import muxData from "../assets/sample/lyrics.json";
@@ -34,7 +34,7 @@ const FinalVideoPage = () => {
     link.click();
     document.body.removeChild(link);
   };
-  
+
   // Remove "5 minutes remaining" after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,12 +74,11 @@ const FinalVideoPage = () => {
         })
         .filter(Boolean);
 
-        setPreviewImages(mergedScenes);
+      setPreviewImages(mergedScenes);
     } catch (error) {
       console.error("Error loading scene data", error);
     }
   }, []);
-
 
   // Handle Play Button Click
   const handlePlay = () => {
@@ -132,7 +131,9 @@ const FinalVideoPage = () => {
               {isGenerating && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
                   <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-white mt-4 text-lg">5 minutes remaining... </p>
+                  <p className="text-white mt-4 text-lg">
+                    5 minutes remaining...{" "}
+                  </p>
                 </div>
               )}
 
@@ -149,20 +150,39 @@ const FinalVideoPage = () => {
             <div className="relative z-50 w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <button
-                    key={index}
-                    className="relative w-32 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
-                    onClick={() => handleSkipTo(preview.start)}
-                  >
-                    <img
-                      src={preview.image}
-                      alt={`Preview ${index}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
-                      Shot {index + 1}: {formatTime(preview.start)}
-                    </span>
-                  </button>
+                  <div>
+                    <div className="flex w-full relative">
+                      <div className="absolute z-50 top-1 left-1 bg-white p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-200 hover:scale-110 cursor-pointer">
+                        <span
+                          className="flex justify-center items-center w-[14px] h-[14px] text-gray-600 hover:text-black transition-colors duration-200"
+                          title={preview?.description}
+                        >
+                          i
+                        </span>
+                      </div>
+
+                      <div className="absolute z-50 top-1 right-1 bg-white p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-200 hover:scale-110 cursor-pointer">
+                        <span className="flex justify-center items-center w-[14px] h-[14px] text-gray-600 hover:text-black transition-colors duration-200">
+                          ↺
+                        </span>
+                      </div>
+
+                      <button
+                        key={index}
+                        className="relative w-36 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
+                        onClick={() => handleSkipTo(preview.start)}
+                      >
+                        <img
+                          src={preview.image}
+                          alt={`Preview ${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
+                          Shot {index + 1}: {formatTime(preview.start)}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
