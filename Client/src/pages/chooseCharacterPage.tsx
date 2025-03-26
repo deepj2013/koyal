@@ -477,14 +477,16 @@ const ChooseCharacterPage = () => {
               )}
 
               <div>
-                {onRecreate && (
-                  <button
-                    onClick={onRecreate}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 mr-4"
-                  >
-                    Re-create new character
-                  </button>
-                )}
+                {onRecreate &&
+                  stage !== Stages.VERIFICATION &&
+                  stage !== Stages.IDENTIFICATION && (
+                    <button
+                      onClick={onRecreate}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 mr-4"
+                    >
+                      Re-create new character
+                    </button>
+                  )}
                 {onConfirm && (
                   <button
                     onClick={onConfirm}
