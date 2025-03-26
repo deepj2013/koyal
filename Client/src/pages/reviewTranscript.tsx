@@ -278,7 +278,7 @@ const TranscriptPage = () => {
                 style={{
                   right: "-1px",
                   bottom: 0,
-                  width: "43%",
+                  width: "37%",
                   maxHeight: "auto",
                 }}
               >
