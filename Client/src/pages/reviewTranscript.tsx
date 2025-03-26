@@ -250,11 +250,12 @@ const TranscriptPage = () => {
                           <span
                             className={`${
                               emotionColors[emotion] || emotionColors.default
-                            } text-lg`}
+                            } `}
                             style={{
                               display: "inline",
                               padding: "1px 2px",
                               borderRadius: "5px",
+                              fontSize:"1.125rem",
                               outline:
                                 selectedParagraph?.index === index &&
                                 "1px solid black",

@@ -19,7 +19,7 @@ const FinalVideoPage = () => {
 
   const { selectedStyle, orientationStyle } = location?.state || {};
 
-  const { protoPromptsUrl, characterName, scenesJson } = useSelector(AppState);
+  const { protoPromptsUrl, characterName, scenesJson, imageFolderUrl } = useSelector(AppState);
 
   const [processVideo, { data: processVideoData }] = useProcessVideoMutation();
   const [getProcessedVideo, { data: getProcessedVideoData }] =
@@ -78,8 +78,9 @@ const FinalVideoPage = () => {
     processVideo({
       proto_prompts: protoPromptsUrl,
       character_name: characterName,
-      style: selectedStyle?.toLowerCase(),
+      style: selectedStyle?.name?.toLowerCase(),
       orientation: orientationStyle?.toLowerCase(),
+      image_folder_path: imageFolderUrl
     });
   }, []);
 

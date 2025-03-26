@@ -88,6 +88,7 @@ import ImagePreview from "../components/ImagePreview";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AppState,
+  setImageFolderUrl,
   setProtoPromptsUrl,
   setScenesJson,
 } from "../redux/features/appSlice";
@@ -224,6 +225,7 @@ const GenerateVideoPage: React.FC = () => {
   const handleRedo = async (index) => {
     const fluxPromptsData = await generateImage(index);
     const { image_path, prompt_index } = fluxPromptsData;
+    setFolderPath(image_path);
     replaceGeneratedImage(image_path, prompt_index);
   };
 
@@ -234,8 +236,9 @@ const GenerateVideoPage: React.FC = () => {
       character_name: characterName,
       character_outfit: storyElement?.character_details,
       prompt_indices: index,
-      style: location.state?.selectedStyle?.toLowerCase(),
+      style: location.state?.selectedStyle?.name?.toLowerCase(),
       orientation: location.state?.orientationStyle?.toLowerCase(),
+      id_image: location.state?.selectedStyle?.image,
     });
     return response;
   };
@@ -281,6 +284,12 @@ const GenerateVideoPage: React.FC = () => {
     });
   };
 
+  const setFolderPath = (fileUrl: string) => {
+    const folderPath = fileUrl.substring(0, fileUrl.lastIndexOf("/") + 1);
+    console.log("folderPath for images:", folderPath);
+    dispatch(setImageFolderUrl(folderPath));
+  };
+
   useEffect(() => {
     if (lyrics?.length > 0 && promptsJson.length > 0) {
       try {
@@ -296,7 +305,8 @@ const GenerateVideoPage: React.FC = () => {
               return {
                 image:
                   images[
-                    location.state?.selectedStyle === CharacterStyles.ANIMATED
+                    location.state?.selectedStyle?.name ===
+                    CharacterStyles.ANIMATED
                       ? "animated"
                       : "realistic"
                   ][promptMatch.number - 1],
@@ -392,6 +402,7 @@ const GenerateVideoPage: React.FC = () => {
         for (const [index] of prompts.entries()) {
           const fluxPromptsData = await generateImage(index);
           const { image_path, prompt_index } = fluxPromptsData;
+          setFolderPath(image_path);
           replaceGeneratedImage(image_path, prompt_index);
         }
       } catch (error) {
@@ -413,7 +424,7 @@ const GenerateVideoPage: React.FC = () => {
         setLyrics(jsonData);
       } catch (error) {
         console.error("Error fetching JSON:", error);
-        return []; 
+        return [];
       }
     };
 
@@ -431,6 +442,7 @@ const GenerateVideoPage: React.FC = () => {
       generateImage(currentEditIndex).then((fluxPromptsData) => {
         const { image_path, prompt_index } = fluxPromptsData;
         replaceGeneratedImage(image_path, prompt_index);
+        setFolderPath(image_path);
       });
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
         .then((url) => {
