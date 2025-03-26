@@ -177,8 +177,9 @@ const FinalVideoPage = () => {
                           alt={`Preview ${index}`}
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full">
-                          Shot {index + 1}: {formatTime(preview.start)}
+                       <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full flex justify-between">
+                          <span>Shot {index + 1}</span>
+                          <span>{formatTime(preview.start)}</span>
                         </span>
                       </button>
                     </div>
