@@ -19,7 +19,8 @@ const FinalVideoPage = () => {
 
   const { selectedStyle, orientationStyle } = location?.state || {};
 
-  const { protoPromptsUrl, characterName, scenesJson, imageFolderUrl } = useSelector(AppState);
+  const { protoPromptsUrl, characterName, scenesJson, imageFolderUrl } =
+    useSelector(AppState);
 
   const [processVideo, { data: processVideoData }] = useProcessVideoMutation();
   const [getProcessedVideo, { data: getProcessedVideoData }] =
@@ -80,7 +81,7 @@ const FinalVideoPage = () => {
       character_name: characterName,
       style: selectedStyle?.name?.toLowerCase(),
       orientation: orientationStyle?.toLowerCase(),
-      image_folder_path: imageFolderUrl
+      image_folder_path: imageFolderUrl,
     });
   }, []);
 
@@ -166,12 +167,26 @@ const FinalVideoPage = () => {
             <div className="relative z-50 w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <div className="border border-gray-300  rounded-lg">
+                  <div>
                     <div className="flex w-full relative">
-                      {/* Preview Button */}
+                      <div className="absolute z-50 top-1 left-1 bg-white p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-200 hover:scale-110 cursor-pointer">
+                        <span
+                          className="flex justify-center items-center w-[14px] h-[14px] text-gray-600 hover:text-black transition-colors duration-200"
+                          title={preview?.description}
+                        >
+                          i
+                        </span>
+                      </div>
+
+                      <div className="absolute z-50 top-1 right-1 bg-white p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-200 hover:scale-110 cursor-pointer">
+                        <span className="flex justify-center items-center w-[14px] h-[14px] text-gray-600 hover:text-black transition-colors duration-200">
+                          ↺
+                        </span>
+                      </div>
+
                       <button
                         key={index}
-                        className="relative w-32 overflow-hidden border border-gray-300 hover:border-white transition-all"
+                        className="relative w-36 h-20 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
                         onClick={() => handleSkipTo(preview.start)}
                       >
                         <img
@@ -179,29 +194,11 @@ const FinalVideoPage = () => {
                           alt={`Preview ${index}`}
                           className="w-full h-full object-cover"
                         />
+                        <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full flex justify-between">
+                          <span>Shot {index + 1}</span>
+                          <span>{formatTime(preview.start)}</span>
+                        </span>
                       </button>
-
-                      <div className="absolute top-1 right-1 bg-white rounded-full shadow-md">
-                        <FaInfoCircle
-                          className="w-3 h-3 text-gray-500 hover:text-blue-500 cursor-pointer"
-                          title={preview?.description}
-                        />
-                      </div>
-
-                      <div className="flex items-center">
-                        <button
-                          key={index}
-                          className="relative"
-                         
-                        >
-                          <FaUndo className="mx-2 w-4 h-4 text-gray-500 hover:text-black transition-colors duration-200" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex text-center w-full">
-                      <span className="bg-black bg-opacity-60 text-white text-xs px-2 py-1 w-full">
-                        Shot {index + 1}: {formatTime(preview.start)}
-                      </span>
                     </div>
                   </div>
                 ))}
