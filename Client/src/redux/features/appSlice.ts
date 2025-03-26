@@ -9,6 +9,7 @@ const initialState: AppModel = {
   lyricsJsonUrl: null,
   imageFolderUrl: null,
   scenesJson: null,
+  replacementWord: "person",
 };
 
 const appSlice = createSlice({
@@ -36,6 +37,9 @@ const appSlice = createSlice({
     setImageFolderUrl: (state, action) => {
       state.imageFolderUrl = action.payload;
     },
+    setReplacementWord: (state, action) => {
+      state.replacementWord = action.payload;
+    },
   },
 });
 
@@ -47,6 +51,7 @@ export const {
   setLyricsJsonUrl,
   setScenesJson,
   setImageFolderUrl,
+  setReplacementWord
 } = appSlice.actions;
 
 export default appSlice.reducer;

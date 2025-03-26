@@ -6,4 +6,5 @@ export interface AppModel {
   lyricsJsonUrl: string | null;
   imageFolderUrl: string | null;
   scenesJson: any;
+  replacementWord: string | null;
 }

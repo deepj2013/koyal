@@ -38,3 +38,9 @@ export enum EditStoryModes {
   EDIT_STORY = "edit-story",
   EDIT_CHARACTER = "edit-character",
 }
+
+export enum ReplacementWords {
+  MAN = "man",
+  WOMAN = "woman",
+  PERSON = "person",
+}
