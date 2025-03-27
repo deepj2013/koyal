@@ -33,6 +33,7 @@ import { INSTAGRAM_URL } from "../utils/constants";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import { VideoPlayer } from "../components/VideoPlayer";
 import AdvertiserSection from "../components/layouts/AdvertiserSection";
+import Logo from "../components/common/Logo/Logo";
 
 const images = {
   Realistic: Realstic,
@@ -85,11 +86,7 @@ const Home = () => {
             <div className="mx-auto px-5 py-4 flex items-center justify-between">
               {/* Logo (Left Aligned) */}
               <div className="flex items-center space-x-4">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="w-[120px] sm:w-[140px] md:w-[160px] h-auto"
-                />
+                <Logo/>
               </div>
 
               {/* Powered By Section (Hidden on Mobile) */}
