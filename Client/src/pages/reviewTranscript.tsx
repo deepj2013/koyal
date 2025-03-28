@@ -156,26 +156,25 @@ const TranscriptPage = () => {
           <div className="flex w-full h-[40vh] relative p-3 pr-0 rounded-[12px]">
             {/* First Column (70%) */}
             <div className="w-full overflow-y-scroll">
-              {transcriptData.map((entry, index) => {
+            {transcriptData.map((entry, index) => {
                 const { text, emotion } = entry; // Extract values safely
 
                 return (
-                  <div key={index} className="relative mb-4">
+                  <div key={index} className="relative mb-2 w-[63%]">
                     {regexNoVocals.test(text) || !text ? (
                       <div className="flex items-start">
                         {/* Add Section Buttons */}
-                        <div className="flex flex-col">
-                          {/* Hide + button when a new section is added */}
+                        <div className="flex items-center">
                           <div
-                            className="bg-yellow-100 p-2 rounded mt-1 cursor-pointer"
+                            className="bg-yellow-100 p-1 rounded cursor-pointer border border-black max-h-[32px]"
                             onClick={() => handleAddSection(index)}
                           >
-                            <div className="text-2xl text-gray-800">🎵</div>
+                            <div className="text-md text-gray-800">🎵</div>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="relative mb-4">
+                      <div className="relative mb-2">
                         <p
                           className="cursor-pointer mt-2"
                           onClick={() => handleParagraphClick(index)}
@@ -183,12 +182,15 @@ const TranscriptPage = () => {
                           <span
                             className={`${
                               emotionColors[emotion] || emotionColors.default
-                            }`}
+                            } `}
                             style={{
                               display: "inline",
                               padding: "1px 2px",
                               borderRadius: "5px",
-                              border: "1px solid black",
+                              fontSize:"1.125rem",
+                              outline:
+                                selectedParagraph?.index === index &&
+                                "1px solid black",
                             }}
                           >
                             {text}
@@ -208,7 +210,7 @@ const TranscriptPage = () => {
                 style={{
                   right: "-1px",
                   bottom: 0,
-                  width: "43%",
+                  width: "37%",
                   maxHeight: "auto",
                 }}
               >
