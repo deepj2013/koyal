@@ -260,6 +260,7 @@ const GenerateVideoPage: React.FC = () => {
           );
 
           if (promptMatch) {
+            const { start, end } = promptMatch;
             return {
               image:
                 images[
@@ -270,6 +271,8 @@ const GenerateVideoPage: React.FC = () => {
               description: promptMatch.narrative,
               dialogue: promptMatch.dialogue || muxItem[2],
               emotion: promptMatch.emotion || muxItem[3],
+              start,
+              end,
             };
           }
           return null;
@@ -465,6 +468,7 @@ const GenerateVideoPage: React.FC = () => {
                   navigate("/finalvideo", {
                     state: {
                       selectedStyle: location.state?.selectedStyle,
+                      scenes
                     },
                   })
                 }
