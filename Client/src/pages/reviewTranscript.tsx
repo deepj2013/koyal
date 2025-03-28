@@ -181,10 +181,12 @@ const TranscriptPage = () => {
                             className={`${
                               emotionColors[emotion]?.bg ||
                               emotionColors.default.bg
-                            } ${
-                              emotionColors[emotion]?.border ||
-                              emotionColors.default.border
-                            } border-[3px]`}
+                            } 
+                            ${
+                              selectedParagraph?.index === index
+                                ? `${emotionColors[emotion]?.border || "border-black"} border-[4px]`
+                                : ""
+                            }`}
                             style={{
                               display: "inline",
                               padding: "1px 4px",
