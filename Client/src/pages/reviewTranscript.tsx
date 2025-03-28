@@ -12,13 +12,12 @@ const TranscriptPage = () => {
   const [selectedParagraph, setSelectedParagraph] = useState(null);
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
-    euphoric: "bg-yellow-200",
-    serene: "bg-blue-200",
-    melancholy: "bg-purple-200",
-    tense: "bg-red-200",
-    default: "bg-gray-200",
+    euphoric: { bg: "bg-yellow-200", border: "border-yellow-500" },
+    serene: { bg: "bg-blue-200", border: "border-blue-500" },
+    melancholy: { bg: "bg-purple-200", border: "border-purple-500" },
+    tense: { bg: "bg-red-200", border: "border-red-500" },
+    default: { bg: "bg-gray-200", border: "border-gray-500" },
   };
-
   const handleParagraphClick = (index) => {
     const entry = transcriptData[index];
 
@@ -99,7 +98,6 @@ const TranscriptPage = () => {
 
       updatedData.splice(selectedParagraph.index, 1, ...res);
 
-
       setTranscriptData(updatedData); // Update state
       setSelectedParagraph(null); // Close modal
     }
@@ -137,7 +135,7 @@ const TranscriptPage = () => {
                       key !== "default" && (
                         <div className="flex items-center space-x-2" key={key}>
                           <span
-                            className={`w-4 h-4 rounded-full ${color} border border-gray-300`}
+                            className={`w-4 h-4 rounded-full ${color.bg} border border-gray-300`}
                           ></span>
                           <span className="text-[15px] font-bold leading-[20px] text-gray-700 capitalize">
                             {key}
@@ -156,7 +154,7 @@ const TranscriptPage = () => {
           <div className="flex w-full h-[40vh] relative p-3 pr-0 rounded-[12px]">
             {/* First Column (70%) */}
             <div className="w-full overflow-y-scroll">
-            {transcriptData.map((entry, index) => {
+              {transcriptData.map((entry, index) => {
                 const { text, emotion } = entry; // Extract values safely
 
                 return (
@@ -181,16 +179,17 @@ const TranscriptPage = () => {
                         >
                           <span
                             className={`${
-                              emotionColors[emotion] || emotionColors.default
-                            } `}
+                              emotionColors[emotion]?.bg ||
+                              emotionColors.default.bg
+                            } ${
+                              emotionColors[emotion]?.border ||
+                              emotionColors.default.border
+                            } border-[3px]`}
                             style={{
                               display: "inline",
-                              padding: "1px 2px",
+                              padding: "1px 4px",
                               borderRadius: "5px",
-                              fontSize:"1.125rem",
-                              outline:
-                                selectedParagraph?.index === index &&
-                                "1px solid black",
+                              fontSize: "1.125rem",
                             }}
                           >
                             {text}
