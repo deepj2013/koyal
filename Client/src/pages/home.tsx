@@ -34,6 +34,7 @@ import { AutoImageSlider } from "../components/AutoImageSlider";
 import { VideoPlayer } from "../components/VideoPlayer";
 import AdvertiserSection from "../components/layouts/AdvertiserSection";
 import Logo from "../components/common/Logo/Logo";
+import VideoBackground from "../components/common/VideoBackground/VideoBackground";
 
 const images = {
   Realistic: Realstic,
@@ -86,7 +87,7 @@ const Home = () => {
             <div className="mx-auto px-5 py-4 flex items-center justify-between">
               {/* Logo (Left Aligned) */}
               <div className="flex items-center space-x-4">
-                <Logo/>
+                <Logo />
               </div>
 
               {/* Powered By Section (Hidden on Mobile) */}
@@ -178,16 +179,7 @@ const Home = () => {
               </div>
             )}
           </nav>
-
-          <video
-            className="absolute top-0 left-0 w-full h-full md:object-cover object-fill"
-            autoPlay
-            loop
-            muted
-          >
-            <source src={homebg} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <VideoBackground />
           <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
 
           <WaitingListModal
