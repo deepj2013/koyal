@@ -94,8 +94,7 @@ import {
 } from "../redux/features/appSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import {
-  getFluxPrompts,
-  processFluxPrompts,
+  processImage,
 } from "../redux/services/editSceneService/editSceneService";
 import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
@@ -222,25 +221,22 @@ const GenerateVideoPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleRedo = async (index) => {
-    const fluxPromptsData = await generateImage(index);
-    const { image_path, prompt_index } = fluxPromptsData;
-    setFolderPath(image_path);
-    replaceGeneratedImage(image_path, prompt_index);
-  };
-
-  const callProcessFluxPromptsApi = async (index: number) => {
-    const response = await processFluxPrompts({
+  const callProcessImageApi = (index: number) => {
+    processImage({
+      prompt_indices: index + 1,
       proto_prompts: protoPromptsUrl,
       character_lora_path: loraPath,
       character_name: characterName,
       character_outfit: storyElement?.character_details,
-      prompt_indices: index,
       style: location.state?.selectedStyle?.name?.toLowerCase(),
       orientation: location.state?.orientationStyle?.toLowerCase(),
       id_image: location.state?.selectedStyle?.image,
+      getImage: getImage,
     });
-    return response;
+  };
+
+  const handleRedo = async (index) => {
+    callProcessImageApi(index + 1);
   };
 
   // Save Changes and Update Table
@@ -252,11 +248,6 @@ const GenerateVideoPage: React.FC = () => {
       edit_instruction: newDescription,
     });
     setIsModalOpen(false);
-  };
-
-  const generateImage = async (index: number) => {
-    const data = await callProcessFluxPromptsApi(index);
-    return await getFluxPrompts(data.call_id);
   };
 
   const generateVideo = () => {
@@ -379,6 +370,18 @@ const GenerateVideoPage: React.FC = () => {
     fetchStoryElement();
   }, []);
 
+  const getImage = (index, obj) => {
+    const { image_path, prompt_index } = obj;
+    setScenes((prevScenes) =>
+      prevScenes.map((scene, i) =>
+        i + 1 === index ? { ...scene, image: image_path } : scene
+      )
+    );
+
+    setFolderPath(image_path);
+    replaceGeneratedImage(image_path, prompt_index);
+  };
+
   useEffect(() => {
     const fetchProtoPrompts = async () => {
       try {
@@ -399,11 +402,8 @@ const GenerateVideoPage: React.FC = () => {
       try {
         const prompts: any = await fetchProtoPrompts();
 
-        for (const [index] of prompts.entries()) {
-          const fluxPromptsData = await generateImage(index);
-          const { image_path, prompt_index } = fluxPromptsData;
-          setFolderPath(image_path);
-          replaceGeneratedImage(image_path, prompt_index);
+        for (const element of prompts) {
+          callProcessImageApi(element.number);
         }
       } catch (error) {
         console.error("Error processing prompts:", error);
@@ -439,11 +439,7 @@ const GenerateVideoPage: React.FC = () => {
 
   useEffect(() => {
     if (storyElementData) {
-      generateImage(currentEditIndex).then((fluxPromptsData) => {
-        const { image_path, prompt_index } = fluxPromptsData;
-        replaceGeneratedImage(image_path, prompt_index);
-        setFolderPath(image_path);
-      });
+      callProcessImageApi(currentEditIndex);
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
         .then((url) => {
           dispatch(setProtoPromptsUrl(url));
