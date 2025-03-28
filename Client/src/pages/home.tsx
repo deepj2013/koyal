@@ -31,6 +31,8 @@ import { TiThMenu } from "react-icons/ti";
 import { ImCross } from "react-icons/im";
 import { INSTAGRAM_URL } from "../utils/constants";
 import { AutoImageSlider } from "../components/AutoImageSlider";
+import Logo from "../components/common/Logo/Logo";
+import VideoBackground from "../components/common/VideoBackground/VideoBackground";
 
 const images = {
   Realistic: Realstic,
@@ -83,11 +85,7 @@ const Home = () => {
             <div className="mx-auto px-5 py-4 flex items-center justify-between">
               {/* Logo (Left Aligned) */}
               <div className="flex items-center space-x-4">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="w-[120px] sm:w-[140px] md:w-[160px] h-auto"
-                />
+                <Logo />
               </div>
 
               {/* Powered By Section (Hidden on Mobile) */}
@@ -180,15 +178,8 @@ const Home = () => {
             )}
           </nav>
 
-          <video
-            className="absolute top-0 left-0 w-full h-full md:object-cover object-fill"
-            autoPlay
-            loop
-            muted
-          >
-            <source src={homebg} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <VideoBackground />
+
           <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
 
           <WaitingListModal
@@ -625,7 +616,10 @@ const Home = () => {
             <div className="flex flex-col lg:flex-row justify-between items-center w-full max-w-6xl mx-auto space-y-8 lg:space-y-0">
               <div className="w-full lg:w-[45%] p-6 rounded-lg shadow-lg">
                 <div className="w-full rounded-lg shadow-lg overflow-hidden">
-                  <AutoImageSlider images={charachaImages} currentButtonColor={"white"}/>
+                  <AutoImageSlider
+                    images={charachaImages}
+                    currentButtonColor={"white"}
+                  />
                 </div>
               </div>
 
@@ -789,7 +783,10 @@ const Home = () => {
                 <a href="#" className="text-white hover:text-gray-400">
                   <img src={discardicon} alt="Discord" className="w-6 h-6" />
                 </a> */}
-                <a href={INSTAGRAM_URL} className="text-white hover:text-gray-400">
+                <a
+                  href={INSTAGRAM_URL}
+                  className="text-white hover:text-gray-400"
+                >
                   <img
                     src={instagramicon}
                     alt="Instagram"
@@ -989,4 +986,3 @@ const VideoPlayer = ({ videoSrc }) => {
     </div>
   );
 };
-
