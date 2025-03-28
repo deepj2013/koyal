@@ -93,13 +93,12 @@ import {
   setScenesJson,
 } from "../redux/features/appSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
-import {
-  processImage,
-} from "../redux/services/editSceneService/editSceneService";
+import { processImage } from "../redux/services/editSceneService/editSceneService";
 import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { uploadJsonAsFileToS3 } from "../utils/helper";
+import ShimmerWrapper from "../components/Shimmer";
 
 const images = {
   realistic: {
@@ -223,7 +222,7 @@ const GenerateVideoPage: React.FC = () => {
 
   const callProcessImageApi = (index: number) => {
     processImage({
-      prompt_indices: index + 1,
+      prompt_indices: index,
       proto_prompts: protoPromptsUrl,
       character_lora_path: loraPath,
       character_name: characterName,
@@ -294,13 +293,7 @@ const GenerateVideoPage: React.FC = () => {
             if (promptMatch) {
               const { start, end } = promptMatch;
               return {
-                image:
-                  images[
-                    location.state?.selectedStyle?.name ===
-                    CharacterStyles.ANIMATED
-                      ? "animated"
-                      : "realistic"
-                  ][promptMatch.number - 1],
+                image: null,
                 description: promptMatch.narrative,
                 dialogue: promptMatch.dialogue || muxItem[2],
                 emotion: promptMatch.emotion || muxItem[3],
@@ -439,7 +432,7 @@ const GenerateVideoPage: React.FC = () => {
 
   useEffect(() => {
     if (storyElementData) {
-      callProcessImageApi(currentEditIndex);
+      callProcessImageApi(currentEditIndex + 1);
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
         .then((url) => {
           dispatch(setProtoPromptsUrl(url));
@@ -498,7 +491,9 @@ const GenerateVideoPage: React.FC = () => {
                     className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <ImagePreview imageURL={scene.image} />
+                    <ShimmerWrapper isLoading={true}>
+                      {scene.image && <ImagePreview imageURL={scene.image} />}
+                    </ShimmerWrapper>
 
                     {/* Description */}
                     <p className="text-sm text-gray-700">{scene.description}</p>
