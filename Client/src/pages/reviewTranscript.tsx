@@ -228,7 +228,7 @@ const TranscriptPage = () => {
                 const { text, emotion } = entry; // Extract values safely
 
                 return (
-                  <div key={index} className="relative mb-2 w-[65%]">
+                  <div key={index} className="relative mb-2 w-[63%]">
                     {regexNoVocals.test(text) || !text ? (
                       <div className="flex items-start">
                         {/* Add Section Buttons */}
