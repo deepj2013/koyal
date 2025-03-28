@@ -72,7 +72,7 @@ const CharacterSelectionPage = () => {
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl, audioType } = useSelector(UploadAudioState);
 
-  const [selectedStyle, setSelectedStyle] = useState("Animated");
+  const [selectedStyle, setSelectedStyle] = useState(styles[1]);
   const [selected, setSelected] = useState<string | null>(null);
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
   const [storyElement, setStoryElement] = useState(null);
@@ -105,7 +105,7 @@ const CharacterSelectionPage = () => {
         selectedStyle,
         orientationStyle,
         lipsync:
-          selected === "yes" && selectedStyle !== CharacterStyles.ANIMATED,
+          selected === "yes" && selectedStyle?.name !== CharacterStyles.ANIMATED,
       },
     });
   };
@@ -263,7 +263,7 @@ const CharacterSelectionPage = () => {
                     <div
                       key={style.name}
                       className="relative rounded-lg transition-all cursor-pointer overflow-hidden border border-gray-300"
-                      onClick={() => setSelectedStyle(style.name)}
+                      onClick={() => setSelectedStyle(style)}
                     >
                       <img
                         src={style.image}
@@ -274,7 +274,7 @@ const CharacterSelectionPage = () => {
                       <div
                         className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold border-t  border-gray-300
                           ${
-                            selectedStyle === style.name
+                            selectedStyle?.name === style.name
                               ? "bg-black text-white"
                               : "bg-white text-black bg-opacity-[0.5] backdrop-blur-md"
                           }`}
@@ -369,7 +369,7 @@ const CharacterSelectionPage = () => {
                       </label>
                     </div>
                   </div>
-                  {selectedStyle !== CharacterStyles.ANIMATED && (
+                  {selectedStyle?.name !== CharacterStyles.ANIMATED && (
                     <div>
                       <p className="font-semibold mb-2">
                         Do you want to add lipsync to your video?

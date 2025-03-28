@@ -1,50 +1,51 @@
+import axios from "axios";
 import { config } from "../../../config/config";
 import { ApiRoutes } from "../../environment/apiRoutes";
 
-export const processFluxPrompts = async (data) => {
+export const getProcessedImage = async (index, callId, getImage) => {
   try {
-    const response = await fetch(
-      `${config.baseUrl}/${ApiRoutes.ProcessFluxPrompts}`,
+    const response = await axios.get(
+      `${config.baseUrl}/${ApiRoutes.GetFluxPrompts}/${callId}`,
       {
-        method: "POST",
         headers: {
           Accept: "application/json",
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Failed to process flux prompts");
-    }
-
-    return await response.json();
+    getImage(index, response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error processing flux prompts:", error);
+    console.error("Error fetching flux prompts:", error);
     return null;
   }
 };
 
-export const getFluxPrompts = async (callId) => {
+export const processImage = async (data) => {
   try {
-    const response = await fetch(
-      `${config.baseUrl}/${ApiRoutes.GetFluxPrompts}/${callId}`,
+    const response = await axios.post(
+      `${config.baseUrl}/${ApiRoutes.ProcessFluxPrompts}`,
+      data,
       {
-        method: "GET",
         headers: {
           Accept: "application/json",
+          "Content-Type": "application/json",
         },
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch flux prompts");
-    }
+    getProcessedImage(
+      data.prompt_indices,
+      response?.data?.call_id,
+      data?.getImage
+    );
 
-    return await response.json();
+    return {
+      itemNumber: data.prompt_indices,
+      response: response.data,
+    };
   } catch (error) {
-    console.error("Error fetching flux prompts:", error);
+    console.error("Error processing flux prompts:", error);
     return null;
   }
 };

@@ -8,6 +8,7 @@ import {
   AvatarProcessModes,
   ConfirmButtonTextMap,
   EditStoryModes,
+  ReplacementWords,
   Stages,
 } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
@@ -33,7 +34,10 @@ import {
 } from "../utils/helper";
 import { AutoImageSlider } from "../components/AutoImageSlider";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
-import { setCharacterName } from "../redux/features/appSlice";
+import {
+  setCharacterName,
+  setReplacementWord,
+} from "../redux/features/appSlice";
 import ImagePreview from "../components/ImagePreview";
 
 const ChooseCharacterPage = () => {
@@ -116,24 +120,34 @@ const ChooseCharacterPage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
-  
+
       const video = videoRef.current;
       const videoWidth = video.videoWidth;
       const videoHeight = video.videoHeight;
-  
+
       // Determine the square crop size (smallest dimension)
       const squareSize = Math.min(videoWidth, videoHeight);
-      
+
       // Calculate cropping start points (center-cropping)
       const startX = (videoWidth - squareSize) / 2;
       const startY = (videoHeight - squareSize) / 2;
-  
+
       // Set canvas size to the square size
       canvas.width = squareSize;
       canvas.height = squareSize;
-  
+
       // Draw the  square portion from the video onto the canvas
-      context.drawImage(video, startX, startY, squareSize, squareSize, 0, 0, squareSize, squareSize);
+      context.drawImage(
+        video,
+        startX,
+        startY,
+        squareSize,
+        squareSize,
+        0,
+        0,
+        squareSize,
+        squareSize
+      );
 
       return canvas.toDataURL("image/png");
     }
@@ -167,7 +181,7 @@ const ChooseCharacterPage = () => {
   };
 
   const closeCharchaModal = () => {
-    if(!isCharchaFinalized) {
+    if (!isCharchaFinalized) {
       setCapturedImages([]);
     }
     setIsChooseCharModalOpen(false);
@@ -353,9 +367,24 @@ const ChooseCharacterPage = () => {
       getCharResult(processedCharResponse?.call_id);
     }
   }, [processedCharResponse]);
+  
+  const storeReplacementWord = () => {
+    if (!useCharcha) {
+      dispatch(setReplacementWord(ReplacementWords.PERSON));
+      return;
+    }
+    if (gender === "male") {
+      dispatch(setReplacementWord(ReplacementWords.MAN));
+    } else if (gender === "female") {
+      dispatch(setReplacementWord(ReplacementWords.WOMAN));
+    } else {
+      dispatch(setReplacementWord(ReplacementWords.PERSON));
+    }
+  };
 
   useEffect(() => {
     if (trainedCharResponse?.call_id) {
+      storeReplacementWord();
       navigate("/characterSelection", {
         state: {
           characterName: useCharcha ? charchaIdentifier : avatarIdentifier,

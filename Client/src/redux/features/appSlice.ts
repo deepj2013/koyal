@@ -7,7 +7,9 @@ const initialState: AppModel = {
   styleImagesUrl: null,
   protoPromptsUrl: null,
   lyricsJsonUrl: null,
+  imageFolderUrl: null,
   scenesJson: null,
+  replacementWord: "person",
 };
 
 const appSlice = createSlice({
@@ -32,6 +34,12 @@ const appSlice = createSlice({
     setScenesJson: (state, action) => {
       state.scenesJson = action.payload;
     },
+    setImageFolderUrl: (state, action) => {
+      state.imageFolderUrl = action.payload;
+    },
+    setReplacementWord: (state, action) => {
+      state.replacementWord = action.payload;
+    },
   },
 });
 
@@ -41,7 +49,9 @@ export const {
   setProtoPromptsUrl,
   setCharacterName,
   setLyricsJsonUrl,
-  setScenesJson
+  setScenesJson,
+  setImageFolderUrl,
+  setReplacementWord
 } = appSlice.actions;
 
 export default appSlice.reducer;

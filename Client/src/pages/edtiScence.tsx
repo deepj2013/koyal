@@ -81,8 +81,6 @@ import animatedImage34 from "../assets/images/newEditScene/portrait_animated/ima
 import animatedImage35 from "../assets/images/newEditScene/portrait_animated/image_35.png";
 import animatedImage36 from "../assets/images/newEditScene/portrait_animated/image_36.png";
 import animatedImage37 from "../assets/images/newEditScene/portrait_animated/image_37.png";
-import replaced18 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_18_new.png";
-import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 import { FaUndo } from "react-icons/fa";
 
 import { CharacterStyles, EditStoryModes } from "../utils/constants";
@@ -90,18 +88,17 @@ import ImagePreview from "../components/ImagePreview";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AppState,
+  setImageFolderUrl,
   setProtoPromptsUrl,
   setScenesJson,
 } from "../redux/features/appSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
-import {
-  getFluxPrompts,
-  processFluxPrompts,
-} from "../redux/services/editSceneService/editSceneService";
+import { processImage } from "../redux/services/editSceneService/editSceneService";
 import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { uploadJsonAsFileToS3 } from "../utils/helper";
+import ShimmerWrapper from "../components/Shimmer";
 
 const images = {
   realistic: {
@@ -223,23 +220,22 @@ const GenerateVideoPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleRedo = async (index) => {
-    const fluxPromptsData = await generateImage(index);
-    const { image_path, prompt_index } = fluxPromptsData;
-    replaceGeneratedImage(image_path, prompt_index);
-  };
-
-  const callProcessFluxPromptsApi = async (index: number) => {
-    const response = await processFluxPrompts({
+  const callProcessImageApi = (index: number) => {
+    processImage({
+      prompt_indices: index,
       proto_prompts: protoPromptsUrl,
       character_lora_path: loraPath,
       character_name: characterName,
       character_outfit: storyElement?.character_details,
-      prompt_indices: index,
-      style: location.state?.selectedStyle?.toLowerCase(),
+      style: location.state?.selectedStyle?.name?.toLowerCase(),
       orientation: location.state?.orientationStyle?.toLowerCase(),
+      id_image: location.state?.selectedStyle?.image,
+      getImage: getImage,
     });
-    return response;
+  };
+
+  const handleRedo = async (index) => {
+    callProcessImageApi(index + 1);
   };
 
   // Save Changes and Update Table
@@ -251,11 +247,6 @@ const GenerateVideoPage: React.FC = () => {
       edit_instruction: newDescription,
     });
     setIsModalOpen(false);
-  };
-
-  const generateImage = async (index: number) => {
-    const data = await callProcessFluxPromptsApi(index);
-    return await getFluxPrompts(data.call_id);
   };
 
   const generateVideo = () => {
@@ -283,6 +274,12 @@ const GenerateVideoPage: React.FC = () => {
     });
   };
 
+  const setFolderPath = (fileUrl: string) => {
+    const folderPath = fileUrl.substring(0, fileUrl.lastIndexOf("/") + 1);
+    console.log("folderPath for images:", folderPath);
+    dispatch(setImageFolderUrl(folderPath));
+  };
+
   useEffect(() => {
     if (lyrics?.length > 0 && promptsJson.length > 0) {
       try {
@@ -296,12 +293,7 @@ const GenerateVideoPage: React.FC = () => {
             if (promptMatch) {
               const { start, end } = promptMatch;
               return {
-                image:
-                  images[
-                    location.state?.selectedStyle === CharacterStyles.ANIMATED
-                      ? "animated"
-                      : "realistic"
-                  ][promptMatch.number - 1],
+                image: null,
                 description: promptMatch.narrative,
                 dialogue: promptMatch.dialogue || muxItem[2],
                 emotion: promptMatch.emotion || muxItem[3],
@@ -371,6 +363,18 @@ const GenerateVideoPage: React.FC = () => {
     fetchStoryElement();
   }, []);
 
+  const getImage = (index, obj) => {
+    const { image_path, prompt_index } = obj;
+    setScenes((prevScenes) =>
+      prevScenes.map((scene, i) =>
+        i + 1 === index ? { ...scene, image: image_path } : scene
+      )
+    );
+
+    setFolderPath(image_path);
+    replaceGeneratedImage(image_path, prompt_index);
+  };
+
   useEffect(() => {
     const fetchProtoPrompts = async () => {
       try {
@@ -391,10 +395,8 @@ const GenerateVideoPage: React.FC = () => {
       try {
         const prompts: any = await fetchProtoPrompts();
 
-        for (const [index] of prompts.entries()) {
-          const fluxPromptsData = await generateImage(index);
-          const { image_path, prompt_index } = fluxPromptsData;
-          replaceGeneratedImage(image_path, prompt_index);
+        for (const element of prompts) {
+          callProcessImageApi(element.number);
         }
       } catch (error) {
         console.error("Error processing prompts:", error);
@@ -415,7 +417,7 @@ const GenerateVideoPage: React.FC = () => {
         setLyrics(jsonData);
       } catch (error) {
         console.error("Error fetching JSON:", error);
-        return []; 
+        return [];
       }
     };
 
@@ -430,10 +432,7 @@ const GenerateVideoPage: React.FC = () => {
 
   useEffect(() => {
     if (storyElementData) {
-      generateImage(currentEditIndex).then((fluxPromptsData) => {
-        const { image_path, prompt_index } = fluxPromptsData;
-        replaceGeneratedImage(image_path, prompt_index);
-      });
+      callProcessImageApi(currentEditIndex + 1);
       uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
         .then((url) => {
           dispatch(setProtoPromptsUrl(url));
@@ -492,7 +491,9 @@ const GenerateVideoPage: React.FC = () => {
                     className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <ImagePreview imageURL={scene.image} />
+                    <ShimmerWrapper isLoading={true}>
+                      {scene.image && <ImagePreview imageURL={scene.image} />}
+                    </ShimmerWrapper>
 
                     {/* Description */}
                     <p className="text-sm text-gray-700">{scene.description}</p>

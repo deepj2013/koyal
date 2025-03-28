@@ -18,6 +18,8 @@ import {
   setSceneDataFileUrl,
 } from "../redux/features/uploadSlice";
 import { convertJsonToFile } from "../utils/helper";
+import { setLyricsJsonUrl } from "../redux/features/appSlice";
+import LoadingBar from "../components/common/LoadingBar/LoadingBar";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {
@@ -125,23 +127,19 @@ const AudioUploadPage = () => {
   };
 
   const callEmotionsAPI = (fileURL: string) => {
-    dispatch(processEmotion({ data: fileURL }));
+    processEmotion({ data: fileURL });
   };
 
   const callTranscriberAPI = (fileURL: string) => {
-    dispatch(
-      processTranscriber({ data: fileURL, english_priority: isEnglish })
-    );
+    processTranscriber({ data: fileURL, english_priority: isEnglish });
   };
 
   const callSceneAPI = () => {
-    dispatch(
-      procesScene({
-        word_timestamps: wordTimeStampFileURL,
-        emotion_data: emotionsFileURL,
-        audio_file: audioFileURL,
-      })
-    );
+    procesScene({
+      word_timestamps: wordTimeStampFileURL,
+      emotion_data: emotionsFileURL,
+      audio_file: audioFileURL,
+    });
   };
 
   useEffect(() => {
@@ -168,7 +166,12 @@ const AudioUploadPage = () => {
         emotionResult,
         "emotion_data.json",
         setEmotionsFileURL,
-        () => callTranscriberAPI(audioFileURL)
+        () => {
+          setTimeout(() => {
+            setUploadProgress(100);
+          }, 600);
+          callTranscriberAPI(audioFileURL);
+        }
       );
     }
   }, [emotionResult]);
@@ -188,8 +191,10 @@ const AudioUploadPage = () => {
     if (sceneResult) {
       handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
         (url) => {
+          console.log("scene json url:", url);
           setUploadProgress(100);
           dispatch(setSceneDataFileUrl(url));
+          dispatch(setLyricsJsonUrl(url));
         }
       );
     }
@@ -198,6 +203,7 @@ const AudioUploadPage = () => {
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
+      <LoadingBar isLoading={false}/>
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           {/* Main Content */}
