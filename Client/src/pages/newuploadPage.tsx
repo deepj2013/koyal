@@ -13,8 +13,13 @@ import {
   useSceneEndpointMutation,
   useTranscriberEndpointMutation,
 } from "../redux/services/uploadAudioService/uploadAudioApi";
-import { setSceneDataFileUrl } from "../redux/features/uploadSlice";
+import {
+  setAudioType,
+  setSceneDataFileUrl,
+} from "../redux/features/uploadSlice";
 import { convertJsonToFile } from "../utils/helper";
+import { setLyricsJsonUrl } from "../redux/features/appSlice";
+import LoadingBar from "../components/common/LoadingBar/LoadingBar";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {
@@ -122,23 +127,19 @@ const AudioUploadPage = () => {
   };
 
   const callEmotionsAPI = (fileURL: string) => {
-    dispatch(processEmotion({ data: fileURL }));
+    processEmotion({ data: fileURL });
   };
 
   const callTranscriberAPI = (fileURL: string) => {
-    dispatch(
-      processTranscriber({ data: fileURL, english_priority: isEnglish })
-    );
+    processTranscriber({ data: fileURL, english_priority: isEnglish });
   };
 
   const callSceneAPI = () => {
-    dispatch(
-      procesScene({
-        word_timestamps: wordTimeStampFileURL,
-        emotion_data: emotionsFileURL,
-        audio_file: audioFileURL,
-      })
-    );
+    procesScene({
+      word_timestamps: wordTimeStampFileURL,
+      emotion_data: emotionsFileURL,
+      audio_file: audioFileURL,
+    });
   };
 
   useEffect(() => {
@@ -165,7 +166,12 @@ const AudioUploadPage = () => {
         emotionResult,
         "emotion_data.json",
         setEmotionsFileURL,
-        () => callTranscriberAPI(audioFileURL)
+        () => {
+          setTimeout(() => {
+            setUploadProgress(100);
+          }, 600);
+          callTranscriberAPI(audioFileURL);
+        }
       );
     }
   }, [emotionResult]);
@@ -185,8 +191,10 @@ const AudioUploadPage = () => {
     if (sceneResult) {
       handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
         (url) => {
+          console.log("scene json url:", url);
           setUploadProgress(100);
           dispatch(setSceneDataFileUrl(url));
+          dispatch(setLyricsJsonUrl(url));
         }
       );
     }
@@ -195,6 +203,7 @@ const AudioUploadPage = () => {
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
+      <LoadingBar isLoading={false}/>
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           {/* Main Content */}
@@ -261,7 +270,7 @@ const AudioUploadPage = () => {
               ) : (
                 <div className="pl-0 p-4 rounded-lg">
                   <div className="flex space-x-4">
-                    {["Music", "Podcast", "Voiceover"].map((type) => (
+                    {["Music", "Podcast", "Narration"].map((type) => (
                       <button
                         key={type}
                         className={`px-6 py-3 border rounded-md ${
@@ -271,6 +280,7 @@ const AudioUploadPage = () => {
                         } focus:ring-2 focus:ring-black`}
                         onClick={() => {
                           setSelectedAudioType(type); // Ensure selection happens first
+                          dispatch(setAudioType(type));
                           setTimeout(
                             () => document.getElementById("file-input").click(),
                             0

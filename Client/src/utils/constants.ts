@@ -33,6 +33,14 @@ export enum AvatarProcessModes {
 }
 
 export enum EditStoryModes {
+  CREATE_PROMPT = "create-prompts",
+  EDIT_PROMPT = "edit-prompts",
   EDIT_STORY = "edit-story",
   EDIT_CHARACTER = "edit-character",
+}
+
+export enum ReplacementWords {
+  MAN = "man",
+  WOMAN = "woman",
+  PERSON = "person",
 }

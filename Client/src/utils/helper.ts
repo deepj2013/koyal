@@ -44,3 +44,26 @@ export const formatToUTC = (isoString) => {
   const date = new Date(isoString);
   return date.toUTCString();
 };
+
+export const getRandomActions = () => {
+  const actions = [
+    "TURN HEAD LEFT",
+    "TILT HEAD UP",
+    "TILT HEAD DOWN",
+    "TURN HEAD RIGHT",
+    "OPEN YOUR MOUTH",
+    "SMILE WITH TEETH",
+    "SQUINT YOUR EYES",
+  ];
+
+  const shuffledActions = actions.sort(() => Math.random() - 0.5);
+  const selectedActions = shuffledActions.slice(0, 5);
+
+  return [...selectedActions, "STANDUP (ENSURE HEAD IN THE FRAME)"];
+};
+
+export const formatTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+};

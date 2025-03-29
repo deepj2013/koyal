@@ -11,6 +11,7 @@ import {
   useSceneLLMEndpointMutation,
 } from "../redux/services/lyricEditService/lyricEditApi";
 import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
+import { setLyricsJsonUrl } from "../redux/features/appSlice";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
@@ -28,11 +29,11 @@ const TranscriptPage = () => {
   const [selectedParagraph, setSelectedParagraph] = useState(null);
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
-    euphoric: "bg-yellow-200",
-    serene: "bg-blue-200",
-    melancholy: "bg-purple-200",
-    tense: "bg-red-200",
-    default: "bg-gray-200",
+    euphoric: { bg: "bg-yellow-200", border: "border-yellow-500" },
+    serene: { bg: "bg-blue-200", border: "border-blue-500" },
+    melancholy: { bg: "bg-purple-200", border: "border-purple-500" },
+    tense: { bg: "bg-red-200", border: "border-red-500" },
+    default: { bg: "bg-gray-200", border: "border-gray-500" },
   };
 
   const handleParagraphClick = (index) => {
@@ -58,21 +59,19 @@ const TranscriptPage = () => {
     const newSection = {
       start, // Use previous end time as start
       end, // Empty end time
-      text: "New section", // Default text
+      text: "", // Default text
       emotion, // Inherit emotion
     };
 
-    currentData.splice(index + 1, 0, newSection);
+    currentData.splice(index, 1, newSection);
     setTranscriptData(currentData);
-
-    // Automatically open the newly added section for editing
 
     setSelectedParagraph({
       start,
       end,
-      text: newSection.text,
+      text: newSection.text || "",
       emotion,
-      index: index + 1,
+      index: index,
     });
   };
 
@@ -80,13 +79,35 @@ const TranscriptPage = () => {
     if (selectedParagraph && selectedParagraph.index !== undefined) {
       const updatedData = [...transcriptData];
 
-      // Update only the correct index, maintaining JSON format
-      updatedData[selectedParagraph.index] = {
-        start: selectedParagraph.start, // Keep as string to prevent NaN errors
+      const editedObj = {
+        start: selectedParagraph.start,
         end: selectedParagraph.end,
-        text: selectedParagraph.text || "New section", // Prevent empty values
+        text: selectedParagraph.text || null,
         emotion: selectedParagraph.emotion,
       };
+      let res = [editedObj];
+
+      if (transcriptData[selectedParagraph.index]?.start < editedObj?.start) {
+        const prefixObj = {
+          start: transcriptData[selectedParagraph.index]?.start,
+          end: editedObj.start,
+          text: null,
+          emotion: selectedParagraph.emotion,
+        };
+        res = [prefixObj, ...res];
+      }
+
+      if (transcriptData[selectedParagraph.index]?.end > editedObj?.end) {
+        const postfixObj = {
+          start: editedObj?.end,
+          end: transcriptData[selectedParagraph.index].end,
+          text: null,
+          emotion: selectedParagraph.emotion,
+        };
+        res = [...res, postfixObj];
+      }
+
+      updatedData.splice(selectedParagraph.index, 1, ...res);
 
       setTranscriptData(updatedData); // Update state
       const file = convertJsonToFile(updatedData, "scene.json");
@@ -94,6 +115,7 @@ const TranscriptPage = () => {
         file,
         localStorage.getItem("currentUser")
       );
+      dispatch(setLyricsJsonUrl(fileUrl));
       console.log("fileUrl", fileUrl);
       setSelectedParagraph(null); // Close modal
     }
@@ -183,7 +205,7 @@ const TranscriptPage = () => {
                       key !== "default" && (
                         <div className="flex items-center space-x-2" key={key}>
                           <span
-                            className={`w-4 h-4 rounded-full ${color} border border-gray-300`}
+                            className={`w-4 h-4 rounded-full ${color.bg} border border-gray-300`}
                           ></span>
                           <span className="text-[15px] font-bold leading-[20px] text-gray-700 capitalize">
                             {key}
@@ -201,51 +223,48 @@ const TranscriptPage = () => {
 
           <div className="flex w-full h-[40vh] relative p-3 pr-0 rounded-[12px]">
             {/* First Column (70%) */}
-            <div className="w-full overflow-y-scroll">
+            <div className="w-full overflow-y-scroll pl-2">
               {transcriptData.map((entry, index) => {
                 const { text, emotion } = entry; // Extract values safely
 
                 return (
-                  <div key={index} className="relative mb-4">
-                    {regexNoVocals.test(text) ? (
+                  <div key={index} className="relative mb-2 w-[63%]">
+                    {regexNoVocals.test(text) || !text ? (
                       <div className="flex items-start">
                         {/* Add Section Buttons */}
-                        <div className="flex flex-col">
-                          {/* Hide + button when a new section is added */}
-                          {!text && (
-                            <button
-                              className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200"
-                              onClick={() => handleAddSection(index)}
-                            >
-                              +
-                            </button>
-                          )}
-                          <div className="bg-yellow-100 p-2 rounded mt-1">
-                            <div className="text-2xl text-gray-800">🎵</div>
-                          </div>
-                          <button
-                            className="bg-gray-100 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 mt-1"
+                        <div className="flex items-center">
+                          <div
+                            className="bg-yellow-100 p-1 rounded cursor-pointer border border-black max-h-[32px]"
                             onClick={() => handleAddSection(index)}
                           >
-                            +
-                          </button>
+                            <div className="text-md text-gray-800">🎵</div>
+                          </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="relative mb-4">
+                      <div className="relative mb-2">
                         <p
                           className="cursor-pointer mt-2"
                           onClick={() => handleParagraphClick(index)}
                         >
                           <span
                             className={`${
-                              emotionColors[emotion] || emotionColors.default
+                              emotionColors[emotion]?.bg ||
+                              emotionColors.default.bg
+                            } 
+                            ${
+                              selectedParagraph?.index === index
+                                ? `${
+                                    emotionColors[emotion]?.border ||
+                                    "border-black"
+                                  } border-[4px]`
+                                : ""
                             }`}
                             style={{
                               display: "inline",
-                              padding: "1px 2px",
+                              padding: "1px 4px",
                               borderRadius: "5px",
-                              border: "1px solid black",
+                              fontSize: "1.125rem",
                             }}
                           >
                             {text}
@@ -265,7 +284,7 @@ const TranscriptPage = () => {
                 style={{
                   right: "-1px",
                   bottom: 0,
-                  width: "43%",
+                  width: "37%",
                   maxHeight: "auto",
                 }}
               >
@@ -327,6 +346,12 @@ const TranscriptPage = () => {
                     className="w-full border border-gray-300 p-2 rounded-md"
                     rows={6}
                   ></textarea>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    NOTE: changing timestamps will create a new scene that may
+                    not be beat aligned.
+                  </label>
                 </div>
 
                 <div className="flex justify-end">
