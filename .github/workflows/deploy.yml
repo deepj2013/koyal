@@ -26,9 +26,6 @@ jobs:
           git clean -fd
           git pull origin main
 
-          echo "📦 Loading environment"
-          source ~/.bashrc
-
           echo "🔨 Building frontend"
           cd Client
           npm install
