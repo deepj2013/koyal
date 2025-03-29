@@ -93,7 +93,7 @@ const Home = () => {
               {/* Powered By Section (Hidden on Mobile) */}
               <div className="hidden md:flex inset-x-0 mx-auto w-max bg-black/30 backdrop-blur-md px-4 md:px-6 py-2 rounded-full items-center space-x-3 md:space-x-4">
                 <span className="text-sm md:text-[1.1rem] font-medium text-gray-200">
-                 T Powered by researchers from
+                 Powered by researchers from
                 </span>
                 <span className="text-gray-200">—</span>
                 <div className="flex space-x-2 items-center">

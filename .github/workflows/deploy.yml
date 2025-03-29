@@ -20,19 +20,37 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          echo "🔄 Resetting repo and pulling latest code"
+          echo "🔄 Pulling latest code"
           cd /root/koyal
           git reset --hard HEAD
           git clean -fd
           git pull origin main
+
+          echo "🧠 Loading NVM + Node v23.7.0"
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm use v23.7.0
+
+          echo "🧪 Confirming Node & NPM"
+          which node
+          node -v
+          which npm
+          npm -v
 
           echo "🔨 Building frontend"
           cd Client
           npm install
           npm run build
 
-          echo "🚚 Copying frontend build to /var/www/koyal"
+          echo "🚚 Copying frontend to /var/www/koyal"
           rm -rf /var/www/koyal/*
           cp -r dist/* /var/www/koyal/
+
+          echo "📦 Installing backend dependencies"
+          cd ../Server
+          npm install
+
+          echo "🚀 Restarting backend with PM2"
+          pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
 
           echo "✅ Deployed at $(date)" >> /root/koyal/deploy.log
