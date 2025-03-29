@@ -3,7 +3,7 @@ name: Deploy to VPS on Push
 on:
   push:
     branches:
-      - main  # or 'production' if that's your deploy branch
+      - main
 
 jobs:
   deploy:
@@ -20,16 +20,21 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          echo "📦 Pulling latest code"
+          echo "🔄 Resetting repo and pulling latest code"
           cd /root/koyal
+          git reset --hard HEAD
+          git clean -fd
           git pull origin main
+
+          echo "📦 Loading environment"
+          source ~/.bashrc
 
           echo "🔨 Building frontend"
           cd Client
           npm install
           npm run build
 
-          echo "🚚 Copying frontend to public folder"
+          echo "🚚 Copying frontend build to /var/www/koyal"
           rm -rf /var/www/koyal/*
           cp -r dist/* /var/www/koyal/
 
