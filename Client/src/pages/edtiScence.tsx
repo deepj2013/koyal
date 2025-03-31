@@ -254,6 +254,7 @@ const GenerateVideoPage: React.FC = () => {
       state: {
         selectedStyle: location.state?.selectedStyle,
         orientationStyle: location.state?.orientationStyle,
+        sceneJson: scenes
       },
     });
     dispatch(setScenesJson(scenes));

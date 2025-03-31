@@ -13,32 +13,39 @@ import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
 import { formatTime } from "../utils/helper";
 import { FaInfoCircle, FaUndo } from "react-icons/fa";
+import { ConfirmationModal } from "../components/common/ConfirmationModal/ConfirmationModal";
 
 const FinalVideoPage = () => {
   const location = useLocation();
 
-  const { selectedStyle, orientationStyle } = location?.state || {};
+  const { selectedStyle, orientationStyle, sceneJson } = location?.state || {};
 
-  const {
-    protoPromptsUrl,
-    characterName,
-    scenesJson,
-    imageFolderUrl,
-    replacementWord,
-  } = useSelector(AppState);
+  const { protoPromptsUrl, characterName, imageFolderUrl, replacementWord } =
+    useSelector(AppState);
 
-  const [processVideo, { data: processVideoData }] = useProcessVideoMutation();
-  const [getProcessedVideo, { data: getProcessedVideoData }] =
-    useLazyGetProcessedVideoQuery();
-  const [processFinalVideo, { data: processFinalVideoData }] =
-    useProcessFinalVideoMutation();
-  const [getFinalVideo, { data: getFinalVideoData }] =
-    useLazyGetFinalVideoQuery();
+  const [
+    processVideo,
+    { data: processVideoData, reset: resetProcessVideoData },
+  ] = useProcessVideoMutation();
+  const [
+    getProcessedVideo,
+    { data: getProcessedVideoData, reset: resetGetProcessedVideoData },
+  ] = useLazyGetProcessedVideoQuery();
+  const [
+    processFinalVideo,
+    { data: processFinalVideoData, reset: resetProcessFinalVideoData },
+  ] = useProcessFinalVideoMutation();
+  const [
+    getFinalVideo,
+    { data: getFinalVideoData, reset: resetGetFinalVideoData },
+  ] = useLazyGetFinalVideoQuery();
 
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
   const [finalVideo, setFinalVideo] = useState(null);
   const [previewImages, setPreviewImages] = useState([]);
+  const [regenerateIndex, setRegenerateIndex] = useState(null);
+  const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
 
   const videoRef = useState<any>(null);
 
@@ -66,7 +73,27 @@ const FinalVideoPage = () => {
     }
   };
 
-  const regenerateVideo = (index: number) => {};
+  const onCancelRegenerate = () => {
+    setRegenerateIndex(null);
+    setConfirmRegenerateModal(false);
+  };
+
+  const onConfirmRegenerate = () => {
+    processVideo({
+      proto_prompts: protoPromptsUrl,
+      character_name: characterName,
+      style: selectedStyle?.name?.toLowerCase(),
+      orientation: orientationStyle?.toLowerCase(),
+      image_folder_path: imageFolderUrl,
+      replacement_word: replacementWord,
+      prompt: regenerateIndex,
+    });
+  };
+
+  const regenerateVideo = (index: number) => {
+    setRegenerateIndex(index);
+    setConfirmRegenerateModal(true);
+  };
 
   // Remove "5 minutes remaining" after 10 seconds
   useEffect(() => {
@@ -79,8 +106,10 @@ const FinalVideoPage = () => {
   }, []);
 
   useEffect(() => {
-    setPreviewImages(scenesJson);
-  }, [scenesJson]);
+    if (sceneJson) {
+      setPreviewImages(sceneJson);
+    }
+  }, [sceneJson]);
 
   useEffect(() => {
     processVideo({
@@ -96,27 +125,32 @@ const FinalVideoPage = () => {
   useEffect(() => {
     if (processVideoData?.call_id) {
       getProcessedVideo(processVideoData?.call_id);
+      resetProcessVideoData();
     }
   }, [processVideoData]);
 
   useEffect(() => {
-    if (getProcessedVideoData?.video_folder_path) {
+    if (getProcessedVideoData) {
       processFinalVideo({
         proto_prompts: protoPromptsUrl,
         video_folder_path: processVideoData?.video_folder_path,
       });
+      resetGetProcessedVideoData();
     }
   }, [getProcessedVideoData]);
 
   useEffect(() => {
     if (processFinalVideoData?.call_id) {
       getFinalVideo(processFinalVideoData?.call_id);
+      resetProcessFinalVideoData();
     }
   }, [processFinalVideoData]);
 
   useEffect(() => {
     if (getFinalVideoData?.final_video_path) {
       setFinalVideo(getFinalVideoData?.final_video_path);
+      setConfirmRegenerateModal(false);
+      resetGetFinalVideoData();
     }
   }, [getFinalVideoData]);
 
@@ -124,6 +158,7 @@ const FinalVideoPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
       <Navbar />
+
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           <div className="w-full mt-10">
@@ -143,7 +178,7 @@ const FinalVideoPage = () => {
 
           {/* Video Section */}
           <div className="flex flex-col items-center justify-center flex-grow mt-4">
-            <div className="relative z-50 w-[80%] h-[25rem] bg-black rounded-2xl overflow-hidden">
+            <div className="relative  w-[80%] h-[25rem] bg-black rounded-2xl overflow-hidden">
               <video
                 ref={videoRef}
                 className="w-full h-full"
@@ -172,12 +207,12 @@ const FinalVideoPage = () => {
                 </button>
               )}
             </div>
-            <div className="relative z-50 w-[80%]">
+            <div className="relative w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
                   <div>
                     <div className="flex w-full relative">
-                      <div className="absolute z-50 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
+                      <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
                         <span
                           className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
                           title={preview?.description}
@@ -188,7 +223,7 @@ const FinalVideoPage = () => {
 
                       <div
                         onClick={() => regenerateVideo(index)}
-                        className="absolute z-50 top-1 right-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer"
+                        className="absolute z-10 top-1 right-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer"
                       >
                         <span className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200">
                           ↺
@@ -233,6 +268,12 @@ const FinalVideoPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={confirmRegenerateModal}
+        onClose={onCancelRegenerate}
+        onConfirm={onConfirmRegenerate}
+        title="Are you sure you want to Regenerate the Video"
+      />
     </div>
   );
 };
