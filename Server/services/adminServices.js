@@ -9,6 +9,15 @@ import { generateTokenService, getTokenOfUserService } from "./authServices.js";
 //#region Admin Signup Service
 export const adminSignUpService = async (name, email, password) => {
     try {
+      let isAdminExist = await Admin.findOne({ email: email });
+      if (isAdminExist) {
+        throw new APIError(
+          "BAD_REQUEST",
+          HttpStatusCode.BAD_REQUEST,
+          true,
+          "Email Already Exists"
+        );
+      }
       // Hashing Password
       password = await encryptPassword(password);
   

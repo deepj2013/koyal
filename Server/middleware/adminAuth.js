@@ -9,7 +9,6 @@ export const adminAuth = async (req, res, next) => {
     if (!token) {
       throw new APIError("UNAUTHORIZED_REQUEST", HttpStatusCode.UNAUTHORIZED_REQUEST, true, 'Unauthorized Token');
     }
-   console.log('Token:', token); // Log the token for debugging 
     const verify = jwt.verify(token, process.env.JWT_SECRET_KEY);
     // console.log('Token Verified:', verify); // Log to check token details
 

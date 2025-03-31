@@ -36,17 +36,14 @@ const logToConsole = createLogger({
 
 const logger = {
     info: (message, meta) => {
-      log.info(message);
       logToFile.info(message, meta);
       logToConsole.info(message, meta);
     },
     error: (message, meta) => {
-      log.error(message);
       logToFile.error(message, meta);
       logToConsole.error(message, meta);
     },
     success: (message, meta) => {
-      log.success(message);
       logToFile.info(message, meta);
       logToConsole.info(message, meta);
     },
