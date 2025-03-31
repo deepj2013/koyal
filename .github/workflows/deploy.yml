@@ -54,12 +54,16 @@ jobs:
 
           elif [ "$BRANCH" = "koyal-demo" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
+            cd /var/www/demo-koyal 
+            git pull origin koyal-demo
             cd /var/www/demo-koyal/Client
             npm install
             npm run build
 
           elif [ "$BRANCH" = "koyal-charcha" ]; then
             echo "🔨 Building frontend for charcha at /var/www/charcha/Client"
+            cd /var/www/charcha
+            git pull origin koyal-charcha
             cd /var/www/charcha/Client
             npm install
             npm run build
