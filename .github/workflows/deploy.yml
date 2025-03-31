@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - koyal-demo
+      - koyal-charcha
 
 jobs:
   deploy:
@@ -20,37 +22,49 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          BRANCH=${{ github.ref_name }}
+          echo "🚀 Deploying frontend for branch: $BRANCH"
+
+          # Set frontend deploy path based on branch
+          if [ "$BRANCH" = "main" ]; then
+            PUBLIC_PATH="/var/www/koyal"
+          elif [ "$BRANCH" = "koyal-demo" ]; then
+            PUBLIC_PATH="/var/www/demo-koyal"
+          elif [ "$BRANCH" = "koyal-charcha" ]; then
+            PUBLIC_PATH="/var/www/charcha"
+          else
+            echo "❌ Unsupported branch: $BRANCH"
+            exit 1
+          fi
+
           echo "🔄 Pulling latest code"
           cd /root/koyal
           git reset --hard HEAD
           git clean -fd
-          git pull origin main
+          git pull origin $BRANCH
 
           echo "🧠 Loading NVM + Node v23.7.0"
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
           nvm use v23.7.0
 
-          echo "🧪 Confirming Node & NPM"
-          which node
-          node -v
-          which npm
-          npm -v
-
           echo "🔨 Building frontend"
           cd Client
           npm install
           npm run build
 
-          echo "🚚 Copying frontend to /var/www/koyal"
-          rm -rf /var/www/koyal/*
-          cp -r dist/* /var/www/koyal/
+          echo "🚚 Copying frontend to $PUBLIC_PATH"
+          rm -rf $PUBLIC_PATH/*
+          cp -r dist/* $PUBLIC_PATH/
 
-          echo "📦 Installing backend dependencies"
-          cd ../Server
-          npm install
+          # Only run backend deploy & restart for main branch
+          if [ "$BRANCH" = "main" ]; then
+            echo "📦 Installing backend dependencies"
+            cd ../Server
+            npm install
 
-          echo "🚀 Restarting backend with PM2"
-          pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+            echo "🚀 Restarting backend with PM2"
+            pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+          fi
 
-          echo "✅ Deployed at $(date)" >> /root/koyal/deploy.log
+          echo "✅ [$BRANCH] Deployed at $(date)" >> /root/koyal/deploy.log
