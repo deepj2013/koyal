@@ -1,36 +1,36 @@
 import jwt from 'jsonwebtoken';
 import APIError, { HttpStatusCode } from "../exception/errorHandler.js";
+import { roleEnum } from '../enums/ENUMS.js';
+import User from '../models/userModel.js';
 
-export const adminAuth = async (req, res, next) => {
-  const validAdminIds = ['67a5b162760a44e56042f30f', '674752ffa5225cc67abe3b8d','67cfc75b8a0511c9a54d1c36'];
-
+export const userAuth = async (req, res, next) => {
   try {
     const token = req.headers['x-auth-token'];
     if (!token) {
       throw new APIError("UNAUTHORIZED_REQUEST", HttpStatusCode.UNAUTHORIZED_REQUEST, true, 'Unauthorized Token');
     }
-   console.log('Token:', token); // Log the token for debugging 
-    const verify = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    // console.log('Token Verified:', verify); // Log to check token details
 
-    // Check token expiry time (adjusting for seconds in 'exp' claim)
+    const verify = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    console.log("verify--->", verify);
+
     if (new Date().getTime() / 1000 > verify.exp) {
       throw new APIError("UNAUTHORIZED_REQUEST", HttpStatusCode.UNAUTHORIZED_REQUEST, true, 'Token has been expired. Kindly Relogin!');
     }
 
-    // console.log('User ID:', verify.userId);
-    if (!validAdminIds.includes(verify.userId.toString())) {
+    const user = await User.findById(verify.userId);
+    if (!user || user.role !== roleEnum.USER) {
       throw new APIError(
         "UNAUTHORIZED_REQUEST",
         HttpStatusCode.UNAUTHORIZED_REQUEST,
         true,
-        'This token does not belong to admin!'
+        'This token does not belong to a user!'
       );
     }
 
+    req.user = user;
     next();
   } catch (error) {
-    console.error(error); // Log the error for debugging
+    console.error(error);
     next(error);
   }
 };
