@@ -234,8 +234,20 @@ const TranscriptPage = () => {
                         {/* Add Section Buttons */}
                         <div className="flex items-center">
                           <div
-                            className="bg-yellow-100 p-1 rounded cursor-pointer border border-black max-h-[32px]"
+                            className={`bg-yellow-100 p-1 rounded-md cursor-pointer ${
+                              selectedParagraph?.index === index
+                                ? "border-[3px] border-black"
+                                : "border border-black"
+                            }`}
                             onClick={() => handleAddSection(index)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minWidth: "32px",
+                              minHeight: "32px",
+                              lineHeight: "1",
+                            }}
                           >
                             <div className="text-md text-gray-800">🎵</div>
                           </div>
@@ -244,31 +256,28 @@ const TranscriptPage = () => {
                     ) : (
                       <div className="relative mb-2">
                         <p
-                          className="cursor-pointer mt-2"
+                          className={`cursor-pointer mt-2 rounded-md ${
+                            emotionColors[emotion]?.bg ||
+                            emotionColors.default.bg
+                          }  ${
+                            selectedParagraph?.index === index
+                              ? `${
+                                  emotionColors[emotion]?.border ||
+                                  "border-black"
+                                } border-[4px]`
+                              : ""
+                          }`}
                           onClick={() => handleParagraphClick(index)}
+                          style={{
+                            borderRadius: "6px",
+                            padding: "1px 4px",
+                            boxDecorationBreak: "clone",
+                            WebkitBoxDecorationBreak: "clone",
+                            display: "inline",
+                            fontSize: "1.125rem",
+                          }}
                         >
-                          <span
-                            className={`${
-                              emotionColors[emotion]?.bg ||
-                              emotionColors.default.bg
-                            } 
-                            ${
-                              selectedParagraph?.index === index
-                                ? `${
-                                    emotionColors[emotion]?.border ||
-                                    "border-black"
-                                  } border-[4px]`
-                                : ""
-                            }`}
-                            style={{
-                              display: "inline",
-                              padding: "1px 4px",
-                              borderRadius: "5px",
-                              fontSize: "1.125rem",
-                            }}
-                          >
-                            {text}
-                          </span>
+                          {text}
                         </p>
                       </div>
                     )}
