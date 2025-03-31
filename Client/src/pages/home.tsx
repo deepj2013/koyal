@@ -683,11 +683,7 @@ const Home = () => {
               {/* Left Section: Logo and Button */}
               <div className="flex flex-col items-start space-y-6">
                 <div className="flex items-center space-x-2">
-                  <img
-                    src={logo}
-                    alt="Logo"
-                    className="w-25 h-12 object-contain"
-                  />
+                  <Logo />
                 </div>
                 <p className="text-[15px] font-medium text-gray-400 font-inter">
                   Turn audio to video seamlessly
