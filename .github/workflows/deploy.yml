@@ -1,32 +1,70 @@
-name: Auto Deploy Frontend
+name: Deploy to VPS on Push
 
 on:
   push:
     branches:
-      - main  # Runs this workflow when pushing to main
+      - main
+      - koyal-demo
+      - koyal-charcha
 
 jobs:
   deploy:
-    runs-on: self-hosted  # This runs on your own server
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Deploy Frontend
-        run: |
-          cd /root/koyal/Client
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          BRANCH=${{ github.ref_name }}
+          echo "🚀 Deploying frontend for branch: $BRANCH"
+
+          # Set frontend deploy path based on branch
+          if [ "$BRANCH" = "main" ]; then
+            PUBLIC_PATH="/var/www/koyal"
+          elif [ "$BRANCH" = "koyal-demo" ]; then
+            PUBLIC_PATH="/var/www/demo-koyal"
+          elif [ "$BRANCH" = "koyal-charcha" ]; then
+            PUBLIC_PATH="/var/www/charcha"
+          else
+            echo "❌ Unsupported branch: $BRANCH"
+            exit 1
+          fi
+
+          echo "🔄 Pulling latest code"
+          cd /root/koyal
+          git reset --hard HEAD
+          git clean -fd
+          git pull origin $BRANCH
+
+          echo "🧠 Loading NVM + Node v23.7.0"
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm use v23.7.0
+
+          echo "🔨 Building frontend"
+          cd Client
           npm install
-          rm -rf dist/
           npm run build
 
-          echo "Waiting for dist/ to be created..."
-          while [ ! -d "dist" ]; do sleep 1; done
+          echo "🚚 Copying frontend to $PUBLIC_PATH"
+          rm -rf $PUBLIC_PATH/*
+          cp -r dist/* $PUBLIC_PATH/
 
-          echo "Deploying frontend..."
-          sudo rm -rf /var/www/koyal/*
-          sudo cp -r /root/koyal/Client/dist/* /var/www/koyal/
-          sudo chown -R www-data:www-data /var/www/koyal/
-          sudo chmod -R 755 /var/www/koyal/
+          # Only run backend deploy & restart for main branch
+          if [ "$BRANCH" = "main" ]; then
+            echo "📦 Installing backend dependencies"
+            cd ../Server
+            npm install
 
-          echo "Frontend Deployment Successful!"
+            echo "🚀 Restarting backend with PM2"
+            pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+          fi
+
+          echo "✅ [$BRANCH] Deployed at $(date)" >> /root/koyal/deploy.log
