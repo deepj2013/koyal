@@ -2,32 +2,26 @@ import mongoose from "mongoose";
 import { roleEnum } from "../enums/ENUMS.js";
 
 const UserSchema = new mongoose.Schema({
-    name: String,
+    name: {
+        required: true,
+        type: String,
+        trim:true
+    },
     email: {
-        require: true,
+        required: true,
         type: String,
         unique: true,
-    },
-    otp: {
-        type: Number,
-        unique: true,
+        trim: true
     },
     password: {
-        require:true,
+        require: true,
         type: String,
-        match: [
-            /^(?=.*[A-Za-z]{4,})(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/,
-            'Password must contain at least 4 letters, one number and one special character'
-        ]
+        minLength: 6,
     },
     role: {
         type: String,
         enum: roleEnum,
         default: roleEnum.USER
-    },
-    optExpiry: {
-        type: Date,
-        default: Date.now() + 10 * 60 * 1000,
     },
 }, { timestamps: true });
 
