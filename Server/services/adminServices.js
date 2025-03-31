@@ -57,6 +57,7 @@ export const adminSignUpService = async (name, email, password) => {
       //#endregion
   
       let result = await Admin.aggregate(userPipeline);
+      console.log(result);
       if (result.length == 0) {
         throw new APIError(
           "UNAUTHORIZED_REQUEST",
@@ -71,11 +72,9 @@ export const adminSignUpService = async (name, email, password) => {
       let hashedPassword = userDetails.password;
   
       let isPasswordMatched = await comparePassword(password, hashedPassword);
-  
       if (isPasswordMatched) {
         // getting Token of User
         let tokenObj = await getTokenOfUserService(userDetails._id);
-  
         if (tokenObj == null || new Date().getTime() > tokenObj.expiresAt) {
           await generateTokenService(userDetails._id);
           // getting Token of User
