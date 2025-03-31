@@ -23,48 +23,52 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           BRANCH=${{ github.ref_name }}
-          echo "🚀 Deploying frontend for branch: $BRANCH"
+          echo "🚀 Starting deployment for branch: $BRANCH"
 
-          # Set frontend deploy path based on branch
-          if [ "$BRANCH" = "main" ]; then
-            PUBLIC_PATH="/var/www/koyal"
-          elif [ "$BRANCH" = "koyal-demo" ]; then
-            PUBLIC_PATH="/var/www/demo-koyal"
-          elif [ "$BRANCH" = "koyal-charcha" ]; then
-            PUBLIC_PATH="/var/www/charcha"
-          else
-            echo "❌ Unsupported branch: $BRANCH"
-            exit 1
-          fi
-
-          echo "🔄 Pulling latest code"
-          cd /root/koyal
-          git reset --hard HEAD
-          git clean -fd
-          git pull origin $BRANCH
-
-          echo "🧠 Loading NVM + Node v23.7.0"
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
           nvm use v23.7.0
 
-          echo "🔨 Building frontend"
-          cd Client
-          npm install
-          npm run build
-
-          echo "🚚 Copying frontend to $PUBLIC_PATH"
-          rm -rf $PUBLIC_PATH/*
-          cp -r dist/* $PUBLIC_PATH/
-
-          # Only run backend deploy & restart for main branch
           if [ "$BRANCH" = "main" ]; then
-            echo "📦 Installing backend dependencies"
+            echo "🔄 Pulling latest code in /root/koyal"
+            cd /root/koyal
+            git reset --hard HEAD
+            git clean -fd
+            git pull origin main
+
+            echo "🔨 Building frontend"
+            cd Client
+            npm install
+            npm run build
+
+            echo "🚚 Copying frontend to /var/www/koyal"
+            rm -rf /var/www/koyal/*
+            cp -r dist/* /var/www/koyal/
+
+            echo "📦 Installing backend"
             cd ../Server
             npm install
 
             echo "🚀 Restarting backend with PM2"
             pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+
+          elif [ "$BRANCH" = "koyal-demo" ]; then
+            echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
+            cd /var/www/demo-koyal/Client
+            git pull origin koyal-demo
+            npm install
+            npm run build
+
+          elif [ "$BRANCH" = "koyal-charcha" ]; then
+            echo "🔨 Building frontend for charcha at /var/www/charcha/Client"
+            cd /var/www/charcha/Client
+            git pull origin koyal-charcha
+            npm install
+            npm run build
+
+          else
+            echo "❌ Unsupported branch: $BRANCH"
+            exit 1
           fi
 
           echo "✅ [$BRANCH] Deployed at $(date)" >> /root/koyal/deploy.log
