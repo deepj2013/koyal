@@ -9,7 +9,7 @@ dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 import { returnError } from './exception/errorHandler.js';
 
 //importing routes
-
+import temp from './temp.js'
 import publicRoutes from './routes/publicRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 // import dummyRoutes from './src/routes/dummyRoutes.js'
@@ -33,6 +33,7 @@ mongoose
 
 
 // Define Your Routes Here
+app.use('/', temp)
 app.use('/api/public', publicRoutes)
 app.use('/api/admin', adminRoutes)
 // app.use('/dummy', dummyRoutes )
