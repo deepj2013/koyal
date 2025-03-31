@@ -67,6 +67,10 @@ const Home = () => {
     document.getElementById(id).scrollIntoView({ behavior: "smooth" });
   };
 
+  useEffect(() => {
+    console.log("deployment check");
+  }, [])
+  
   return (
     <div className="relative h-screen overflow-y-hidden">
       {/* Background Video */}
