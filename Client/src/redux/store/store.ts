@@ -22,6 +22,7 @@ import { waitingListApi } from "../services/waitingListService/waitingListApi";
 import { editSceneApi } from "../services/editSceneService/editSceneApi";
 import { finalVideoApi } from "../services/finalVideoService/finalVideoApi";
 import { adminApi } from "../services/adminService/adminApi";
+import { authApi } from "../services/authService/authApi";
 
 const persistConfig = {
   key: "root",
@@ -39,6 +40,8 @@ const rootReducer = combineReducers({
   [waitingListApi.reducerPath]: waitingListApi.reducer,
   [editSceneApi.reducerPath]: editSceneApi.reducer,
   [finalVideoApi.reducerPath]: finalVideoApi.reducer,
+  [adminApi.reducerPath]: adminApi.reducer,
+  [authApi.reducerPath]: authApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -58,6 +61,7 @@ export const store = configureStore({
       editSceneApi.middleware,
       finalVideoApi.middleware,
       adminApi.middleware,
+      authApi.middleware,
     ]),
 });
 

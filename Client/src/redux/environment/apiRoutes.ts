@@ -28,3 +28,7 @@ export const AdminApiRoutes = {
   CreateUser: "api/user/createUser",
   AdminLogin: "api/admin/login",
 } as const;
+
+export const AuthApiRoutes = {
+  UserLogin: "api/user/userLogin",
+} as const;

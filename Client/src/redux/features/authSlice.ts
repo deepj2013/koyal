@@ -4,6 +4,9 @@ import { AuthModel } from "../models/authModel";
 const initialState: AuthModel = {
   adminInfo: null,
   isAdminLoggedIn: false,
+  userInfo: null,
+  isUserLoggedIn: false,
+
 };
 
 const authSlice = createSlice({
@@ -14,10 +17,14 @@ const authSlice = createSlice({
       state.isAdminLoggedIn = true;
       state.adminInfo = action.payload;
     },
+    setUserInfo: (state, action) => {
+      state.isUserLoggedIn = true;
+      state.userInfo = action.payload;
+    },
   },
 });
 
-export const { setAdminInfo } = authSlice.actions;
+export const { setAdminInfo, setUserInfo } = authSlice.actions;
 
 export default authSlice.reducer;
 
