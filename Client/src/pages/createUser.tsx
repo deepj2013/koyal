@@ -4,6 +4,7 @@ import { useCreateUserMutation } from "../redux/services/adminService/adminApi";
 import { AuthState } from "../redux/features/authSlice";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 interface UserFormData {
   name: string;
@@ -37,7 +38,7 @@ const CreateUser: React.FC = () => {
   useEffect(() => {
     if (isSuccess) {
       setFormData(initialFormState);
-      alert("User created successfully");
+      toast.success("User created successfully! 🎉");
       reset();
     }
   }, [isSuccess, isError]);
