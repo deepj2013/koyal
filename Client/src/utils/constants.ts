@@ -14,6 +14,8 @@ export enum CharacterStyles {
   SKETCH = "Sketch",
 }
 
+export const CharacterStylesList = [CharacterStyles.REALISTIC, CharacterStyles.ANIMATED, CharacterStyles.SKETCH]
+
 export enum VideoOrientationStyles {
   PORTRAIT = "portrait",
   SQUARE = "square",
@@ -44,3 +46,15 @@ export enum ReplacementWords {
   WOMAN = "woman",
   PERSON = "person",
 }
+
+export const styles = [
+  { id: "realistic", label: CharacterStyles.REALISTIC },
+  { id: "animated", label: CharacterStyles.ANIMATED },
+  { id: "sketch", label: CharacterStyles.SKETCH },
+];
+
+export const StyleColors = {
+  realistic: "bg-[#B2EEFF]",
+  animated: "bg-[#FFB2B2]",
+  sketch: "bg-[#B2FFB2]",
+};

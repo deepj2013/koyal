@@ -3,6 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import AdminLogin from "../pages/adminLogin";
 import { PageRoutes } from "./appRoutes";
 import AdminRoute from "../components/routing/adminRoute/AdminRoutes";
+import PrivateRoute from "../components/routing/privateRoute/PrivateRoutes";
+import Collection from "../pages/collections";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("../pages/home"));
@@ -38,10 +40,13 @@ const AppRoutes: React.FC = () => {
         <Route path="/editscene" element={<EditScenes />} />
         <Route path="/finalvideo" element={<FinalVideoPage />} />
         <Route path="/waitList" element={<WaitingList />} />
+        <Route path={PageRoutes.ADMIN_LOGIN} element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route path={PageRoutes.CREATE_USER} element={<CreateUser />} />
         </Route>
-        <Route path={PageRoutes.ADMIN_LOGIN} element={<AdminLogin />} />
+        <Route element={<PrivateRoute />}>
+          <Route path={PageRoutes.COLLECTION} element={<Collection />} />
+        </Route>
       </Routes>
     </Suspense>
   );
