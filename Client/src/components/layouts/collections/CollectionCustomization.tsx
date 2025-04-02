@@ -11,6 +11,9 @@ const styles = [
 
 const CollectionCustomization = ({ handleNext }) => {
   const [styleImages, setStyleImages] = useState<any>(styles);
+  const [collectionName, setCollectionName] = useState<any>("");
+  const [themeName, setThemeName] = useState<any>("");
+  const [character, setCharacter] = useState<any>("");
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState(styles[1]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -35,6 +38,8 @@ const CollectionCustomization = ({ handleNext }) => {
               type="text"
               placeholder="e.g. Coffee Playlist or Drake India Promotions"
               className="w-full mt-1 p-3 border rounded-lg text-sm"
+              value={collectionName}
+              onChange={e => setCollectionName(e.target.value)}
             />
           </div>
 
@@ -46,6 +51,8 @@ const CollectionCustomization = ({ handleNext }) => {
               type="text"
               placeholder="e.g. Cyberpunk City, Medieval Fantasy, Space Adventure"
               className="w-full mt-1 p-3 border rounded-lg text-sm"
+              value={themeName}
+              onChange={e => setThemeName(e.target.value)}
             />
           </div>
 
@@ -61,6 +68,8 @@ const CollectionCustomization = ({ handleNext }) => {
               type="text"
               placeholder='e.g. "canadian man, appears to be in his 40’s, beard, light-skinned"'
               className="w-full mt-1 p-3 border rounded-lg text-sm"
+              value={character}
+              onChange={e => setCharacter(e.target.value)}
             />
           </div>
         </div>

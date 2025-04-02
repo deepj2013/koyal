@@ -38,8 +38,8 @@ export const EditCollectionScene = ({ handleNext }) => {
       title: "God's Plan",
       theme: "The main character is on a luxury yacht",
       character: "drakeaubreygraham",
-      style: "animated",
-      orientation: "portrait",
+      style: "realistic",
+      orientation: "landscape",
     },
     {
       title: "Hotline Bling",

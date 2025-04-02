@@ -23,7 +23,6 @@ const EditSongModal = ({
 }) => {
   if (!isOpen) return null;
 
-  
   const handleChange = (key, newValue) => {
     setSelectedScene((prev) => ({
       ...prev,
@@ -121,57 +120,54 @@ const EditSongModal = ({
           <div className="flex space-x-4 mt-2 h-[37px]">
             <label
               className={`inline-flex items-center px-4 py-2 border-2 rounded-md cursor-pointer transition-all text-sm
-    ${
-      selectedScene.orientation === VideoOrientationStyles.PORTRAIT
-        ? "bg-black text-white border-black"
-        : "bg-white text-gray-700 border-gray-300"
-    }`}
+              ${
+                selectedScene.orientation === VideoOrientationStyles.PORTRAIT
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-300"
+              }`}
               onClick={() =>
                 handleChange("orientation", VideoOrientationStyles.PORTRAIT)
               }
             >
               <IoTabletPortraitOutline
                 className={`w-4 h-4 mr-2 transition-colors duration-200 
-      ${
-        selectedScene.orientation === VideoOrientationStyles.PORTRAIT
-          ? "text-white"
-          : "text-gray-700"
-      }`}
+                ${
+                  selectedScene.orientation === VideoOrientationStyles.PORTRAIT
+                    ? "text-white"
+                    : "text-gray-700"
+                }`}
               />
               Portrait
             </label>
             <label
               className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
-                                        ${
-                                          selectedScene.orientation ===
-                                          VideoOrientationStyles.LANDSCAPE
-                                            ? "bg-black text-white border-black"
-                                            : "bg-white text-gray-700 border-gray-300"
-                                        }`}
+              ${
+                selectedScene.orientation === VideoOrientationStyles.LANDSCAPE
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-300"
+              }`}
               onClick={() =>
                 handleChange("orientation", VideoOrientationStyles.LANDSCAPE)
               }
             >
               <IoTabletLandscapeOutline
                 className={`w-7 h-6 mr-2 transition-colors duration-200 
-                                          ${
-                                            selectedScene.orientation ===
-                                            VideoOrientationStyles.LANDSCAPE
-                                              ? "text-white"
-                                              : "text-gray-700"
-                                          }`}
+                ${
+                  selectedScene.orientation === VideoOrientationStyles.LANDSCAPE
+                    ? "text-white"
+                    : "text-gray-700"
+                }`}
               />
               Landscape
             </label>
 
             <label
               className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all text-sm
-                                        ${
-                                          selectedScene.orientation ===
-                                          VideoOrientationStyles.SQUARE
-                                            ? "bg-black text-white border-black"
-                                            : "bg-white text-gray-700 border-gray-300"
-                                        }`}
+              ${
+                selectedScene.orientation === VideoOrientationStyles.SQUARE
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-300"
+              }`}
               onClick={() =>
                 handleChange("orientation", VideoOrientationStyles.SQUARE)
               }
