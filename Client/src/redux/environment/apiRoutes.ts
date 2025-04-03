@@ -23,3 +23,12 @@ export const ApiRoutes = {
   ProcessFinalVideo: "vid_cut_endpoint/submit",
   GetFinalVideo: "vid_cut_endpoint/result",
 } as const;
+
+export const AdminApiRoutes = {
+  CreateUser: "api/user/createUser",
+  AdminLogin: "api/admin/login",
+} as const;
+
+export const AuthApiRoutes = {
+  UserLogin: "api/user/userLogin",
+} as const;

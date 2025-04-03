@@ -26,18 +26,31 @@ const AudioUploadPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [fetchTranscriberResult, { data: transcriberResult }] =
-    useLazyGetTranscriberResultQuery();
-  const [fetchEmotionResult, { data: emotionResult }] =
-    useLazyGetEmotionResultQuery();
-  const [fetchSceneResult, { data: sceneResult }] =
-    useLazyGetSceneResultQuery();
+  const [
+    fetchTranscriberResult,
+    { data: transcriberResult, isLoading: isTranscriberResLoading },
+  ] = useLazyGetTranscriberResultQuery();
+  const [
+    fetchEmotionResult,
+    { data: emotionResult, isLoading: isEmotionResLoading },
+  ] = useLazyGetEmotionResultQuery();
+  const [
+    fetchSceneResult,
+    { data: sceneResult, isLoading: isSceneResultLoading },
+  ] = useLazyGetSceneResultQuery();
   useSceneEndpointMutation;
-  const [processEmotion, { data: emotionResponse }] =
-    useEmotionEndpointMutation();
-  const [processTranscriber, { data: transcriberResponse }] =
-    useTranscriberEndpointMutation();
-  const [procesScene, { data: sceneResponse }] = useSceneEndpointMutation();
+  const [
+    processEmotion,
+    { data: emotionResponse, isLoading: isProcessEmotionLoading },
+  ] = useEmotionEndpointMutation();
+  const [
+    processTranscriber,
+    { data: transcriberResponse, isLoading: isProcessTranscriberLoading },
+  ] = useTranscriberEndpointMutation();
+  const [
+    procesScene,
+    { data: sceneResponse, isLoading: isProcessSceneLoading },
+  ] = useSceneEndpointMutation();
 
   const [selectedAudioType, setSelectedAudioType] = useState("");
   const [isEnglish, setIsEnglish] = useState(null);
@@ -47,11 +60,18 @@ const AudioUploadPage = () => {
   const [emotionsFileURL, setEmotionsFileURL] = useState(null);
   const [wordTimeStampFileURL, setWordTimeStampFileURL] = useState(null);
 
-  const isNextButtonEnabled =
-    audioFileURL && emotionsFileURL && wordTimeStampFileURL;
+  const isLoading =
+    isEmotionResLoading ||
+    isTranscriberResLoading ||
+    isSceneResultLoading ||
+    isProcessEmotionLoading ||
+    isProcessSceneLoading ||
+    isProcessTranscriberLoading;
+
+  const isNextButtonEnabled = (audioFileURL && isEnglish !== null) || isLoading;
 
   const handleNext = () => {
-    navigate("/lyricedit");
+    callEmotionsAPI(audioFileURL);
   };
 
   const handleFileUpload = async (event) => {
@@ -67,7 +87,9 @@ const AudioUploadPage = () => {
         const interval = setInterval(() => {
           if (progress < 90) {
             progress += 10;
-            setUploadProgress(progress);
+            setUploadProgress((prevProgress) =>
+              prevProgress < 100 ? progress : prevProgress
+            );
           } else {
             clearInterval(interval);
           }
@@ -79,14 +101,11 @@ const AudioUploadPage = () => {
           localStorage.getItem("currentUser")
         );
 
+        clearInterval(interval);
+        setUploadProgress(100);
+
         setAudioFileURL(fileUrl);
         console.log("fileUrl", fileUrl);
-
-        if (fileUrl) {
-          callEmotionsAPI(fileUrl);
-        } else {
-          console.log("File upload failed. Please try again.");
-        }
       } catch (error) {
         console.error("Upload failed:", error);
         console.log("File upload failed. Please try again.");
@@ -167,9 +186,6 @@ const AudioUploadPage = () => {
         "emotion_data.json",
         setEmotionsFileURL,
         () => {
-          setTimeout(() => {
-            setUploadProgress(100);
-          }, 600);
           callTranscriberAPI(audioFileURL);
         }
       );
@@ -195,6 +211,7 @@ const AudioUploadPage = () => {
           setUploadProgress(100);
           dispatch(setSceneDataFileUrl(url));
           dispatch(setLyricsJsonUrl(url));
+          navigate("/lyricedit");
         }
       );
     }
@@ -203,7 +220,7 @@ const AudioUploadPage = () => {
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
-      <LoadingBar isLoading={false}/>
+      <LoadingBar isLoading={isLoading} />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           {/* Main Content */}

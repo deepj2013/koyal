@@ -1,0 +1,1094 @@
+import express from "express";
+import cors from "cors";
+
+const app = express.Router();
+
+app.post("/emotion_endpoint/submit", (req, res) => {
+  console.log("re", req.body);
+
+  res.json({ call_id: "mo-abc123def456" });
+});
+app.post("/transcriber_endpoint/submit", (req, res) => {
+  console.log("re", req.body);
+
+  res.json({ call_id: "mo-abc123def456" });
+});
+app.post("/scene_llm_endpoint/submit", (req, res) => {
+  console.log("re", req.body);
+  if (req.body.mode === "create-prompts") {
+    return res.json({ call_id: "mo-abc123def456-prompts" });
+  }
+  if (req.body.mode === "create-story") {
+    setTimeout(() => {
+      res.json({ call_id: "mo-abc123def456-create" });
+    }, 3000);
+  } else {
+    res.json({ call_id: "mo-abc123def456-edit" });
+  }
+});
+
+app.post("/scene_endpoint/submit", (req, res) => {
+  console.log("re", req.body);
+
+  res.json({ call_id: "mo-abc123def456" });
+});
+
+// app.get(`/transcriber_endpoint/result/${call_id}`, (req, res) => {
+//   res.json({ message: "Welcome to the Home page" });
+// });
+app.get(`/emotion_endpoint/result/:id`, (req, res) => {
+  console.log("call_id", req.params.id);
+
+  const data = [
+    {
+      start: 0.0,
+      end: 2.5,
+      text: "Hello world",
+      words: [
+        { word: "Hello", start: 0.0, end: 1.2 },
+        { word: "world", start: 1.3, end: 2.5 },
+      ],
+    },
+  ];
+  res.json(data);
+});
+
+app.get(`/transcriber_endpoint/result/:id`, (req, res) => {
+  console.log("call_id", req.params.id);
+
+  const data = [
+    {
+      start: 0.0,
+      end: 2.5,
+      text: "Hello world",
+      words: [
+        { word: "Hello", start: 0.0, end: 1.2 },
+        { word: "world", start: 1.3, end: 2.5 },
+      ],
+    },
+  ];
+  res.json(data);
+});
+
+app.get(`/scene_endpoint/result/:id`, (req, res) => {
+  console.log("call_id", req.params.id);
+
+  res.json(lyricsData);
+});
+
+app.get(`/scene_llm_endpoint/result/:id`, (req, res) => {
+  console.log("call_id", req.params.id);
+
+  // const data = sceneData;
+  let data = null;
+  if (req.params.id === "mo-abc123def456-prompts") {
+    data = {
+      prompts: promptsJ,
+    };
+
+    return res.json(data);
+  }
+
+  if (req.params.id === "mo-abc123def456-create") {
+    data = {
+      story_elements: {
+        narrative: "A mechanical being discovers the meaning of existence",
+        character_details: "robot, metallic chassis, futuristic",
+        character_outfit: "black butler suit and tie",
+      },
+    };
+  } else {
+    data = {
+      story_elements: {
+        narrative:
+          "Amidst the ruins of civilization, a lone survivor searches for hope ts",
+        character_details: "indian woman, square face, bold eyes",
+        character_outfit: "tattered coat, weathered",
+      },
+    };
+  }
+
+  res.json(data);
+});
+
+app.post("/character_preprocess_endpoint/submit", (req, res) => {
+  console.log("re", req.body);
+
+  res.json({ call_id: "mo-abc123def456" });
+});
+
+app.post("/train_character_endpoint/submit", (req, res) => {
+  setTimeout(() => {
+    res.json({ call_id: "mo-abc123def456-edit" });
+  }, 5000);
+});
+app.post("/style_endpoint/submit", (req, res) => {
+  res.json({ call_id: "mo-abc123def456-edit" });
+});
+
+app.get("/character_preprocess_endpoint/result/:id", (req, res) => {
+  console.log("running.api");
+
+  res.json({
+    processed_path:
+      "https://s3.amazonaws.com/PATH/TO/AVATAR_IMAGE_FOLDER/processed/",
+  });
+});
+app.get("/train_character_endpoint/result/:id", (req, res) => {
+  setTimeout(() => {
+    res.json({
+      lora_path:
+        "https://s3.amazonaws.com/PATH/TO/CHARCHA_IMAGE_FOLDER/lora/character_name.safetensors",
+    });
+  }, 1000);
+});
+app.get("/style_endpoint/result/:id", (req, res) => {
+  setTimeout(() => {
+    res.json({
+      realistic:
+        "http://localhost:5173/src/assets/images/avatar2.png?t=1742275375285",
+      animated:
+        "http://localhost:5173/src/assets/images/avatar1.png?t=1742275375285",
+      sketch:
+        "http://localhost:5173/src/assets/images/avatar3.png?t=1742275375285",
+    });
+  }, 4000);
+});
+//----------------------------------------------------------------------------------------------
+
+app.post("/avatar_endpoint/submit", (req, res) => {
+  if (req.body.mode === "upscale") {
+    return res.json({ call_id: "mo-abc123def456-upscale" });
+  }
+  if (req.body.mode) {
+    return res.json({ call_id: "mo-abc123def456-create" });
+  }
+  res.json({ call_id: "mo-abc123def456-edit" });
+});
+
+app.get("/avatar_endpoint/result/:id", (req, res) => {
+  console.log(req);
+  if (req.params.id === "mo-abc123def456-upscale") {
+    return res.json({
+      upscaled_path:
+        "https://s3.amazonaws.com/PATH/TO/AVATAR_IMAGE_FOLDER/processed/upscale",
+    });
+  }
+
+  if (req.params.id === "mo-abc123def456-create") {
+    return res.json({
+      image_1_path:
+        "http://localhost:5173/src/assets/images/cartoon.png?t=1742275375285",
+      image_2_path:
+        "http://localhost:5173/src/assets/images/cartoon.png?t=1742275375285",
+      image_3_path:
+        "http://localhost:5173/src/assets/images/cartoon.png?t=1742275375285",
+    });
+  }
+  res.json({
+    image_1_path:
+      "http://localhost:5173/src/assets/images/avatar2.png?t=1742275375285",
+    image_2_path:
+      "http://localhost:5173/src/assets/images/avatar1.png?t=1742275375285",
+    image_3_path:
+      "http://localhost:5173/src/assets/images/avatar3.png?t=1742275375285",
+  });
+});
+
+// -----------------------------------------------------------------------------------
+
+app.post("/flux_prompts_endpoint/submit", (req, res) => {
+  console.log("req for -- ", req.body.prompt_indices);
+  setTimeout(() => {
+    if (req.body.prompt_indices === 0) {
+      return res.json({ call_id: "mo-abc123def456-id-0" });
+    }
+    return res.json({
+      call_id: `"mo-abc123def456-id-${req.body.prompt_indices}`,
+    });
+  }, (req.body.prompt_indices % 4) * 1000); // Delay response by 2 seconds
+});
+
+app.get("/flux_prompts_endpoint/result/:id", (req, res) => {
+  console.log(req.params.id);
+  return res.json({
+    image_path:
+      "https://pinnacle.works/wp-content/uploads/2022/06/dummy-image.jpg",
+    prompt_index: req.params.id,
+  });
+});
+
+//--------------------------------------------------------------------------------
+
+app.post("/i2v_endpoint/submit", (req, res) => {
+  return res.json({ call_id: "mo-abc123def456-id-0" });
+});
+
+app.get("/i2v_endpoint/result/:id", (req, res) => {
+  return res.json({
+    video_folder_path: "https://s3.amazonaws.com/PATH/TO/i2v/",
+  });
+});
+
+app.post("/vid_cut_endpoint/submit", (req, res) => {
+  return res.json({ call_id: "mo-abc123def456-id-0" });
+});
+
+app.get("/vid_cut_endpoint/result/:id", (req, res) => {
+  setTimeout(() => {
+    return res.json({
+      final_video_path:
+        "http://localhost:5173/src/assets/vedio/realistic_video.mp4",
+    });
+  }, 5000);
+});
+
+//--------------------------------------------------------------------------------
+
+export const lyricsData = [
+  {
+    start: 0.0,
+    end: 0.4179591836734694,
+    text: "[NO VOCALS]",
+    emotion: "serene",
+  },
+  {
+    start: 0.4179591836734694,
+    end: 5.178049886621316,
+    text: "chaeyeongiga jotahaneun raendeom geim! apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu",
+    emotion: "serene",
+  },
+  {
+    start: 5.178049886621316,
+    end: 10.00780045351474,
+    text: "apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apartment. apateu apateu apateu apateu",
+    emotion: "euphoric",
+  },
+  {
+    start: 10.00780045351474,
+    end: 14.837551020408164,
+    text: "apateu apateu apateu apateu apateu apateu apateu",
+    emotion: "melancholy",
+  },
+  {
+    start: 14.837551020408164,
+    end: 19.481541950113378,
+    text: "apateu apateu apateu apateu apateu apateu",
+    emotion: "euphoric",
+  },
+  {
+    start: 19.481541950113378,
+    end: 24.3112925170068,
+    text: "apateu face, apateu face. Sensitive apateu but apateu apateu kiss apateu apateu for",
+    emotion: "euphoric",
+  },
+  {
+    start: 24.3112925170068,
+    end: 29.141043083900225,
+    text: "real. daeum hearts, that's what I'm on, yeah",
+    emotion: "euphoric",
+  },
+  {
+    start: 29.141043083900225,
+    end: 33.57605442176871,
+    text: "yeongsangeseo give me something I can feel Don't you want",
+    emotion: "tense",
+  },
+  {
+    start: 33.57605442176871,
+    end: 38.01106575963719,
+    text: "mannayo. like I want you, baby Don't you need me like I need you",
+    emotion: "euphoric",
+  },
+  {
+    start: 38.01106575963719,
+    end: 42.840816326530614,
+    text: "now Sleep tomorrow but tonight go crazy All you gotta",
+    emotion: "tense",
+  },
+  {
+    start: 42.840816326530614,
+    end: 46.85786848072562,
+    text: "do is just meet me at the Ah-pa-ta-pa-ta,",
+    emotion: "euphoric",
+  },
+  {
+    start: 46.85786848072562,
+    end: 50.48018140589569,
+    text: "ah-pa-ta-pa-ta, ah-pa-ta-pa-ta, uh",
+    emotion: "tense",
+  },
+  {
+    start: 50.48018140589569,
+    end: 55.309931972789116,
+    text: "eoheo",
+    emotion: "melancholy",
+  },
+  {
+    start: 55.309931972789116,
+    end: 60.162902494331064,
+    text: "eoheo apatji apatji apatji apatji",
+    emotion: "euphoric",
+  },
+  {
+    start: 60.162902494331064,
+    end: 64.96943310657596,
+    text: "apatji apatji eoheo a eoheo I'm talking drink, dance, smoke, freak, party all night. Come on.",
+    emotion: "melancholy",
+  },
+  {
+    start: 64.96943310657596,
+    end: 69.82240362811791,
+    text: " Gumbae, Gumbae, Yo, what's up?",
+    emotion: "tense",
+  },
+  {
+    start: 69.82240362811791,
+    end: 74.65215419501133,
+    text: "Uh-huh, uh-huh. Hey, so now you know the game. Are you ready?",
+    emotion: "euphoric",
+  },
+  {
+    start: 74.65215419501133,
+    end: 79.48190476190476,
+    text: "Because I'm coming to get you, get you, get you. Hold on, hold on.",
+    emotion: "serene",
+  },
+  {
+    start: 79.48190476190476,
+    end: 84.31165532879818,
+    text: "I'm on my way. Yeah, yeah,",
+    emotion: "tense",
+  },
+  {
+    start: 84.31165532879818,
+    end: 89.1414058956916,
+    text: "yeah, yeah, yeah. I'm on my way.",
+    emotion: "serene",
+  },
+  {
+    start: 89.1414058956916,
+    end: 93.97115646258503,
+    text: "Hold on, hold on, I'm on my",
+    emotion: "euphoric",
+  },
+  {
+    start: 93.97115646258503,
+    end: 98.80090702947845,
+    text: "way Yeah, yeah, yeah, yeah,",
+    emotion: "serene",
+  },
+  {
+    start: 98.80090702947845,
+    end: 103.63065759637188,
+    text: "yeah I'm on my way",
+    emotion: "serene",
+  },
+  {
+    start: 103.63065759637188,
+    end: 108.4604081632653,
+    text: "daeum yeongsangeseo mannayo. want you baby Don't you need me like I",
+    emotion: "euphoric",
+  },
+  {
+    start: 108.4604081632653,
+    end: 113.31337868480726,
+    text: "need you now Sleep tomorrow but tonight go crazy",
+    emotion: "serene",
+  },
+  {
+    start: 113.31337868480726,
+    end: 118.14312925170069,
+    text: "All you gotta do is just meet me at the Just meet me at the Just meet me at the",
+    emotion: "euphoric",
+  },
+  {
+    start: 118.14312925170069,
+    end: 122.97287981859411,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 122.97287981859411,
+    end: 127.80263038548753,
+    text: "[NO VOCALS]",
+    emotion: "serene",
+  },
+  {
+    start: 127.80263038548753,
+    end: 132.63238095238094,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 132.63238095238094,
+    end: 137.46213151927438,
+    text: "Just leave me alone.",
+    emotion: "euphoric",
+  },
+  {
+    start: 137.46213151927438,
+    end: 142.2918820861678,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 142.2918820861678,
+    end: 146.7268934240363,
+    text: "[NO VOCALS]",
+    emotion: "serene",
+  },
+  {
+    start: 146.7268934240363,
+    end: 151.16190476190476,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 151.16190476190476,
+    end: 155.59691609977324,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 155.59691609977324,
+    end: 160.0087074829932,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 160.0087074829932,
+    end: 164.44371882086168,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 164.44371882086168,
+    end: 168.9019501133787,
+    text: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 168.9019501133787,
+    end: 173.39736961451248,
+    text: "[NO VOCALS]",
+    emotion: "serene",
+  },
+];
+
+export const promptsJ = [
+  {
+    start: 0.0,
+    end: 0.4179591836734694,
+    number: 1,
+    narrative:
+      "mehulagarwal stands by the floor-to-ceiling window of a luxury hotel room, gazing at the Seoul skyline with countless apartment buildings stretching to the horizon, fingers lightly touching the glass.",
+    location: "Luxury hotel room in Seoul",
+    time: "Late afternoon",
+    weather: "Clear sky with golden sunlight streaming in",
+    photo_type: "Medium shot",
+    pose: "Standing with one hand touching the window glass",
+    camera_position: "Side angle capturing profile against the window",
+    facial_expression: "Contemplative, slightly melancholic",
+    dialogue: "[NO VOCALS]",
+    emotion: "melancholy",
+  },
+  {
+    start: 0.4179591836734694,
+    end: 5.178049886621316,
+    number: 2,
+    narrative:
+      "mehulagarwal walks to the hotel tv, turns on music and glances at the cityscape of apartments.",
+    location: "hotel room",
+    time: "Late afternoon",
+    weather: "Golden hour light filtering through windows",
+    photo_type: "Full body shot",
+    pose: "Walking with arm extended toward sound system",
+    camera_position: "Front angle following movement",
+    facial_expression: "Curious, slightly excited",
+    dialogue:
+      "chaeyeongiga jotahaneun raendeom geim! apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu",
+    emotion: "melancholy",
+  },
+  {
+    start: 5.178049886621316,
+    end: 10.00780045351474,
+    number: 3,
+    narrative:
+      "mehulagarwal begins to move rhythmically as music fills the room, using the remote control as an impromptu microphone while dancing between furniture pieces.",
+    location: "Open space in hotel suite",
+    time: "Late afternoon",
+    weather: "Warm golden light transitioning to sunset hues",
+    photo_type: "Medium wide shot",
+    pose: "Dancing with remote in hand",
+    camera_position: "Front angle capturing full movement",
+    facial_expression: "Beginning to smile, eyes brightening",
+    dialogue:
+      "apateu apateu apateu apateu apateu apateu apateu apateu apateu apateu apartment. apateu apateu apateu apateu",
+    emotion: "euphoric",
+  },
+  {
+    start: 10.00780045351474,
+    end: 14.837551020408164,
+    number: 4,
+    narrative:
+      "mehulagarwal jumps onto the plush king-sized bed, bouncing playfully while pointing outward toward the apartment buildings visible through the window.",
+    location: "Bedroom area of hotel suite",
+    time: "Early evening",
+    weather: "Sunset creating orange glow across the room",
+    photo_type: "Wide shot",
+    pose: "Mid-jump on bed with arm outstretched",
+    camera_position: "Low angle looking up",
+    facial_expression: "Joyful, carefree",
+    dialogue: "apateu apateu apateu apateu apateu apateu apateu",
+    emotion: "melancholy",
+  },
+  {
+    start: 14.837551020408164,
+    end: 19.481541950113378,
+    number: 5,
+    narrative:
+      "mehulagarwal spins around the room, arms extended, creating shadows on the wall that mimic the silhouettes of apartment buildings outside.",
+    location: "Center of hotel suite",
+    time: "Early evening",
+    weather: "Sunset casting dramatic shadows",
+    photo_type: "Medium shot with movement blur",
+    pose: "Spinning with arms outstretched",
+    camera_position: "Slightly elevated front angle",
+    facial_expression: "Euphoric, eyes closed",
+    dialogue: "apateu apateu apateu apateu apateu apateu",
+    emotion: "euphoric",
+  },
+  {
+    start: 19.481541950113378,
+    end: 24.3112925170068,
+    number: 6,
+    narrative: "mehulagarwal looks at a napkin with a kiss on it",
+    location: "hotel room",
+    time: "Early evening",
+    weather: "Dimming natural light with hotel lights creating warm glow",
+    photo_type: "Close-up",
+    pose: "pensive shot",
+    camera_position: "Side angle",
+    facial_expression: "Reminiscing",
+    dialogue:
+      "apateu face, apateu face. Sensitive apateu but apateu apateu kiss apateu apateu for",
+    emotion: "euphoric",
+  },
+  {
+    start: 24.3112925170068,
+    end: 29.141043083900225,
+    number: 7,
+    narrative:
+      "mehulagarwal draws a heart shape on the steamy shower glass, then steps back to admire the artwork with the cityscape visible through the bathroom window.",
+    location: "Luxury shower in hotel bathroom",
+    time: "Evening",
+    weather: "City lights beginning to twinkle outside",
+    photo_type: "Medium shot",
+    pose: "Standing with finger extended, drawing on glass",
+    camera_position: "Front angle through shower door",
+    facial_expression: "Satisfied, dreamy",
+    dialogue: "real. daeum hearts, that's what I'm on, yeah",
+    emotion: "melancholy",
+  },
+  {
+    start: 29.141043083900225,
+    end: 33.57605442176871,
+    number: 8,
+    narrative:
+      "mehulagarwal rummages through a suitcase, tossing colorful clothing items into the air.",
+    location: "Hotel suite bedroom",
+    time: "Evening",
+    weather: "Warm room lights against dark windows",
+    photo_type: "Wide shot",
+    pose: "Kneeling, tossing items",
+    camera_position: "Eye-level front angle",
+    facial_expression: "Mischievous, playful",
+    dialogue: "yeongsangeseo give me something I can feel ",
+    emotion: "Euphoric",
+  },
+  {
+    start: 33.57605442176871,
+    end: 38.01106575963719,
+    number: 9,
+    narrative:
+      "mehulagarwal pretends to have a conversation with pillows arranged on the couch, gesturing animatedly as if telling stories to imaginary companions.",
+    location: "Sitting area of hotel suite",
+    time: "Night",
+    weather: "City lights twinkling through windows",
+    photo_type: "Medium wide shot",
+    pose: "Sitting cross-legged, gesturing to pillow arrangement",
+    camera_position: "Front angle from across coffee table",
+    facial_expression: "Animated, conversational",
+    dialogue:
+      "Don't you want like I want you, baby Don't you need me like I need you",
+    emotion: "melancholy",
+  },
+  {
+    start: 38.01106575963719,
+    end: 42.840816326530614,
+    number: 10,
+    narrative:
+      "mehulagarwal sings on top of the coffee table, using a TV remote as a microphone.",
+    location: "Living area of hotel suite",
+    time: "Night",
+    weather: "Darkness outside with city lights creating backdrop",
+    photo_type: "Full body shot",
+    pose: "on coffee table",
+    camera_position: "Low angle looking up",
+    facial_expression: "Wild, uninhibited joy",
+    dialogue: "now Sleep tomorrow but tonight go crazy All you gotta",
+    emotion: "euphoric",
+  },
+  {
+    start: 42.840816326530614,
+    end: 46.85786848072562,
+    number: 11,
+    narrative:
+      "mehulagarwal points dramatically at apartment buildings visible through the window while mouthing lyrics, creating a makeshift stage performance for an audience of city lights.",
+    location: "By the window of hotel suite",
+    time: "Night",
+    weather: "Clear night with vibrant city lights",
+    photo_type: "Medium shot",
+    pose: "Standing with arm extended pointing at cityscape",
+    camera_position: "Side profile capturing gesture toward window",
+    facial_expression: "Intense, performative",
+    dialogue: "do is just meet me at the Ah-pa-ta-pa-ta,",
+    emotion: "euphoric",
+  },
+  {
+    start: 46.85786848072562,
+    end: 50.48018140589569,
+    number: 12,
+    narrative: "mehulagarwal slides across hotel floor, arms outstretched.",
+    location: "Hotel suite floor",
+    time: "Night",
+    weather: "Soft bedside lamps",
+    photo_type: "Wide shot",
+    pose: "Sliding",
+    camera_position: "Front angle",
+    facial_expression: "happy",
+    dialogue: "ah-pa-ta-pa-ta, ah-pa-ta-pa-ta, uh",
+    emotion: "melancholy",
+  },
+  {
+    start: 50.48018140589569,
+    end: 55.309931972789116,
+    number: 13,
+    narrative:
+      "mehulagarwal falls backward onto the plush bed, arms and legs splayed out in a moment of pure abandon, surrounded by scattered clothing items.",
+    location: "Bedroom area of hotel suite",
+    time: "Night",
+    weather: "Soft bedside lamps creating intimate lighting",
+    photo_type: "Overhead shot",
+    pose: "Lying spread-eagle on bed",
+    camera_position: "Directly above looking down",
+    facial_expression: "Eyes closed, mouth open in laughter",
+    dialogue: "eoheo",
+    emotion: "euphoric",
+  },
+  {
+    start: 55.309931972789116,
+    end: 60.162902494331064,
+    number: 14,
+    narrative: "mehulagarwal jumps on the bed, hair flopping with each bounce.",
+    location: "Bedroom area of hotel suite",
+    time: "Night",
+    weather: "City lights creating backdrop",
+    photo_type: "Medium wide shot",
+    pose: "Mid-jump on bed",
+    camera_position: "Front angle capturing height of jump",
+    facial_expression: "Pure joy, mouth open in mid-shout",
+    dialogue: "eoheo apatji apatji apatji apatji",
+    emotion: "euphoric",
+  },
+  {
+    start: 60.162902494331064,
+    end: 64.96943310657596,
+    number: 15,
+    narrative:
+      "mehulagarwal raids the minibar, pulling out several tiny bottles and arranging them like bowling pins on the counter, preparing for an impromptu game.",
+    location: "Minibar area of hotel suite",
+    time: "Night",
+    weather: "Artificial light from minibar illuminating face",
+    photo_type: "Medium close-up",
+    pose: "Crouched by minibar, arranging bottles",
+    camera_position: "Side angle at eye level",
+    facial_expression: "Conspiratorial, playful",
+    dialogue:
+      "apatji apatji eoheo a eoheo I'm talking drink, dance, smoke, freak, party all night. Come on.",
+    emotion: "euphoric",
+  },
+  {
+    start: 64.96943310657596,
+    end: 69.82240362811791,
+    number: 16,
+    narrative:
+      "mehulagarwal raises a glass of colorful drink toward the ceiling in toast, droplets splashing as ice cubes clink, city lights twinkling through the liquid.",
+    location: "Bar counter in hotel suite",
+    time: "Late night",
+    weather: "Dark night with city lights as backdrop",
+    photo_type: "Close-up on hand and glass",
+    pose: "Standing with arm raised in toast",
+    camera_position: "Low angle looking up at glass",
+    facial_expression: "Celebratory, mischievous",
+    dialogue: " Gumbae, Gumbae, Yo, what's up?",
+    emotion: "melancholy",
+  },
+  {
+    start: 69.82240362811791,
+    end: 74.65215419501133,
+    number: 17,
+    narrative:
+      "mehulagarwal speaks into a hotel phone, pretending to have an animated conversation while gesturing with free hand toward the cityscape of apartments.",
+    location: "Desk area of hotel suite",
+    time: "Late night",
+    weather: "Desk lamp creating pool of light, darkness beyond",
+    photo_type: "Medium shot",
+    pose: "Sitting at desk, phone to ear, gesturing with other hand",
+    camera_position: "Front angle across desk",
+    facial_expression: "Animated, as if explaining something exciting",
+    dialogue: "Uh-huh, uh-huh. Hey, so now you know the game. Are you ready?",
+    emotion: "euphoric",
+  },
+  {
+    start: 74.65215419501133,
+    end: 79.48190476190476,
+    number: 18,
+    narrative:
+      "mehulagarwal ties a hotel bed sheet around shoulders like a cape, striking heroic poses in front of the mirror while city lights twinkle in the reflection.",
+    location: "Between bedroom and bathroom mirror",
+    time: "Late night",
+    weather: "Dim room lighting with city glow from windows",
+    photo_type: "Full body shot",
+    pose: "Standing with bed sheet cape, hands on hips",
+    camera_position: "Front angle capturing both person and mirror",
+    facial_expression: "Exaggerated confidence, playful",
+    dialogue:
+      "Because I'm coming to get you, get you, get you. Hold on, hold on.",
+    emotion: "euphoric",
+  },
+  {
+    start: 79.48190476190476,
+    end: 84.31165532879818,
+    number: 19,
+    narrative:
+      "mehulagarwal scribbles on hotel notepad, sketching the daytime city skyline with birds and clouds.",
+    location: "Writing desk by window",
+    time: "Late night",
+    weather: "Desk lamp creating focused light in dark room",
+    photo_type: "Close-up on hands and notepad",
+    pose: "Hunched over desk, drawing intensely",
+    camera_position: "Overhead looking down at artwork",
+    facial_expression: "Concentrated, tongue slightly sticking out",
+    dialogue: "I'm on my way. Yeah, yeah,",
+    emotion: "euphoric",
+  },
+  {
+    start: 84.31165532879818,
+    end: 89.1414058956916,
+    number: 20,
+    narrative:
+      "mehulagarwal balances hotel slippers on head while walking carefully across the room, arms outstretched for balance, with city lights creating a backdrop.",
+    location: "Open area of hotel suite",
+    time: "Late night",
+    weather: "Minimal lighting with city glow through windows",
+    photo_type: "Full body shot",
+    pose: "Walking with arms extended, balancing slippers on head",
+    camera_position: "Front angle following movement",
+    facial_expression: "Concentrated, slight smile",
+    dialogue: "yeah, yeah, yeah. I'm on my way.",
+    emotion: "melancholy",
+  },
+  {
+    start: 89.1414058956916,
+    end: 93.97115646258503,
+    number: 21,
+    narrative:
+      "mehulagarwal creates shadow puppets on the wall using hands and a desk lamp, making shapes that mimic the silhouettes of Seoul's distinctive apartment buildings.",
+    location: "Wall near desk in hotel suite",
+    time: "Late night",
+    weather: "Dark room with focused desk lamp creating shadows",
+    photo_type: "Medium shot focusing on hands and shadows",
+    pose: "Standing with hands positioned to create shadow figures",
+    camera_position: "Side angle capturing both hands and wall shadows",
+    facial_expression: "Focused, childlike wonder",
+    dialogue: "Hold on, hold on, I'm on my",
+    emotion: "euphoric",
+  },
+  {
+    start: 93.97115646258503,
+    end: 98.80090702947845,
+    number: 22,
+    narrative:
+      "mehulagarwal presses face against cold window glass, breath creating fog patterns that momentarily obscure the view of apartment buildings before fading away.",
+    location: "Floor-to-ceiling window of hotel suite",
+    time: "Late night",
+    weather: "City lights twinkling against dark sky",
+    photo_type: "Close-up",
+    pose: "Standing with face and hands pressed against glass",
+    camera_position: "Side profile against window",
+    facial_expression: "Curious, slightly melancholic",
+    dialogue: "way Yeah, yeah, yeah, yeah,",
+    emotion: "melancholy",
+  },
+  {
+    start: 98.80090702947845,
+    end: 103.63065759637188,
+    number: 23,
+    narrative:
+      "mehulagarwal creates an impromptu drumbeat on various surfaces of the hotel room, using pencils as drumsticks, building a rhythm that matches the pattern of apartment lights blinking outside.",
+    location: "Various surfaces around hotel suite",
+    time: "Very late night",
+    weather: "Mostly dark with minimal room lighting",
+    photo_type: "Medium shots showing drumming movement",
+    pose: "Moving between surfaces, striking rhythmic poses",
+    camera_position: "Following movement across room",
+    facial_expression: "Immersed in rhythm, eyes half-closed",
+    dialogue: "yeah I'm on my way",
+    emotion: "euphoric",
+  },
+  {
+    start: 103.63065759637188,
+    end: 108.4604081632653,
+    number: 24,
+    narrative:
+      "mehulagarwal dances with own shadow on the wall, creating elongated movements that seem to reach toward the distant apartments visible through the window.",
+    location: "Open wall space in hotel suite",
+    time: "Very late night",
+    weather: "Single floor lamp creating dramatic shadows",
+    photo_type: "Wide shot",
+    pose: "Dancing with arms extended creating shadow art",
+    camera_position: "Front angle capturing both person and shadow",
+    facial_expression: "Lost in movement, dreamy",
+    dialogue:
+      "daeum yeongsangeseo mannayo. want you baby Don't you need me like I",
+    emotion: "euphoric",
+  },
+  {
+    start: 108.4604081632653,
+    end: 113.31337868480726,
+    number: 25,
+    narrative:
+      "mehulagarwal builds a pillow fort between furniture pieces, creating a cozy space with a perfect view of the city outside, preparing for an all-night adventure.",
+    location: "Living area of hotel suite",
+    time: "Very late night",
+    weather: "Dark with city lights twinkling through windows",
+    photo_type: "Medium wide shot",
+    pose: "Arranging pillows and blankets with focused intent",
+    camera_position: "Front angle showing construction progress",
+    facial_expression: "Determined, childlike focus",
+    dialogue: "need you now Sleep tomorrow but tonight go crazy",
+    emotion: "euphoric",
+  },
+  {
+    start: 113.31337868480726,
+    end: 118.14312925170069,
+    number: 26,
+    narrative:
+      "mehulagarwal reads a message on a napkin that says 'JUST MEET ME'",
+    location: "hotel room",
+    time: "Late night",
+    weather: "Warm hotel lighting against dark outside",
+    photo_type: "Close-up",
+    pose: "thoughtful",
+    camera_position: "Front angle",
+    facial_expression: "Pensive",
+    dialogue:
+      "Just meet me at the... Just meet me at the... Just meet me at the...",
+    emotion: "contemplative",
+  },
+  {
+    start: 118.14312925170069,
+    end: 122.97287981859411,
+    number: 27,
+    narrative:
+      'mehulagarwal lies on back on hotel carpet, creating "carpet angels" by sweeping arms and legs, gazing up at ceiling while imagining constellations that match the pattern of city lights outside.',
+    location: "Floor space in hotel suite",
+    time: "Middle of night",
+    weather: "Nearly dark room with minimal ambient light",
+    photo_type: "Overhead shot",
+    pose: "Lying on back with arms and legs spread making carpet angels",
+    camera_position: "Directly above looking down",
+    facial_expression: "Dreamy, faraway look",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 122.97287981859411,
+    end: 127.80263038548753,
+    number: 28,
+    narrative:
+      "mehulagarwal stacks room service dishes into precarious tower that mimics the apartment buildings outside, carefully balancing each plate with architectural precision.",
+    location: "Dining table in hotel suite",
+    time: "Middle of night",
+    weather: "Single overhead light illuminating table area",
+    photo_type: "Medium shot",
+    pose: "Standing with arms carefully extended balancing dishes",
+    camera_position: "Side angle at eye level",
+    facial_expression: "Intense concentration, biting lip",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 127.80263038548753,
+    end: 132.63238095238094,
+    number: 29,
+    narrative:
+      "mehulagarwal creates a makeshift telescope using rolled-up hotel magazine, peering through it at the apartment buildings outside as if they were distant stars.",
+    location: "Window area of hotel suite",
+    time: "Middle of night",
+    weather: "Dark night with distant city lights",
+    photo_type: "Medium close-up",
+    pose: "Standing with rolled magazine to eye",
+    camera_position: "Profile against window",
+    facial_expression: "Curious, exploratory",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 132.63238095238094,
+    end: 137.46213151927438,
+    number: 30,
+    narrative:
+      'mehulagarwal throws hands up dramatically and falls back onto bed, mouthing "Just leave me alone" to the ceiling, though the expression reveals the statement is directed at loneliness itself.',
+    location: "Bedroom area of hotel suite",
+    time: "Middle of night",
+    weather: "Dim bedside lamp casting soft shadows",
+    photo_type: "Medium wide shot",
+    pose: "Mid-fall onto bed with arms outstretched",
+    camera_position: "Front angle slightly elevated",
+    facial_expression: "Dramatic yet vulnerable",
+    dialogue: "Just leave me alone.",
+    emotion: "euphoric",
+  },
+  {
+    start: 137.46213151927438,
+    end: 142.2918820861678,
+    number: 31,
+    narrative:
+      "mehulagarwal sits cross-legged in pillow fort, surrounded by snacks from minibar, looking out at city with chin resting on hands, momentarily still after hours of movement.",
+    location: "Pillow fort in living area",
+    time: "Pre-dawn",
+    weather: "Very dark with only city lights visible",
+    photo_type: "Medium shot framed by fort entrance",
+    pose: "Sitting cross-legged with chin on hands",
+    camera_position: "Front angle looking into fort",
+    facial_expression: "Contemplative, slightly tired",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 142.2918820861678,
+    end: 146.7268934240363,
+    number: 32,
+    narrative:
+      "mehulagarwal creates a light show by waving phone flashlight around dark room, casting moving patterns that dance across walls like the distant city lights outside.",
+    location: "Center of darkened hotel suite",
+    time: "Pre-dawn",
+    weather: "Nearly complete darkness",
+    photo_type: "Long exposure shot showing light trails",
+    pose: "Standing with arm creating circular light patterns",
+    camera_position: "Front angle capturing light movement",
+    facial_expression: "Fascinated, illuminated by phone light",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 146.7268934240363,
+    end: 151.16190476190476,
+    number: 33,
+    narrative:
+      "mehulagarwal repositions furniture to create better view of sunrise, dragging chair to optimal position by window, preparing for first light to hit the apartment skyline.",
+    location: "Window area of hotel suite",
+    time: "Pre-dawn",
+    weather: "Dark blue beginning to lighten at horizon",
+    photo_type: "Wide shot",
+    pose: "Dragging chair with determined stance",
+    camera_position: "Side angle showing effort",
+    facial_expression: "Purposeful, anticipatory",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 151.16190476190476,
+    end: 155.59691609977324,
+    number: 34,
+    narrative:
+      "mehulagarwal wraps in hotel blanket like cocoon, standing by window as first hints of dawn begin to illuminate the countless apartments across the Seoul skyline.",
+    location: "Floor-to-ceiling window of hotel suite",
+    time: "Early dawn",
+    weather: "Dark blue sky with first orange hints at horizon",
+    photo_type: "Medium shot",
+    pose: "Standing wrapped in blanket like cocoon",
+    camera_position: "Front angle showing silhouette against lightening sky",
+    facial_expression: "Peaceful, expectant",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 155.59691609977324,
+    end: 160.0087074829932,
+    number: 35,
+    narrative:
+      "mehulagarwal makes shadow puppets that dance in the growing dawn light, creating shapes that interplay with the silhouettes of apartment buildings now becoming visible in morning light.",
+    location: "Wall near window of hotel suite",
+    time: "Dawn",
+    weather: "Growing golden light entering room",
+    photo_type: "Medium shot focusing on hands and shadows",
+    pose: "Creating elaborate hand shapes against wall",
+    camera_position: "Side angle capturing profile and shadow art",
+    facial_expression: "Creative, absorbed",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 160.0087074829932,
+    end: 164.44371882086168,
+    number: 36,
+    narrative:
+      "mehulagarwal stretches arms wide toward the sunrise, embracing the new day as golden light bathes the room and illuminates the countless apartments that were just lights in darkness hours before.",
+    location: "Center of hotel suite by window",
+    time: "Sunrise",
+    weather: "Golden sunlight streaming in windows",
+    photo_type: "Wide shot",
+    pose: "Standing with arms stretched wide",
+    camera_position: "Front angle capturing silhouette against sunrise",
+    facial_expression: "Serene, eyes closed facing light",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 164.44371882086168,
+    end: 168.9019501133787,
+    number: 37,
+    narrative:
+      "mehulagarwal takes one last look at the apartment buildings now clearly visible in morning light, hand raised in farewell gesture, the night's solitary adventure coming to a close.",
+    location: "Floor-to-ceiling window of hotel suite",
+    time: "Early morning",
+    weather: "Bright morning sunlight illuminating city",
+    photo_type: "Medium shot",
+    pose: "Standing with hand raised in farewell",
+    camera_position: "Profile against morning cityscape",
+    facial_expression: "Satisfied, peaceful",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+  {
+    start: 168.9019501133787,
+    end: 173.39736961451248,
+    number: 38,
+    narrative:
+      "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures \u2013 pillows, snacks, improvised toys \u2013 gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.",
+    location: "Bedroom area of hotel suite",
+    time: "Morning",
+    weather: "Bright sunlight filling room",
+    photo_type: "Wide shot",
+    pose: "Sitting on edge of bed, slightly hunched forward",
+    camera_position: "Front angle showing full scene",
+    facial_expression: "Content, reflective smile",
+    dialogue: "[NO VOCALS]",
+    emotion: "euphoric",
+  },
+];
+export default app;
