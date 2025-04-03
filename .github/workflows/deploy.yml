@@ -56,11 +56,12 @@ jobs:
               npm install -g pm2
             fi
 
-            echo "⚙️ Adding npm global bin to PATH"
-            export PATH=$(npm bin -g):$PATH
+            echo "⚙️ Getting PM2 path"
+            PM2_PATH=$(npm bin -g)/pm2
+            echo "📍 Using PM2 at: $PM2_PATH"
 
             echo "🚀 Restarting backend with PM2"
-            pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+            $PM2_PATH restart koyal-backend || $PM2_PATH start server.js --name koyal-backend
 
           elif [ "$BRANCH" = "koyal-demo" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
