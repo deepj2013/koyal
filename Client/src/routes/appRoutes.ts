@@ -3,4 +3,5 @@ export enum PageRoutes {
   CREATE_USER = "/admin/createUser",
   ADMIN_LOGIN = "/admin/login",
   COLLECTION = "/collection",
+  UPLOAD = '/upload'
 }
