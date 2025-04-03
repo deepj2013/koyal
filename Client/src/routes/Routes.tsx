@@ -48,8 +48,6 @@ const AppRoutes: React.FC = () => {
           <Route path="/editscene" element={<EditScenes />} />
           <Route path="/finalvideo" element={<FinalVideoPage />} />
           <Route path={PageRoutes.CREATE_USER} element={<CreateUser />} />
-        </Route>
-        <Route element={<PrivateRoute />}>
           <Route path={PageRoutes.COLLECTION} element={<Collection />} />
         </Route>
       </Routes>
