@@ -4,74 +4,30 @@ import Navbar from "../components/Navbar";
 import musicicon from "../assets/images/Audiofile.png";
 import { useNavigate } from "react-router-dom";
 import { uploadFileToS3 } from "../aws/s3-service";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
+import { setAudioType } from "../redux/features/uploadSlice";
 import {
-  useEmotionEndpointMutation,
-  useLazyGetEmotionResultQuery,
-  useLazyGetSceneResultQuery,
-  useLazyGetTranscriberResultQuery,
-  useSceneEndpointMutation,
-  useTranscriberEndpointMutation,
-} from "../redux/services/uploadAudioService/uploadAudioApi";
-import {
-  setAudioType,
-  setSceneDataFileUrl,
-} from "../redux/features/uploadSlice";
-import { convertJsonToFile } from "../utils/helper";
-import { setLyricsJsonUrl } from "../redux/features/appSlice";
-import LoadingBar from "../components/common/LoadingBar/LoadingBar";
+  AppState,
+  setAudioFileUrl,
+  setIsEnglish,
+} from "../redux/features/appSlice";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [
-    fetchTranscriberResult,
-    { data: transcriberResult, isLoading: isTranscriberResLoading },
-  ] = useLazyGetTranscriberResultQuery();
-  const [
-    fetchEmotionResult,
-    { data: emotionResult, isLoading: isEmotionResLoading },
-  ] = useLazyGetEmotionResultQuery();
-  const [
-    fetchSceneResult,
-    { data: sceneResult, isLoading: isSceneResultLoading },
-  ] = useLazyGetSceneResultQuery();
-  useSceneEndpointMutation;
-  const [
-    processEmotion,
-    { data: emotionResponse, isLoading: isProcessEmotionLoading },
-  ] = useEmotionEndpointMutation();
-  const [
-    processTranscriber,
-    { data: transcriberResponse, isLoading: isProcessTranscriberLoading },
-  ] = useTranscriberEndpointMutation();
-  const [
-    procesScene,
-    { data: sceneResponse, isLoading: isProcessSceneLoading },
-  ] = useSceneEndpointMutation();
+  const { isEnglish, audioFileUrl } = useSelector(AppState);
 
   const [selectedAudioType, setSelectedAudioType] = useState("");
-  const [isEnglish, setIsEnglish] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [audioFileURL, setAudioFileURL] = useState(null);
-  const [emotionsFileURL, setEmotionsFileURL] = useState(null);
-  const [wordTimeStampFileURL, setWordTimeStampFileURL] = useState(null);
 
-  const isLoading =
-    isEmotionResLoading ||
-    isTranscriberResLoading ||
-    isSceneResultLoading ||
-    isProcessEmotionLoading ||
-    isProcessSceneLoading ||
-    isProcessTranscriberLoading;
-
-  const isNextButtonEnabled = (audioFileURL && isEnglish !== null) || isLoading;
+  const isNextButtonEnabled = audioFileUrl && isEnglish !== null;
 
   const handleNext = () => {
-    callEmotionsAPI(audioFileURL);
+    navigate("/lyricedit");
   };
 
   const handleFileUpload = async (event) => {
@@ -104,7 +60,7 @@ const AudioUploadPage = () => {
         clearInterval(interval);
         setUploadProgress(100);
 
-        setAudioFileURL(fileUrl);
+        dispatch(setAudioFileUrl(fileUrl));
         console.log("fileUrl", fileUrl);
       } catch (error) {
         console.error("Upload failed:", error);
@@ -116,111 +72,9 @@ const AudioUploadPage = () => {
     }
   };
 
-  const handleJsonFileUpload = async (
-    data,
-    fileName,
-    setFileURL,
-    nextAPICall
-  ) => {
-    try {
-      const file = convertJsonToFile(data, fileName);
-      const url = await uploadFileToS3(
-        file,
-        localStorage.getItem("currentUser")
-      );
-      console.log(fileName, url);
-
-      if (setFileURL) {
-        setFileURL(url);
-      }
-
-      if (nextAPICall) {
-        nextAPICall();
-      }
-
-      return url;
-    } catch (err) {
-      console.error("Upload failed:", err);
-      throw err;
-    }
-  };
-
-  const callEmotionsAPI = (fileURL: string) => {
-    processEmotion({ data: fileURL });
-  };
-
-  const callTranscriberAPI = (fileURL: string) => {
-    processTranscriber({ data: fileURL, english_priority: isEnglish });
-  };
-
-  const callSceneAPI = () => {
-    procesScene({
-      word_timestamps: wordTimeStampFileURL,
-      emotion_data: emotionsFileURL,
-      audio_file: audioFileURL,
-    });
-  };
-
-  useEffect(() => {
-    if (emotionResponse?.call_id) {
-      fetchEmotionResult(emotionResponse?.call_id);
-    }
-  }, [emotionResponse]);
-
-  useEffect(() => {
-    if (transcriberResponse?.call_id) {
-      fetchTranscriberResult(transcriberResponse?.call_id);
-    }
-  }, [transcriberResponse]);
-
-  useEffect(() => {
-    if (sceneResponse?.call_id) {
-      fetchSceneResult(sceneResponse?.call_id);
-    }
-  }, [sceneResponse]);
-
-  useEffect(() => {
-    if (emotionResult) {
-      handleJsonFileUpload(
-        emotionResult,
-        "emotion_data.json",
-        setEmotionsFileURL,
-        () => {
-          callTranscriberAPI(audioFileURL);
-        }
-      );
-    }
-  }, [emotionResult]);
-
-  useEffect(() => {
-    if (transcriberResult) {
-      handleJsonFileUpload(
-        transcriberResult,
-        "word_timestamp.json",
-        setWordTimeStampFileURL,
-        callSceneAPI
-      );
-    }
-  }, [transcriberResult]);
-
-  useEffect(() => {
-    if (sceneResult) {
-      handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
-        (url) => {
-          console.log("scene json url:", url);
-          setUploadProgress(100);
-          dispatch(setSceneDataFileUrl(url));
-          dispatch(setLyricsJsonUrl(url));
-          navigate("/lyricedit");
-        }
-      );
-    }
-  }, [sceneResult]);
-
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
-      <LoadingBar isLoading={isLoading} />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           {/* Main Content */}
@@ -336,7 +190,7 @@ const AudioUploadPage = () => {
                           ? "bg-black text-white"
                           : "text-gray-800"
                       }`}
-                      onClick={() => setIsEnglish(index === 0)}
+                      onClick={() => dispatch(setIsEnglish(index === 0))}
                     >
                       <span>{option}</span>
                     </button>

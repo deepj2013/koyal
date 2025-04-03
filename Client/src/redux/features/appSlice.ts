@@ -2,8 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppModel } from "../models/appModel";
 
 const initialState: AppModel = {
+  isEnglish: null,
   characterName: "",
   loraPath: null,
+  audioFileUrl: null,
   styleImagesUrl: null,
   protoPromptsUrl: null,
   lyricsJsonUrl: null,
@@ -16,11 +18,17 @@ const appSlice = createSlice({
   name: "app",
   initialState: initialState,
   reducers: {
+    setIsEnglish: (state, action) => {
+      state.isEnglish = action.payload;
+    },
     setCharacterName: (state, action) => {
       state.characterName = action.payload;
     },
     setLoraPath: (state, action) => {
       state.loraPath = action.payload;
+    },
+    setAudioFileUrl: (state, action) => {
+      state.audioFileUrl = action.payload;
     },
     setStyleImagesUrl: (state, action) => {
       state.styleImagesUrl = action.payload;
@@ -44,14 +52,16 @@ const appSlice = createSlice({
 });
 
 export const {
+  setIsEnglish,
+  setCharacterName,
   setLoraPath,
+  setAudioFileUrl,
   setStyleImagesUrl,
   setProtoPromptsUrl,
-  setCharacterName,
   setLyricsJsonUrl,
   setScenesJson,
   setImageFolderUrl,
-  setReplacementWord
+  setReplacementWord,
 } = appSlice.actions;
 
 export default appSlice.reducer;

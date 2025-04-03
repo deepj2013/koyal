@@ -7,10 +7,7 @@
 
 }
 .shimmer {
-  padding: 5px;
   width: 95%;
-  height: 100%;
-  margin: 10px auto;
   background: #ffffff;
 }
 .shimmer .image-card {
@@ -20,7 +17,6 @@
   border-radius: 8px;
 }
 .stroke {
-  height: 100%;
   background: #777;
 }
 
