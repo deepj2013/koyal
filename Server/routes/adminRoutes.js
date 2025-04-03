@@ -3,8 +3,6 @@ import { adminLoginController, adminSignupController } from '../controllers/admi
 import { getAllWaitingListController } from '../controllers/publicController.js'
 import { adminAuth } from '../middleware/adminAuth.js'
 
-
-
 const router = express.Router()
 
 router.post('/login', adminLoginController)
