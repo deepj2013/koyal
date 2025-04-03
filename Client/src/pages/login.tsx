@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import { createFolderInS3 } from "../aws/s3-service";
 import { useUserLoginMutation } from "../redux/services/authService/authApi";
-import { useDispatch, useSelector } from "react-redux";
-import { AuthState, setUserInfo } from "../redux/features/authSlice";
+import { useDispatch } from "react-redux";
+import { setUserInfo } from "../redux/features/authSlice";
+import { PageRoutes } from "../routes/appRoutes";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -26,7 +27,7 @@ const Login = () => {
     if (email) {
       await createFolderInS3(email);
       localStorage.setItem("currentUser", email);
-      navigate("/upload");
+      navigate(PageRoutes.COLLECTION);
     }
   };
 
