@@ -13,7 +13,7 @@ export const generateTokenService = async (userId) => {
       let tokenExpiryTime = generatedTime + 24 * 60 * 60 * 1000; // Token Expires In 1 Day
   
       let data = {
-        userId: userId,
+        userId,
         tokenExpiryTime: tokenExpiryTime,
       };
   
@@ -56,7 +56,8 @@ export const generateTokenService = async (userId) => {
         },
       ];
       //#endregion
-  
+    console.log(userId);
+      //#region Aggregate Token
       let res = await Token.aggregate(tokenPipeline);
       if (res.length > 0) {
         return res[0];

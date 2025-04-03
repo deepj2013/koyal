@@ -1,5 +1,4 @@
 import { adminLoginService, adminSignUpService } from "../services/adminServices.js"
-
 export const adminLoginController = async (req, res, next) => {
     try {
         let { userId, password } = req.body
@@ -8,6 +7,7 @@ export const adminLoginController = async (req, res, next) => {
 
         return res.status(200).json({success: true, result })
     } catch (error) {
+        
         next(error)
     }
 }
