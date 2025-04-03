@@ -8,7 +8,7 @@
 }
 .shimmer {
   width: 95%;
-  background: #ffffff;
+  background: transparent;
 }
 .shimmer .image-card {
   height: 100%;

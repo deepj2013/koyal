@@ -1,16 +1,14 @@
 import "../styles/shimmer.css";
-const ShimmerWrapper = ({ isLoading, children, noContent = false }) => {
+const ShimmerWrapper = ({ isLoading, children }) => {
   return (
     <>
-      <div className="shimmer">
-        <div
-          className={`${isLoading && "stroke animate title transparent"} ${
-            noContent && "noContent"
-          }`}
-        >
-          {children}
+      {isLoading ? (
+        <div className="shimmer">
+          <div className="stroke animate title transparent">{children}</div>
         </div>
-      </div>
+      ) : (
+        <>{children}</>
+      )}
     </>
   );
 };

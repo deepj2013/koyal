@@ -12,21 +12,24 @@ import {
   Stages,
 } from "../utils/constants";
 import { FaArrowRight } from "react-icons/fa";
-import { LyricEditState } from "../redux/features/lyricEditSlice";
+import {
+  LyricEditState,
+  setStoryEleementFileUrl,
+} from "../redux/features/lyricEditSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useEditStoryElementMutation,
   useLazyGetProcessedAvatarQuery,
   useLazyGetProcessedCharacterQuery,
-  useLazyGetStyleQuery,
-  useLazyGetTrainedCharacterQuery,
   usePreprocessCharacterMutation,
   useProcessAvatarMutation,
-  useSubmitStyleMutation,
   useTrainCharacterMutation,
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
-import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
+import {
+  useLazyGetStoryElementQuery,
+  useSceneLLMEndpointMutation,
+} from "../redux/services/lyricEditService/lyricEditApi";
 import {
   dataURLtoFile,
   getRandomActions,
@@ -39,6 +42,7 @@ import {
   setReplacementWord,
 } from "../redux/features/appSlice";
 import ImagePreview from "../components/ImagePreview";
+import ShimmerWrapper from "../components/Shimmer";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -51,9 +55,15 @@ const ChooseCharacterPage = () => {
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl } = useSelector(UploadAudioState);
 
-  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
-  const [getStoryElement, { data: storyElementData }] =
-    useLazyGetStoryElementQuery();
+  const [editStory, { data: editStoryData,  isLoading: isEditStoryLoading }] = useEditStoryElementMutation();
+  const [
+    procesStory,
+    { data: sceneLLMResponse, isLoading: isProcessStoryLoading },
+  ] = useSceneLLMEndpointMutation();
+  const [
+    getStoryElement,
+    { data: storyElementData, isLoading: isGetStoryLoading },
+  ] = useLazyGetStoryElementQuery();
   const [preprocessCharacter, { data: processedCharResponse }] =
     usePreprocessCharacterMutation();
   const [getCharResult, { data: charResult }] =
@@ -84,6 +94,8 @@ const ChooseCharacterPage = () => {
   const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
   const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
   const [actions, setActions] = useState([]);
+
+  const isLoading = isProcessStoryLoading || isGetStoryLoading || isEditStoryLoading;
 
   const handleAICharClick = async () => {
     setIsCustomAvatarModalOpen(true);
@@ -154,6 +166,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
+    setStoryElement(null);
     editStory({
       mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
@@ -172,6 +185,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveChanges = () => {
+    setStoryElement(null);
     editStory({
       mode: EditStoryModes.EDIT_CHARACTER,
       scenes_path: sceneDataFileUrl,
@@ -276,22 +290,18 @@ const ChooseCharacterPage = () => {
   };
 
   useEffect(() => {
-    const fetchStoryElement = async () => {
-      try {
-        const response = await fetch(storyEleementFileUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setStoryElement(jsonData.story_elements);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-
+    procesStory({
+      mode: "create-story",
+      scenes_path: sceneDataFileUrl,
+    });
     setActions(getRandomActions());
-    fetchStoryElement();
   }, []);
+
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      getStoryElement(sceneLLMResponse?.call_id);
+    }
+  }, [sceneLLMResponse]);
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -357,32 +367,32 @@ const ChooseCharacterPage = () => {
   }, [timeLeft, currentAction, isComplete, stage]);
 
   useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
+    if (editStoryData?.call_id) {
+      getStoryElement(editStoryData?.call_id);
     }
-  }, [sceneLLMResponse]);
+  }, [editStoryData]);
 
   useEffect(() => {
     if (processedCharResponse?.call_id) {
       getCharResult(processedCharResponse?.call_id);
     }
   }, [processedCharResponse]);
-  
-  const storeReplacementWord = () => {
-    if (!useCharcha) {
-      dispatch(setReplacementWord(ReplacementWords.PERSON));
-      return;
-    }
-    if (gender === "male") {
-      dispatch(setReplacementWord(ReplacementWords.MAN));
-    } else if (gender === "female") {
-      dispatch(setReplacementWord(ReplacementWords.WOMAN));
-    } else {
-      dispatch(setReplacementWord(ReplacementWords.PERSON));
-    }
-  };
 
   useEffect(() => {
+    const storeReplacementWord = () => {
+      if (!useCharcha) {
+        dispatch(setReplacementWord(ReplacementWords.PERSON));
+        return;
+      }
+      if (gender === "male") {
+        dispatch(setReplacementWord(ReplacementWords.MAN));
+      } else if (gender === "female") {
+        dispatch(setReplacementWord(ReplacementWords.WOMAN));
+      } else {
+        dispatch(setReplacementWord(ReplacementWords.PERSON));
+      }
+    };
+
     if (trainedCharResponse?.call_id) {
       storeReplacementWord();
       navigate("/characterSelection", {
@@ -406,10 +416,13 @@ const ChooseCharacterPage = () => {
 
   useEffect(() => {
     if (storyElementData) {
-      setStoryElement(storyElementData);
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(() => {
-        console.log("upload successful");
-      });
+      setStoryElement(storyElementData.story_elements);
+      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
+        (url) => {
+          dispatch(setStoryEleementFileUrl(url));
+          console.log("story_element.json upload successful");
+        }
+      );
     }
   }, [storyElementData]);
 
@@ -457,14 +470,16 @@ const ChooseCharacterPage = () => {
                 theme
               </p>
               <div className="flex flex-col items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                <div className="w-full">
-                  <textarea
-                    className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
-                    rows={2}
-                    value={storyElement?.narrative} // Bound to state
-                    onChange={(e) => handleNarrativeChange(e)}
-                  />
-                </div>
+                <ShimmerWrapper isLoading={isLoading}>
+                  <div className="w-full">
+                    <textarea
+                      className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
+                      rows={2}
+                      value={storyElement?.narrative} // Bound to state
+                      onChange={(e) => handleNarrativeChange(e)}
+                    />
+                  </div>
+                </ShimmerWrapper>
                 <div className="w-full flex justify-end mt-2">
                   <button
                     className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-end whitespace-nowrap transition-all"

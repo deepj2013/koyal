@@ -65,11 +65,6 @@ const TranscriptPage = () => {
     isProcessSceneLoading ||
     isProcessTranscriberLoading;
 
-  const [procesStory, { data: sceneLLMResponse }] =
-    useSceneLLMEndpointMutation();
-  const [fetchStoryElement, { data: storyElement }] =
-    useLazyGetStoryElementQuery();
-
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
@@ -199,10 +194,7 @@ const TranscriptPage = () => {
   };
 
   const handleNextClick = () => {
-    procesStory({
-      mode: "create-story",
-      scenes_path: sceneDataFileUrl,
-    });
+    navigate("/choosecharacter");
   };
 
   const callEmotionsAPI = (fileURL: string) => {
@@ -295,23 +287,6 @@ const TranscriptPage = () => {
       );
     }
   }, [sceneResult]);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      fetchStoryElement(sceneLLMResponse?.call_id);
-    }
-  }, [sceneLLMResponse]);
-
-  useEffect(() => {
-    if (storyElement) {
-      handleJsonFileUpload(storyElement, "story_element.json", null, null).then(
-        (url) => {
-          dispatch(setStoryEleementFileUrl(url));
-          navigate("/choosecharacter");
-        }
-      );
-    }
-  }, [storyElement]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
