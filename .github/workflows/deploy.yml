@@ -57,11 +57,11 @@ jobs:
             fi
 
             echo "⚙️ Getting PM2 path"
-            PM2_PATH=$(npm bin -g)/pm2
+            PM2_PATH=$(which pm2 || echo "/usr/local/bin/pm2")
             echo "📍 Using PM2 at: $PM2_PATH"
 
             echo "🚀 Restarting backend with PM2"
-            $PM2_PATH restart koyal-backend || $PM2_PATH start server.js --name koyal-backend
+            "$PM2_PATH" restart koyal-backend || "$PM2_PATH" start server.js --name koyal-backend
 
           elif [ "$BRANCH" = "koyal-demo" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
