@@ -9,4 +9,6 @@ export interface AppModel {
   imageFolderUrl: string | null;
   scenesJson: any;
   replacementWord: string | null;
+  isCharchaChosen: null | boolean;
+  characterFolderPath: string | null;
 }

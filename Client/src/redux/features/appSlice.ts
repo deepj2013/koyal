@@ -12,6 +12,8 @@ const initialState: AppModel = {
   imageFolderUrl: null,
   scenesJson: null,
   replacementWord: "person",
+  isCharchaChosen: null,
+  characterFolderPath: null,
 };
 
 const appSlice = createSlice({
@@ -48,6 +50,12 @@ const appSlice = createSlice({
     setReplacementWord: (state, action) => {
       state.replacementWord = action.payload;
     },
+    setIsCharchaChosen: (state, action) => {
+      state.isCharchaChosen = action.payload;
+    },
+    setCharacterFolderPath: (state, action) => {
+      state.characterFolderPath = action.payload;
+    },
   },
 });
 
@@ -62,6 +70,8 @@ export const {
   setScenesJson,
   setImageFolderUrl,
   setReplacementWord,
+  setIsCharchaChosen,
+  setCharacterFolderPath,
 } = appSlice.actions;
 
 export default appSlice.reducer;

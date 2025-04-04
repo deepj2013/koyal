@@ -35,7 +35,9 @@ import {
 } from "../utils/helper";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 import {
+  setCharacterFolderPath,
   setCharacterName,
+  setIsCharchaChosen,
   setReplacementWord,
 } from "../redux/features/appSlice";
 import ImagePreview from "../components/ImagePreview";
@@ -58,7 +60,11 @@ const ChooseCharacterPage = () => {
     useEditStoryElementMutation();
   const [
     procesStory,
-    { data: sceneLLMResponse, isLoading: isProcessStoryLoading },
+    {
+      data: sceneLLMResponse,
+      isLoading: isProcessStoryLoading,
+      reset: resetSceneLLMResponse,
+    },
   ] = useSceneLLMEndpointMutation();
   const [
     getStoryElement,
@@ -68,18 +74,13 @@ const ChooseCharacterPage = () => {
       reset: resetStoryElemetData,
     },
   ] = useLazyGetStoryElementQuery();
-  const [preprocessCharacter, { data: processedCharResponse }] =
-    usePreprocessCharacterMutation();
-  const [getCharResult, { data: charResult }] =
-    useLazyGetProcessedCharacterQuery();
-  const [trainCharacter, { data: trainedCharResponse }] =
-    useTrainCharacterMutation();
 
   const [
     processAvatar,
     { data: processedAvatarResponse, isLoading: isAvatarLoading },
   ] = useProcessAvatarMutation();
-  const [getAvatar, { data: avatarData }] = useLazyGetProcessedAvatarQuery();
+  const [getAvatar, { data: avatarData, isLoading: isAvatarDataLoading }] =
+    useLazyGetProcessedAvatarQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,10 +130,14 @@ const ChooseCharacterPage = () => {
     });
   };
 
-  const onConfirmAvatarModal = () => {
+  const onConfirmAvatarModal = async () => {
     setIsCustomAvatarModalOpen(false);
     setIsAvatarFinalized(true);
     setUseCharcha(false);
+    const { uriPath } = await createFolderInS3(
+      `${localStorage.getItem("currentUser")}/AVATAR`
+    );
+    dispatch(setCharacterFolderPath(uriPath));
   };
 
   const captureImage = () => {
@@ -169,6 +174,20 @@ const ChooseCharacterPage = () => {
       );
 
       return canvas.toDataURL("image/png");
+    }
+  };
+
+  const storeReplacementWord = () => {
+    if (!useCharcha) {
+      dispatch(setReplacementWord(ReplacementWords.PERSON));
+      return;
+    }
+    if (gender === "male") {
+      dispatch(setReplacementWord(ReplacementWords.MAN));
+    } else if (gender === "female") {
+      dispatch(setReplacementWord(ReplacementWords.WOMAN));
+    } else {
+      dispatch(setReplacementWord(ReplacementWords.PERSON));
     }
   };
 
@@ -210,7 +229,7 @@ const ChooseCharacterPage = () => {
     setGender("");
   };
 
-  const onConfirm = () => {
+  const onConfirm = async () => {
     if (stage === Stages.VERIFICATION) {
       setStage(Stages.IDENTIFICATION);
     } else if (stage === Stages.IDENTIFICATION) {
@@ -223,6 +242,19 @@ const ChooseCharacterPage = () => {
       setIsChooseCharModalOpen(false);
       setIsCharchaFinalized(true);
       setUseCharcha(true);
+      const { uriPath } = await createFolderInS3(
+        `${localStorage.getItem("currentUser")}/charchaImages`
+      );
+      dispatch(setCharacterFolderPath(uriPath));
+      await Promise.all(
+        capturedImages.map(async (currentImage, index) => {
+          const file = dataURLtoFile(currentImage, `image-${index + 1}`);
+          return uploadFileToS3(
+            file,
+            `${localStorage.getItem("currentUser")}/charchaImages`
+          );
+        })
+      );
     }
   };
 
@@ -246,41 +278,21 @@ const ChooseCharacterPage = () => {
     return false;
   };
 
-  const callProcessCharacterAPI = (uriPath: string) => {
-    preprocessCharacter({
-      images_path: uriPath,
-      character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
-    });
-  };
-
   const handleNextClick = async () => {
     if (useCharcha === null) {
       return;
     }
-    if (useCharcha === true) {
-      const { uriPath } = await createFolderInS3(
-        `${localStorage.getItem("currentUser")}/charchaImages`
-      );
-      await Promise.all(
-        capturedImages.map(async (currentImage, index) => {
-          const file = dataURLtoFile(currentImage, `image-${index + 1}`);
-          return uploadFileToS3(
-            file,
-            `${localStorage.getItem("currentUser")}/charchaImages`
-          );
-        })
-      );
 
-      callProcessCharacterAPI(uriPath);
-    } else {
-      const { uriPath } = await createFolderInS3(
-        `${localStorage.getItem("currentUser")}/AVATAR`
-      );
-      processAvatar({
-        mode: AvatarProcessModes.UPSCALE,
-        images_path: uriPath,
-      });
-    }
+    dispatch(setIsCharchaChosen(useCharcha));
+    storeReplacementWord();
+    navigate("/characterSelection", {
+      state: {
+        characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
+      },
+    });
+    dispatch(
+      setCharacterName(useCharcha ? charchaIdentifier : avatarIdentifier)
+    );
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
@@ -307,6 +319,7 @@ const ChooseCharacterPage = () => {
   useEffect(() => {
     if (sceneLLMResponse?.call_id) {
       getStoryElement(sceneLLMResponse?.call_id);
+      resetSceneLLMResponse();
     }
   }, [sceneLLMResponse]);
 
@@ -380,42 +393,6 @@ const ChooseCharacterPage = () => {
   }, [editStoryData]);
 
   useEffect(() => {
-    if (processedCharResponse?.call_id) {
-      getCharResult(processedCharResponse?.call_id);
-    }
-  }, [processedCharResponse]);
-
-  useEffect(() => {
-    const storeReplacementWord = () => {
-      if (!useCharcha) {
-        dispatch(setReplacementWord(ReplacementWords.PERSON));
-        return;
-      }
-      if (gender === "male") {
-        dispatch(setReplacementWord(ReplacementWords.MAN));
-      } else if (gender === "female") {
-        dispatch(setReplacementWord(ReplacementWords.WOMAN));
-      } else {
-        dispatch(setReplacementWord(ReplacementWords.PERSON));
-      }
-    };
-
-    if (trainedCharResponse?.call_id) {
-      storeReplacementWord();
-      navigate("/characterSelection", {
-        state: {
-          characterName: useCharcha ? charchaIdentifier : avatarIdentifier,
-          callId: trainedCharResponse?.call_id,
-          charName: useCharcha ? charchaIdentifier : avatarIdentifier,
-        },
-      });
-      dispatch(
-        setCharacterName(useCharcha ? charchaIdentifier : avatarIdentifier)
-      );
-    }
-  }, [trainedCharResponse]);
-
-  useEffect(() => {
     if (processedAvatarResponse?.call_id) {
       getAvatar(processedAvatarResponse?.call_id);
     }
@@ -435,18 +412,6 @@ const ChooseCharacterPage = () => {
   }, [storyElementData]);
 
   useEffect(() => {
-    if (charResult) {
-      trainCharacter({
-        processed_path: charResult?.processed_path,
-        character_name: useCharcha ? charchaIdentifier : avatarIdentifier,
-      });
-    }
-  }, [charResult]);
-
-  useEffect(() => {
-    if (avatarData?.upscaled_path) {
-      callProcessCharacterAPI(avatarData?.upscaled_path);
-    }
     if (avatarData) {
       setAnimatedImages(Object?.values(avatarData));
     }
@@ -483,7 +448,7 @@ const ChooseCharacterPage = () => {
         storyElement={storyElement}
         handleNarrativeChange={handleNarrativeChange}
         handleChangeLook={handleChangeLook}
-        isLoading={isAvatarLoading}
+        isLoading={isAvatarLoading || isAvatarDataLoading}
       />
       <Navbar />
       <canvas ref={canvasRef} style={{ display: "none" }}></canvas>

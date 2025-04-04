@@ -2,7 +2,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCancel?: () => void;
-  title: string;
+  title: any;
   children: React.ReactNode;
   confirmText?: string;
   onConfirm?: () => void;

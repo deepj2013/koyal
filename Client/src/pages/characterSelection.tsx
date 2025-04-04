@@ -6,14 +6,20 @@ import { FaArrowRight } from "react-icons/fa";
 import storyElement from "../assets/sample/story_elements.json";
 
 import {
+  AvatarProcessModes,
   CharacterStyles,
   EditStoryModes,
 } from "../utils/constants";
 import {
   useEditStoryElementMutation,
+  useLazyGetProcessedAvatarQuery,
+  useLazyGetProcessedCharacterQuery,
   useLazyGetStyleQuery,
   useLazyGetTrainedCharacterQuery,
+  usePreprocessCharacterMutation,
+  useProcessAvatarMutation,
   useSubmitStyleMutation,
+  useTrainCharacterMutation,
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
@@ -35,9 +41,9 @@ import { animatedStyle, realisticStyle, sketchStyle } from "../assets";
 
 const CHARACTER_DETAILS = storyElement.character_details;
 const styles = [
-  { name: CharacterStyles.REALISTIC, image: realisticStyle },
-  { name: CharacterStyles.ANIMATED, image: animatedStyle },
-  { name: CharacterStyles.SKETCH, image: sketchStyle },
+  { name: CharacterStyles.REALISTIC, image: null },
+  { name: CharacterStyles.ANIMATED, image: null },
+  { name: CharacterStyles.SKETCH, image: null },
 ];
 
 const CharacterSelectionPage = () => {
@@ -45,7 +51,22 @@ const CharacterSelectionPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const { loraPath } = useSelector(AppState);
+  const { characterName, loraPath, isCharchaChosen, characterFolderPath } =
+    useSelector(AppState);
+
+  const [preprocessCharacter, { data: processedCharResponse }] =
+    usePreprocessCharacterMutation();
+  const [getCharResult, { data: charResult, reset: resetCharResult }] =
+    useLazyGetProcessedCharacterQuery();
+  const [trainCharacter, { data: trainedCharResponse }] =
+    useTrainCharacterMutation();
+
+  const [
+    processAvatar,
+    { data: processedAvatarResponse, isLoading: isAvatarLoading },
+  ] = useProcessAvatarMutation();
+  const [getAvatar, { data: avatarData, isLoading: isAvatarDataLoading }] =
+    useLazyGetProcessedAvatarQuery();
 
   const [getTrainedCharacter, { data: trainedCharacter, isLoading }] =
     useLazyGetTrainedCharacterQuery();
@@ -53,7 +74,8 @@ const CharacterSelectionPage = () => {
   const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
   const [getStoryElement, { data: storyElementData }] =
     useLazyGetStoryElementQuery();
-  const [submitStyle, { data: submitStyleData }] = useSubmitStyleMutation();
+  const [submitStyle, { data: submitStyleData, reset: resetSubmitStyleData }] =
+    useSubmitStyleMutation();
   const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
 
   const { storyEleementFileUrl } = useSelector(LyricEditState);
@@ -84,6 +106,13 @@ const CharacterSelectionPage = () => {
       ...prev,
       narrative: event.target.value,
     }));
+  };
+
+  const callProcessCharacterAPI = (uriPath: string) => {
+    preprocessCharacter({
+      images_path: uriPath,
+      character_name: characterName,
+    });
   };
 
   const handleNext = () => {
@@ -126,6 +155,51 @@ const CharacterSelectionPage = () => {
   }, []);
 
   useEffect(() => {
+    if (isCharchaChosen === true) {
+      callProcessCharacterAPI(characterFolderPath);
+    } else {
+      processAvatar({
+        mode: AvatarProcessModes.UPSCALE,
+        images_path: characterFolderPath,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (processedCharResponse?.call_id) {
+      getCharResult(processedCharResponse?.call_id);
+    }
+  }, [processedCharResponse]);
+
+  useEffect(() => {
+    if (charResult) {
+      trainCharacter({
+        processed_path: charResult?.processed_path,
+        character_name: characterName,
+      });
+      resetCharResult();
+    }
+  }, [charResult]);
+
+  useEffect(() => {
+    if (trainedCharResponse?.call_id) {
+      getTrainedCharacter(trainedCharResponse?.call_id);
+    }
+  }, [trainedCharResponse]);
+
+  useEffect(() => {
+    if (processedAvatarResponse?.call_id) {
+      getAvatar(processedAvatarResponse?.call_id);
+    }
+  }, [processedAvatarResponse]);
+
+  useEffect(() => {
+    if (avatarData?.upscaled_path) {
+      callProcessCharacterAPI(avatarData?.upscaled_path);
+    }
+  }, [avatarData]);
+
+  useEffect(() => {
     if (sceneLLMResponse?.call_id) {
       getStoryElement(sceneLLMResponse?.call_id);
     }
@@ -143,10 +217,6 @@ const CharacterSelectionPage = () => {
   }, [storyElementData]);
 
   useEffect(() => {
-    getTrainedCharacter(location?.state?.callId);
-  }, []);
-
-  useEffect(() => {
     if (trainedCharacter?.lora_path) {
       dispatch(setLoraPath(trainedCharacter.lora_path));
       submitStyle({
@@ -160,19 +230,21 @@ const CharacterSelectionPage = () => {
   useEffect(() => {
     if (submitStyleData?.call_id) {
       getStyle(submitStyleData?.call_id);
+      resetSubmitStyleData();
     }
   }, [submitStyleData]);
 
   useEffect(() => {
     if (getStyleData) {
-      if (getStyleData) {
-        setStyleImages((prevStyles) =>
-          prevStyles.map((style) => ({
+      setStyleImages((prev) =>
+        prev.map((style) => {
+          const key = style.name.toLowerCase();
+          return {
             ...style,
-            image: style.image,
-          }))
-        );
-      }
+            image: getStyleData[key] || style.image,
+          };
+        })
+      );
       dispatch(setStyleImagesUrl(getStyleData));
     }
   }, [getStyleData]);
