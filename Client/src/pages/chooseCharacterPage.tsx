@@ -473,8 +473,8 @@ const ChooseCharacterPage = () => {
                 Click to edit text or press button to completely change the
                 theme
               </p>
-              <div className="flex flex-col items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2">
-                <ShimmerWrapper isLoading={isLoading}>
+              <ShimmerWrapper isLoading={isLoading}>
+                <div className="flex flex-col items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2 ">
                   <div className="w-full">
                     <textarea
                       className="w-full px-4 py-3 bg-transparent text-gray-600 placeholder-gray-500 outline-none"
@@ -483,26 +483,30 @@ const ChooseCharacterPage = () => {
                       onChange={(e) => handleNarrativeChange(e)}
                     />
                   </div>
-                </ShimmerWrapper>
-                <div className="w-full flex justify-end mt-2">
-                  <button
-                    className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-end whitespace-nowrap transition-all"
-                    onClick={handleOpenModal}
-                  >
-                    Describe new theme
-                    <span className="ml-2">
-                      {" "}
-                      <FaArrowRight />
-                    </span>
-                  </button>
+                  <div className="w-full flex justify-end mt-2">
+                    <button
+                      className="ml-4 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-end whitespace-nowrap transition-all"
+                      onClick={handleOpenModal}
+                    >
+                      Describe new theme
+                      <span className="ml-2">
+                        {" "}
+                        <FaArrowRight />
+                      </span>
+                    </button>
+                  </div>
                 </div>
+              </ShimmerWrapper>
+              <div className="mt-2 w-[40%]">
+                <ShimmerWrapper isLoading={isLoading}>
+                  <button
+                    className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800"
+                    onClick={handleSaveChanges}
+                  >
+                    Save
+                  </button>
+                </ShimmerWrapper>
               </div>
-              <button
-                className="px-6 py-1 h-[40px] mt-2 bg-black text-white rounded-md hover:bg-gray-800"
-                onClick={handleSaveChanges}
-              >
-                Save
-              </button>
 
               <p className="text-[#101828] mt-6">
                 {/* Do you want your likeness in the video? */}
@@ -515,7 +519,6 @@ const ChooseCharacterPage = () => {
                 protocol or describe a custom main character for the final video
               </p>
               <div className="flex flex-col space-y-4">
-                {/* Yes/No Selection */}
                 <div className="flex space-x-4">
                   {isCharchaFinalized ? (
                     <>
@@ -564,7 +567,7 @@ const ChooseCharacterPage = () => {
                       </label>
                     </>
                   ) : (
-                    <>
+                    <ShimmerWrapper isLoading={isLoading} width={"30%"}>
                       <label
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                               bg-white text-gray-700 border-gray-300`}
@@ -572,7 +575,7 @@ const ChooseCharacterPage = () => {
                       >
                         Use your likeness
                       </label>
-                    </>
+                    </ShimmerWrapper>
                   )}
 
                   {isAvatarFinalized ? (
@@ -623,7 +626,7 @@ const ChooseCharacterPage = () => {
                       </label>
                     </>
                   ) : (
-                    <>
+                    <ShimmerWrapper isLoading={isLoading} width={"30%"}>
                       <label
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${
@@ -642,7 +645,7 @@ const ChooseCharacterPage = () => {
                           Create AI Avatar
                         </span>
                       </label>
-                    </>
+                    </ShimmerWrapper>
                   )}
                 </div>
               </div>
