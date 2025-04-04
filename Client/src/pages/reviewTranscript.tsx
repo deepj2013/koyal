@@ -30,7 +30,6 @@ const TranscriptPage = () => {
   const dispatch = useDispatch();
 
   const { isEnglish, audioFileUrl } = useSelector(AppState);
-  const { sceneDataFileUrl } = useSelector(UploadAudioState);
 
   const [
     processEmotion,
@@ -213,9 +212,9 @@ const TranscriptPage = () => {
     });
   };
 
-  const fetchJsonData = async () => {
+  const fetchJsonData = async (url) => {
     try {
-      const response = await fetch(sceneDataFileUrl);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error("Failed to fetch JSON file");
       }
@@ -282,7 +281,7 @@ const TranscriptPage = () => {
           console.log("scene json url:", url);
           dispatch(setSceneDataFileUrl(url));
           dispatch(setLyricsJsonUrl(url));
-          fetchJsonData();
+          fetchJsonData(url);
         }
       );
     }
