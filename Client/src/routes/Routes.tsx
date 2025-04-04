@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLogin from "../pages/adminLogin";
 import { PageRoutes } from "./appRoutes";
@@ -17,9 +17,6 @@ import CharacterSelectionPage from "../pages/characterSelection";
 import FinalVideoPage from "../pages/finaVedio";
 import Home from "../pages/home";
 import GenerateVideoPage from "../pages/edtiScence";
-
-// Lazy load pages for better performance
-
 
 const AppRoutes: React.FC = () => {
   return (

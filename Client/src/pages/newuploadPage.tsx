@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
-import musicicon from "../assets/images/Audiofile.png";
 import { useNavigate } from "react-router-dom";
 import { uploadFileToS3 } from "../aws/s3-service";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +11,7 @@ import {
   setAudioFileUrl,
   setIsEnglish,
 } from "../redux/features/appSlice";
+import { musicicon } from "../assets";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {

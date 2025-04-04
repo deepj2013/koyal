@@ -58,7 +58,7 @@ const CharacterSelectionPage = () => {
     usePreprocessCharacterMutation();
   const [getCharResult, { data: charResult, reset: resetCharResult }] =
     useLazyGetProcessedCharacterQuery();
-  const [trainCharacter, { data: trainedCharResponse }] =
+  const [trainCharacter, { data: trainedCharResponse, reset: resetTrainedCharResponse }] =
     useTrainCharacterMutation();
 
   const [
@@ -184,6 +184,7 @@ const CharacterSelectionPage = () => {
   useEffect(() => {
     if (trainedCharResponse?.call_id) {
       getTrainedCharacter(trainedCharResponse?.call_id);
+      resetTrainedCharResponse();
     }
   }, [trainedCharResponse]);
 
