@@ -8,6 +8,7 @@
 }
 .shimmer {
   width: 95%;
+  height: 100%;
   background: transparent;
 }
 .shimmer .image-card {
@@ -18,6 +19,7 @@
 }
 .stroke {
   background: #777;
+  height: 100%;
 }
 
 .wrapper {
