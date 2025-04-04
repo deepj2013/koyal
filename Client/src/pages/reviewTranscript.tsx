@@ -336,7 +336,11 @@ const TranscriptPage = () => {
             {/* First Column (70%) */}
             <div className="w-full overflow-y-scroll pl-2">
               <div className="w-[63%]">
-                {transcriptData?.length < 1 && <ShimmerLyricsComponent />}
+                {transcriptData?.length < 1 && (
+                  <ShimmerLyricsComponent
+                    isLoading={transcriptData?.length < 1}
+                  />
+                )}
 
                 {transcriptData.map((entry, index) => {
                   const { text, emotion } = entry; // Extract values safely
@@ -584,14 +588,25 @@ const EmotionDropdown = ({ selectedEmotion, setSelectedEmotion }) => {
 
 export default TranscriptPage;
 
-const ShimmerLyricsComponent = () => {
-  return (
-    <>
-      {Array.from({ length: 30 }).map((_, index) => (
-        <ShimmerWrapper key={index} isLoading={true}>
-          <p className="h-[1.25rem] m-2"></p>
-        </ShimmerWrapper>
-      ))}
-    </>
-  );
-};
+const ShimmerLyricsComponent = React.memo(
+  ({ isLoading }: { isLoading: boolean }) => {
+    return (
+      <>
+        {Array.from({ length: 30 }).map((_, index) => {
+          const randomWidth = `${Math.floor(Math.random() * 51) + 50}%`;
+          return (
+            <div
+              key={index}
+              className="w-full flex items-center rounded-[12px] overflow-hidden mb-2 h-[1.25rem]"
+              style={{ width: randomWidth }}
+            >
+              <ShimmerWrapper isLoading={isLoading}>
+                <p className="m-2"></p>
+              </ShimmerWrapper>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
+);
