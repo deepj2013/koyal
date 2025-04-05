@@ -492,7 +492,7 @@ const GenerateVideoPage: React.FC = () => {
                     className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <ShimmerWrapper isLoading={true}>
+                    <ShimmerWrapper isLoading={!scene.image}>
                       {scene.image && <ImagePreview imageURL={scene.image} />}
                     </ShimmerWrapper>
 

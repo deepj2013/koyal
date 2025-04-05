@@ -1,26 +1,22 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLogin from "../pages/adminLogin";
 import { PageRoutes } from "./appRoutes";
 import AdminRoute from "../components/routing/adminRoute/AdminRoutes";
 import PrivateRoute from "../components/routing/privateRoute/PrivateRoutes";
 import Collection from "../pages/collections";
-
-// Lazy load pages for better performance
-const Home = lazy(() => import("../pages/home"));
-const PublicPage = lazy(() => import("../pages/PublicPage"));
-const Login = lazy(() => import("../pages/login"));
-const AudioUploadPage = lazy(() => import("../pages/newuploadPage"));
-const TranscriptPage = lazy(() => import("../pages/reviewTranscript"));
-const LoadingPage = lazy(() => import("../pages/Loadingpage"));
-const ChooseCharacterPage = lazy(() => import("../pages/chooseCharacterPage"));
-const CharacterSelectionPage = lazy(
-  () => import("../pages/characterSelection")
-);
-const EditScenes = lazy(() => import("../pages/edtiScence"));
-const FinalVideoPage = lazy(() => import("../pages/finaVedio"));
-const WaitingList = lazy(() => import("../pages/waitingList"));
-const CreateUser = lazy(() => import("../pages/createUser"));
+import PublicPage from "../pages/PublicPage";
+import Login from "../pages/login";
+import LoadingPage from "../pages/Loadingpage";
+import WaitingList from "../pages/waitingList";
+import CreateUser from "../pages/createUser";
+import AudioUploadPage from "../pages/newuploadPage";
+import TranscriptPage from "../pages/reviewTranscript";
+import ChooseCharacterPage from "../pages/chooseCharacterPage";
+import CharacterSelectionPage from "../pages/characterSelection";
+import FinalVideoPage from "../pages/finaVedio";
+import Home from "../pages/home";
+import GenerateVideoPage from "../pages/edtiScence";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -45,7 +41,7 @@ const AppRoutes: React.FC = () => {
             path="/characterSelection"
             element={<CharacterSelectionPage />}
           />
-          <Route path="/editscene" element={<EditScenes />} />
+          <Route path="/editscene" element={<GenerateVideoPage />} />
           <Route path="/finalvideo" element={<FinalVideoPage />} />
           <Route path={PageRoutes.CREATE_USER} element={<CreateUser />} />
           <Route path={PageRoutes.COLLECTION} element={<Collection />} />

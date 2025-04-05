@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
@@ -12,11 +12,13 @@ import {
 import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
 import { formatTime } from "../utils/helper";
-import { FaInfoCircle, FaUndo } from "react-icons/fa";
 import { ConfirmationModal } from "../components/common/ConfirmationModal/ConfirmationModal";
+import ShimmerWrapper from "../components/Shimmer";
 
 const FinalVideoPage = () => {
   const location = useLocation();
+  const videoRef = useRef<any>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const { selectedStyle, orientationStyle, sceneJson } = location?.state || {};
 
@@ -25,19 +27,35 @@ const FinalVideoPage = () => {
 
   const [
     processVideo,
-    { data: processVideoData, reset: resetProcessVideoData },
+    {
+      data: processVideoData,
+      reset: resetProcessVideoData,
+      isLoading: processVideoLoading,
+    },
   ] = useProcessVideoMutation();
   const [
     getProcessedVideo,
-    { data: getProcessedVideoData, reset: resetGetProcessedVideoData },
+    {
+      data: getProcessedVideoData,
+      reset: resetGetProcessedVideoData,
+      isLoading: getProcessedVideoLoading,
+    },
   ] = useLazyGetProcessedVideoQuery();
   const [
     processFinalVideo,
-    { data: processFinalVideoData, reset: resetProcessFinalVideoData },
+    {
+      data: processFinalVideoData,
+      reset: resetProcessFinalVideoData,
+      isLoading: processFinalVideoLoading,
+    },
   ] = useProcessFinalVideoMutation();
   const [
     getFinalVideo,
-    { data: getFinalVideoData, reset: resetGetFinalVideoData },
+    {
+      data: getFinalVideoData,
+      reset: resetGetFinalVideoData,
+      isLoading: getFinalVideoLoading,
+    },
   ] = useLazyGetFinalVideoQuery();
 
   const [isGenerating, setIsGenerating] = useState(true);
@@ -46,8 +64,8 @@ const FinalVideoPage = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [regenerateIndex, setRegenerateIndex] = useState(null);
   const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
-
-  const videoRef = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -88,6 +106,8 @@ const FinalVideoPage = () => {
       replacement_word: replacementWord,
       prompt: regenerateIndex,
     });
+    setConfirmRegenerateModal(false);
+    setIsLoading(true);
   };
 
   const regenerateVideo = (index: number) => {
@@ -106,10 +126,27 @@ const FinalVideoPage = () => {
   }, []);
 
   useEffect(() => {
+    const updateTime = () => {
+      if (videoRef.current) {
+        setCurrentTime(videoRef.current.currentTime);
+      }
+      animationFrameRef.current = requestAnimationFrame(updateTime);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(updateTime);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (sceneJson) {
       setPreviewImages(sceneJson);
     }
-  }, [sceneJson]);
+  }, []);
 
   useEffect(() => {
     processVideo({
@@ -149,8 +186,12 @@ const FinalVideoPage = () => {
   useEffect(() => {
     if (getFinalVideoData?.final_video_path) {
       setFinalVideo(getFinalVideoData?.final_video_path);
-      setConfirmRegenerateModal(false);
+      setIsLoading(false);
       resetGetFinalVideoData();
+
+      if (videoRef.current) {
+        videoRef.current.load();
+      }
     }
   }, [getFinalVideoData]);
 
@@ -164,7 +205,7 @@ const FinalVideoPage = () => {
           <div className="w-full mt-10">
             <div className="flex justify-start w-[60%] mb-6">
               <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
-                {isGenerating
+                {isGenerating || isLoading
                   ? "Generating your video... ⏳"
                   : "Your video is ready! 🥳"}
               </h1>
@@ -210,8 +251,18 @@ const FinalVideoPage = () => {
             <div className="relative w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <div>
-                    <div className="flex w-full relative">
+                  <div
+                    className={`flex w-full relative rounded-lg ${
+                      currentTime > preview?.start &&
+                      currentTime < preview?.end
+                        ? "border-4 border-gray-400 ring-opacity-60"
+                        : ""
+                    }`}
+                  >
+                    <ShimmerWrapper
+                      isLoading={index === regenerateIndex && isLoading}
+                      spinner={index === regenerateIndex && isLoading}
+                    >
                       <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
                         <span
                           className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
@@ -245,7 +296,7 @@ const FinalVideoPage = () => {
                           <span>{formatTime(preview.start)}</span>
                         </span>
                       </button>
-                    </div>
+                    </ShimmerWrapper>
                   </div>
                 ))}
               </div>
@@ -272,7 +323,7 @@ const FinalVideoPage = () => {
         isOpen={confirmRegenerateModal}
         onClose={onCancelRegenerate}
         onConfirm={onConfirmRegenerate}
-        title="Are you sure you want to Regenerate the Video"
+        title="Are you sure you want to Regenerate the Scene"
       />
     </div>
   );

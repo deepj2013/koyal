@@ -8,6 +8,7 @@ import {
   IoTabletLandscapeOutline,
   IoTabletPortraitOutline,
 } from "react-icons/io5";
+import ShimmerWrapper from "../../Shimmer";
 
 const VisualStyleComponent = ({
   styleImages,
@@ -26,25 +27,35 @@ const VisualStyleComponent = ({
           isCollectionPage ? "mt-2" : "mt-6"
         } space-y-6`}
       >
-        <div className={`flex space-x-6 ${!isCollectionPage && "px-8"}`}>
+        <div className={`flex space-x-4 w-full ${!isCollectionPage && "px-8"}`}>
           {styleImages.map((style) => (
             <div
               key={style.name}
-              className="relative rounded-lg transition-all cursor-pointer overflow-hidden border border-gray-300"
+              className="relative flex-1 rounded-lg transition-all cursor-pointer overflow-hidden border border-gray-300"
               onClick={() => setSelectedStyle(style)}
             >
-              <img
-                src={style.image}
-                alt={style.name}
-                className="w-80 h-68 rounded-lg transition-transform duration-300"
-              />
+              {/* Show loading indicator if image is not loaded */}
+              {style.image ? (
+                <img
+                  src={style.image}
+                  alt={style.name}
+                  className="w-full h-auto object-cover rounded-lg transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full aspect-[3/4] flex items-center justify-center bg-gray-100">
+                  <ShimmerWrapper isLoading={true}>
+                    <></>
+                  </ShimmerWrapper>
+                </div>
+              )}
+
               <div
-                className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold border-t  border-gray-300
-                              ${
-                                selectedStyle?.name === style.name
-                                  ? "bg-black text-white"
-                                  : "bg-white text-black bg-opacity-[0.5] backdrop-blur-md"
-                              }`}
+                className={`absolute bottom-0 w-full py-2 text-left pl-4 font-semibold border-t border-gray-300
+                ${
+                  selectedStyle?.name === style.name
+                    ? "bg-black text-white"
+                    : "bg-white text-black bg-opacity-[0.5] backdrop-blur-md"
+                }`}
               >
                 {style.name}
               </div>

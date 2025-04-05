@@ -2,25 +2,35 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppModel } from "../models/appModel";
 
 const initialState: AppModel = {
+  isEnglish: null,
   characterName: "",
   loraPath: null,
+  audioFileUrl: null,
   styleImagesUrl: null,
   protoPromptsUrl: null,
   lyricsJsonUrl: null,
   imageFolderUrl: null,
   scenesJson: null,
   replacementWord: "person",
+  isCharchaChosen: null,
+  characterFolderPath: null,
 };
 
 const appSlice = createSlice({
   name: "app",
   initialState: initialState,
   reducers: {
+    setIsEnglish: (state, action) => {
+      state.isEnglish = action.payload;
+    },
     setCharacterName: (state, action) => {
       state.characterName = action.payload;
     },
     setLoraPath: (state, action) => {
       state.loraPath = action.payload;
+    },
+    setAudioFileUrl: (state, action) => {
+      state.audioFileUrl = action.payload;
     },
     setStyleImagesUrl: (state, action) => {
       state.styleImagesUrl = action.payload;
@@ -40,18 +50,28 @@ const appSlice = createSlice({
     setReplacementWord: (state, action) => {
       state.replacementWord = action.payload;
     },
+    setIsCharchaChosen: (state, action) => {
+      state.isCharchaChosen = action.payload;
+    },
+    setCharacterFolderPath: (state, action) => {
+      state.characterFolderPath = action.payload;
+    },
   },
 });
 
 export const {
+  setIsEnglish,
+  setCharacterName,
   setLoraPath,
+  setAudioFileUrl,
   setStyleImagesUrl,
   setProtoPromptsUrl,
-  setCharacterName,
   setLyricsJsonUrl,
   setScenesJson,
   setImageFolderUrl,
-  setReplacementWord
+  setReplacementWord,
+  setIsCharchaChosen,
+  setCharacterFolderPath,
 } = appSlice.actions;
 
 export default appSlice.reducer;

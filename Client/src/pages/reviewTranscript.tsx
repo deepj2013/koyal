@@ -3,7 +3,10 @@ import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { UploadAudioState } from "../redux/features/uploadSlice";
+import {
+  setSceneDataFileUrl,
+  UploadAudioState,
+} from "../redux/features/uploadSlice";
 import { uploadFileToS3 } from "../aws/s3-service";
 import { convertJsonToFile } from "../utils/helper";
 import {
@@ -11,22 +14,62 @@ import {
   useSceneLLMEndpointMutation,
 } from "../redux/services/lyricEditService/lyricEditApi";
 import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
-import { setLyricsJsonUrl } from "../redux/features/appSlice";
+import { AppState, setLyricsJsonUrl } from "../redux/features/appSlice";
+import {
+  useEmotionEndpointMutation,
+  useLazyGetEmotionResultQuery,
+  useLazyGetSceneResultQuery,
+  useLazyGetTranscriberResultQuery,
+  useSceneEndpointMutation,
+  useTranscriberEndpointMutation,
+} from "../redux/services/uploadAudioService/uploadAudioApi";
+import ShimmerWrapper from "../components/Shimmer";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { sceneDataFileUrl } = useSelector(UploadAudioState);
+  const { isEnglish, audioFileUrl } = useSelector(AppState);
 
-  const [procesStory, { data: sceneLLMResponse }] =
-    useSceneLLMEndpointMutation();
-  const [fetchStoryElement, { data: storyElement }] =
-    useLazyGetStoryElementQuery();
+  const [
+    processEmotion,
+    { data: emotionResponse, isLoading: isProcessEmotionLoading },
+  ] = useEmotionEndpointMutation();
+  const [
+    fetchEmotionResult,
+    { data: emotionResult, isLoading: isEmotionResLoading },
+  ] = useLazyGetEmotionResultQuery();
+  const [
+    processTranscriber,
+    { data: transcriberResponse, isLoading: isProcessTranscriberLoading },
+  ] = useTranscriberEndpointMutation();
+  const [
+    fetchTranscriberResult,
+    { data: transcriberResult, isLoading: isTranscriberResLoading },
+  ] = useLazyGetTranscriberResultQuery();
+  const [
+    procesScene,
+    { data: sceneResponse, isLoading: isProcessSceneLoading },
+  ] = useSceneEndpointMutation();
+  const [
+    fetchSceneResult,
+    { data: sceneResult, isLoading: isSceneResultLoading },
+  ] = useLazyGetSceneResultQuery();
+
+  const isLoading =
+    isEmotionResLoading ||
+    isTranscriberResLoading ||
+    isSceneResultLoading ||
+    isProcessEmotionLoading ||
+    isProcessSceneLoading ||
+    isProcessTranscriberLoading;
 
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
+  const [emotionsFileURL, setEmotionsFileURL] = useState(null);
+  const [wordTimeStampFileURL, setWordTimeStampFileURL] = useState(null);
+
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
     euphoric: { bg: "bg-yellow-200", border: "border-yellow-500" },
@@ -116,12 +159,16 @@ const TranscriptPage = () => {
         localStorage.getItem("currentUser")
       );
       dispatch(setLyricsJsonUrl(fileUrl));
-      console.log("fileUrl", fileUrl);
       setSelectedParagraph(null); // Close modal
     }
   };
 
-  const handleJsonFileUpload = async (data, fileName) => {
+  const handleJsonFileUpload = async (
+    data,
+    fileName,
+    setFileURL,
+    nextAPICall
+  ) => {
     try {
       const file = convertJsonToFile(data, fileName);
       const url = await uploadFileToS3(
@@ -129,6 +176,14 @@ const TranscriptPage = () => {
         localStorage.getItem("currentUser")
       );
       console.log(fileName, url);
+
+      if (setFileURL) {
+        setFileURL(url);
+      }
+
+      if (nextAPICall) {
+        nextAPICall();
+      }
 
       return url;
     } catch (err) {
@@ -138,44 +193,99 @@ const TranscriptPage = () => {
   };
 
   const handleNextClick = () => {
-    procesStory({
-      mode: "create-story",
-      scenes_path: sceneDataFileUrl,
+    navigate("/choosecharacter");
+  };
+
+  const callEmotionsAPI = (fileURL: string) => {
+    processEmotion({ data: fileURL });
+  };
+
+  const callTranscriberAPI = (fileURL: string) => {
+    processTranscriber({ data: fileURL, english_priority: isEnglish });
+  };
+
+  const callSceneAPI = () => {
+    procesScene({
+      word_timestamps: wordTimeStampFileURL,
+      emotion_data: emotionsFileURL,
+      audio_file: audioFileUrl,
     });
   };
 
-  useEffect(() => {
-    const fetchJsonData = async () => {
-      try {
-        const response = await fetch(sceneDataFileUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setTranscriptData(jsonData);
-        return jsonData;
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
+  const fetchJsonData = async (url) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch JSON file");
       }
-    };
+      const jsonData = await response.json();
+      setTranscriptData(jsonData);
+      return jsonData;
+    } catch (error) {
+      console.error("Error fetching JSON:", error);
+    }
+  };
 
-    fetchJsonData();
+  useEffect(() => {
+    if (audioFileUrl) {
+      callEmotionsAPI(audioFileUrl);
+    }
   }, []);
 
   useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      fetchStoryElement(sceneLLMResponse?.call_id);
+    if (emotionResponse?.call_id) {
+      fetchEmotionResult(emotionResponse?.call_id);
     }
-  }, [sceneLLMResponse]);
+  }, [emotionResponse]);
 
   useEffect(() => {
-    if (storyElement) {
-      handleJsonFileUpload(storyElement, "story_element.json").then((url) => {
-        dispatch(setStoryEleementFileUrl(url));
-        navigate("/choosecharacter");
-      });
+    if (emotionResult) {
+      handleJsonFileUpload(
+        emotionResult,
+        "emotion_data.json",
+        setEmotionsFileURL,
+        () => {
+          callTranscriberAPI(audioFileUrl);
+        }
+      );
     }
-  }, [storyElement]);
+  }, [emotionResult]);
+
+  useEffect(() => {
+    if (transcriberResponse?.call_id) {
+      fetchTranscriberResult(transcriberResponse?.call_id);
+    }
+  }, [transcriberResponse]);
+
+  useEffect(() => {
+    if (transcriberResult) {
+      handleJsonFileUpload(
+        transcriberResult,
+        "word_timestamp.json",
+        setWordTimeStampFileURL,
+        callSceneAPI
+      );
+    }
+  }, [transcriberResult]);
+
+  useEffect(() => {
+    if (sceneResponse?.call_id) {
+      fetchSceneResult(sceneResponse?.call_id);
+    }
+  }, [sceneResponse]);
+
+  useEffect(() => {
+    if (sceneResult) {
+      handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
+        (url) => {
+          console.log("scene json url:", url);
+          dispatch(setSceneDataFileUrl(url));
+          dispatch(setLyricsJsonUrl(url));
+          fetchJsonData(url);
+        }
+      );
+    }
+  }, [sceneResult]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -224,66 +334,74 @@ const TranscriptPage = () => {
           <div className="flex w-full h-[40vh] relative p-3 pr-0 rounded-[12px]">
             {/* First Column (70%) */}
             <div className="w-full overflow-y-scroll pl-2">
-              {transcriptData.map((entry, index) => {
-                const { text, emotion } = entry; // Extract values safely
+              <div className="w-[63%]">
+                {transcriptData?.length < 1 && (
+                  <ShimmerLyricsComponent
+                    isLoading={transcriptData?.length < 1}
+                  />
+                )}
 
-                return (
-                  <div key={index} className="relative mb-2 w-[63%]">
-                    {regexNoVocals.test(text) || !text ? (
-                      <div className="flex items-start">
-                        {/* Add Section Buttons */}
-                        <div className="flex items-center">
-                          <div
-                            className={`bg-yellow-100 p-1 rounded-md cursor-pointer ${
-                              selectedParagraph?.index === index
-                                ? "border-[3px] border-black"
-                                : "border border-black"
-                            }`}
-                            onClick={() => handleAddSection(index)}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              minWidth: "32px",
-                              minHeight: "32px",
-                              lineHeight: "1",
-                            }}
-                          >
-                            <div className="text-md text-gray-800">🎵</div>
+                {transcriptData.map((entry, index) => {
+                  const { text, emotion } = entry; // Extract values safely
+
+                  return (
+                    <div key={index} className="relative mb-2">
+                      {regexNoVocals.test(text) || !text ? (
+                        <div className="flex items-start">
+                          {/* Add Section Buttons */}
+                          <div className="flex items-center">
+                            <div
+                              className={`bg-yellow-100 p-1 rounded-md cursor-pointer ${
+                                selectedParagraph?.index === index
+                                  ? "border-[3px] border-black"
+                                  : "border border-black"
+                              }`}
+                              onClick={() => handleAddSection(index)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                minWidth: "32px",
+                                minHeight: "32px",
+                                lineHeight: "1",
+                              }}
+                            >
+                              <div className="text-md text-gray-800">🎵</div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="relative mb-2">
-                        <p
-                          className={`cursor-pointer mt-2 rounded-md ${
-                            emotionColors[emotion]?.bg ||
-                            emotionColors.default.bg
-                          }  ${
-                            selectedParagraph?.index === index
-                              ? `${
-                                  emotionColors[emotion]?.border ||
-                                  "border-black"
-                                } border-[4px]`
-                              : ""
-                          }`}
-                          onClick={() => handleParagraphClick(index)}
-                          style={{
-                            borderRadius: "6px",
-                            padding: "1px 4px",
-                            boxDecorationBreak: "clone",
-                            WebkitBoxDecorationBreak: "clone",
-                            display: "inline",
-                            fontSize: "1.125rem",
-                          }}
-                        >
-                          {text}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                      ) : (
+                        <div className="relative mb-2">
+                          <p
+                            className={`cursor-pointer mt-2 rounded-md ${
+                              emotionColors[emotion]?.bg ||
+                              emotionColors.default.bg
+                            }  ${
+                              selectedParagraph?.index === index
+                                ? `${
+                                    emotionColors[emotion]?.border ||
+                                    "border-black"
+                                  } border-[4px]`
+                                : ""
+                            }`}
+                            onClick={() => handleParagraphClick(index)}
+                            style={{
+                              borderRadius: "6px",
+                              padding: "1px 4px",
+                              boxDecorationBreak: "clone",
+                              WebkitBoxDecorationBreak: "clone",
+                              display: "inline",
+                              fontSize: "1.125rem",
+                            }}
+                          >
+                            {text}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Second Column (30%) */}
@@ -468,3 +586,26 @@ const EmotionDropdown = ({ selectedEmotion, setSelectedEmotion }) => {
 };
 
 export default TranscriptPage;
+
+const ShimmerLyricsComponent = React.memo(
+  ({ isLoading }: { isLoading: boolean }) => {
+    return (
+      <>
+        {Array.from({ length: 30 }).map((_, index) => {
+          const randomWidth = `${Math.floor(Math.random() * 51) + 50}%`;
+          return (
+            <div
+              key={index}
+              className="w-full flex items-center rounded-[12px] overflow-hidden mb-2 h-[1.25rem]"
+              style={{ width: randomWidth }}
+            >
+              <ShimmerWrapper isLoading={isLoading}>
+                <p className="m-2"></p>
+              </ShimmerWrapper>
+            </div>
+          );
+        })}
+      </>
+    );
+  }
+);

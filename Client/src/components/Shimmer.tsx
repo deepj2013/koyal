@@ -1,12 +1,30 @@
 import "../styles/shimmer.css";
-const ShimmerWrapper = ({ isLoading, children, noContent = false}) => {
+
+interface ShimmerProps {
+  isLoading: boolean;
+  children: React.ReactNode;
+  width?: string;
+  spinner?: boolean;
+}
+
+const ShimmerWrapper = ({ isLoading, children, width, spinner }: ShimmerProps) => {
+  
   return (
     <>
-      <div className="shimmer">
-      <div className={`${isLoading && "stroke animate title transparent"} ${noContent && "noContent"}`}>
-          {children}
+      {isLoading ? (
+        <div className="shimmer-container relative" style={{ width }}>
+          {spinner && (
+            <div className="spinner-overlay">
+              <div className="spinner" />
+            </div>
+          )}
+          <div className="shimmer animate">
+            <div className="child-wrapper">{children}</div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>{children}</>
+      )}
     </>
   );
 };
