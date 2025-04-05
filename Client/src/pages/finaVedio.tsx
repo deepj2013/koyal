@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
@@ -17,7 +17,8 @@ import ShimmerWrapper from "../components/Shimmer";
 
 const FinalVideoPage = () => {
   const location = useLocation();
-  const videoRef = useState<any>(null);
+  const videoRef = useRef<any>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const { selectedStyle, orientationStyle, sceneJson } = location?.state || {};
 
@@ -64,6 +65,7 @@ const FinalVideoPage = () => {
   const [regenerateIndex, setRegenerateIndex] = useState(null);
   const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -124,6 +126,23 @@ const FinalVideoPage = () => {
   }, []);
 
   useEffect(() => {
+    const updateTime = () => {
+      if (videoRef.current) {
+        setCurrentTime(videoRef.current.currentTime);
+      }
+      animationFrameRef.current = requestAnimationFrame(updateTime);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(updateTime);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (sceneJson) {
       setPreviewImages(sceneJson);
     }
@@ -169,6 +188,10 @@ const FinalVideoPage = () => {
       setFinalVideo(getFinalVideoData?.final_video_path);
       setIsLoading(false);
       resetGetFinalVideoData();
+
+      if (videoRef.current) {
+        videoRef.current.load();
+      }
     }
   }, [getFinalVideoData]);
 
@@ -197,26 +220,23 @@ const FinalVideoPage = () => {
           {/* Video Section */}
           <div className="flex flex-col items-center justify-center flex-grow mt-4">
             <div className="relative  w-[80%] h-[25rem] bg-black rounded-2xl overflow-hidden">
-              <ShimmerWrapper isLoading={isLoading}>
-                <video
-                  ref={videoRef}
-                  className="w-full h-full"
-                  src={finalVideo}
-                  controls={!(isGenerating || isLoading)} // Enable controls after 10 sec
-                  autoPlay={false} // AutoPlay disabled initially
-                />
-              </ShimmerWrapper>
+              <video
+                ref={videoRef}
+                className="w-full h-full"
+                src={finalVideo}
+                controls={!isGenerating} // Enable controls after 10 sec
+                autoPlay={false} // AutoPlay disabled initially
+              />
 
               {/* Overlay Loader (Removed After 10 Sec) */}
-              {isGenerating ||
-                (isLoading && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-white mt-4 text-lg">
-                      5 minutes remaining...{" "}
-                    </p>
-                  </div>
-                ))}
+              {isGenerating && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+                  <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-white mt-4 text-lg">
+                    5 minutes remaining...{" "}
+                  </p>
+                </div>
+              )}
 
               {/* Play Button (Appears After 10 Sec) */}
               {showPlayButton && (
@@ -231,8 +251,18 @@ const FinalVideoPage = () => {
             <div className="relative w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <div className="flex w-full relative">
-                    <ShimmerWrapper isLoading={false}>
+                  <div
+                    className={`flex w-full relative rounded-lg ${
+                      currentTime > preview?.start &&
+                      currentTime < preview?.end
+                        ? "border-4 border-gray-400 ring-opacity-60"
+                        : ""
+                    }`}
+                  >
+                    <ShimmerWrapper
+                      isLoading={index === regenerateIndex && isLoading}
+                      spinner={index === regenerateIndex && isLoading}
+                    >
                       <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
                         <span
                           className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
