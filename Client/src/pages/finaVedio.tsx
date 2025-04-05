@@ -57,12 +57,6 @@ const FinalVideoPage = () => {
     },
   ] = useLazyGetFinalVideoQuery();
 
-  const isLoading =
-    processVideoLoading ||
-    getProcessedVideoLoading ||
-    processFinalVideoLoading ||
-    getFinalVideoLoading;
-
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
   const [finalVideo, setFinalVideo] = useState(null);
