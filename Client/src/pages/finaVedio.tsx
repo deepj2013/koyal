@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
@@ -12,11 +12,12 @@ import {
 import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
 import { formatTime } from "../utils/helper";
-import { FaInfoCircle, FaUndo } from "react-icons/fa";
 import { ConfirmationModal } from "../components/common/ConfirmationModal/ConfirmationModal";
+import ShimmerWrapper from "../components/Shimmer";
 
 const FinalVideoPage = () => {
   const location = useLocation();
+  const videoRef = useState<any>(null);
 
   const { selectedStyle, orientationStyle, sceneJson } = location?.state || {};
 
@@ -25,20 +26,42 @@ const FinalVideoPage = () => {
 
   const [
     processVideo,
-    { data: processVideoData, reset: resetProcessVideoData },
+    {
+      data: processVideoData,
+      reset: resetProcessVideoData,
+      isLoading: processVideoLoading,
+    },
   ] = useProcessVideoMutation();
   const [
     getProcessedVideo,
-    { data: getProcessedVideoData, reset: resetGetProcessedVideoData },
+    {
+      data: getProcessedVideoData,
+      reset: resetGetProcessedVideoData,
+      isLoading: getProcessedVideoLoading,
+    },
   ] = useLazyGetProcessedVideoQuery();
   const [
     processFinalVideo,
-    { data: processFinalVideoData, reset: resetProcessFinalVideoData },
+    {
+      data: processFinalVideoData,
+      reset: resetProcessFinalVideoData,
+      isLoading: processFinalVideoLoading,
+    },
   ] = useProcessFinalVideoMutation();
   const [
     getFinalVideo,
-    { data: getFinalVideoData, reset: resetGetFinalVideoData },
+    {
+      data: getFinalVideoData,
+      reset: resetGetFinalVideoData,
+      isLoading: getFinalVideoLoading,
+    },
   ] = useLazyGetFinalVideoQuery();
+
+  const isLoading =
+    processVideoLoading ||
+    getProcessedVideoLoading ||
+    processFinalVideoLoading ||
+    getFinalVideoLoading;
 
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
@@ -46,8 +69,6 @@ const FinalVideoPage = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [regenerateIndex, setRegenerateIndex] = useState(null);
   const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
-
-  const videoRef = useState<any>(null);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -88,6 +109,7 @@ const FinalVideoPage = () => {
       replacement_word: replacementWord,
       prompt: regenerateIndex,
     });
+    setConfirmRegenerateModal(false);
   };
 
   const regenerateVideo = (index: number) => {
@@ -149,7 +171,6 @@ const FinalVideoPage = () => {
   useEffect(() => {
     if (getFinalVideoData?.final_video_path) {
       setFinalVideo(getFinalVideoData?.final_video_path);
-      setConfirmRegenerateModal(false);
       resetGetFinalVideoData();
     }
   }, [getFinalVideoData]);
@@ -164,7 +185,7 @@ const FinalVideoPage = () => {
           <div className="w-full mt-10">
             <div className="flex justify-start w-[60%] mb-6">
               <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
-                {isGenerating
+                {isGenerating || isLoading
                   ? "Generating your video... ⏳"
                   : "Your video is ready! 🥳"}
               </h1>
@@ -179,23 +200,26 @@ const FinalVideoPage = () => {
           {/* Video Section */}
           <div className="flex flex-col items-center justify-center flex-grow mt-4">
             <div className="relative  w-[80%] h-[25rem] bg-black rounded-2xl overflow-hidden">
-              <video
-                ref={videoRef}
-                className="w-full h-full"
-                src={finalVideo}
-                controls={!isGenerating} // Enable controls after 10 sec
-                autoPlay={false} // AutoPlay disabled initially
-              />
+              <ShimmerWrapper isLoading={isLoading}>
+                <video
+                  ref={videoRef}
+                  className="w-full h-full"
+                  src={finalVideo}
+                  controls={!(isGenerating || isLoading)} // Enable controls after 10 sec
+                  autoPlay={false} // AutoPlay disabled initially
+                />
+              </ShimmerWrapper>
 
               {/* Overlay Loader (Removed After 10 Sec) */}
-              {isGenerating && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
-                  <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-white mt-4 text-lg">
-                    5 minutes remaining...{" "}
-                  </p>
-                </div>
-              )}
+              {isGenerating ||
+                (isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50">
+                    <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-white mt-4 text-lg">
+                      5 minutes remaining...{" "}
+                    </p>
+                  </div>
+                ))}
 
               {/* Play Button (Appears After 10 Sec) */}
               {showPlayButton && (
@@ -272,7 +296,7 @@ const FinalVideoPage = () => {
         isOpen={confirmRegenerateModal}
         onClose={onCancelRegenerate}
         onConfirm={onConfirmRegenerate}
-        title="Are you sure you want to Regenerate the Video"
+        title="Are you sure you want to Regenerate the Scene"
       />
     </div>
   );
