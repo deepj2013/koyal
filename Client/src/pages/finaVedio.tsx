@@ -178,7 +178,10 @@ const FinalVideoPage = () => {
 
   useEffect(() => {
     if (processFinalVideoData?.call_id) {
-      getFinalVideo(processFinalVideoData?.call_id);
+      getFinalVideo({
+        callId: processFinalVideoData?.call_id,
+        timestamp: Date.now(),
+      });
       resetProcessFinalVideoData();
     }
   }, [processFinalVideoData]);
@@ -253,8 +256,7 @@ const FinalVideoPage = () => {
                 {previewImages.map((preview, index) => (
                   <div
                     className={`flex w-full relative rounded-lg ${
-                      currentTime > preview?.start &&
-                      currentTime < preview?.end
+                      currentTime > preview?.start && currentTime < preview?.end
                         ? "border-4 border-gray-400 ring-opacity-60"
                         : ""
                     }`}
