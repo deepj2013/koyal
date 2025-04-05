@@ -69,6 +69,7 @@ const FinalVideoPage = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [regenerateIndex, setRegenerateIndex] = useState(null);
   const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -110,6 +111,7 @@ const FinalVideoPage = () => {
       prompt: regenerateIndex,
     });
     setConfirmRegenerateModal(false);
+    setIsLoading(true);
   };
 
   const regenerateVideo = (index: number) => {
@@ -131,7 +133,7 @@ const FinalVideoPage = () => {
     if (sceneJson) {
       setPreviewImages(sceneJson);
     }
-  }, [sceneJson]);
+  }, []);
 
   useEffect(() => {
     processVideo({
@@ -171,6 +173,7 @@ const FinalVideoPage = () => {
   useEffect(() => {
     if (getFinalVideoData?.final_video_path) {
       setFinalVideo(getFinalVideoData?.final_video_path);
+      setIsLoading(false);
       resetGetFinalVideoData();
     }
   }, [getFinalVideoData]);
@@ -234,8 +237,8 @@ const FinalVideoPage = () => {
             <div className="relative w-[80%]">
               <div className="mt-4 flex gap-4 overflow-x-auto scrollbar-hide">
                 {previewImages.map((preview, index) => (
-                  <div>
-                    <div className="flex w-full relative">
+                  <div className="flex w-full relative">
+                    <ShimmerWrapper isLoading={false}>
                       <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
                         <span
                           className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
@@ -269,7 +272,7 @@ const FinalVideoPage = () => {
                           <span>{formatTime(preview.start)}</span>
                         </span>
                       </button>
-                    </div>
+                    </ShimmerWrapper>
                   </div>
                 ))}
               </div>
