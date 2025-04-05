@@ -23,6 +23,26 @@ const UserSchema = new mongoose.Schema({
         enum: roleEnum,
         default: roleEnum.USER
     },
+    isActive:{
+        type: Boolean,
+        default: true
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    // createdBy: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'users'
+    // },
+    // updatedBy: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'users'
+    // }
 }, { timestamps: true });
 
 const User = mongoose.model('users', UserSchema)

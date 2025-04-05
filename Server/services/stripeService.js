@@ -22,11 +22,13 @@ export const createPaymentIntent = async (amount, currency = 'usd') => {
             paymentIntentId: paymentIntent.id
         };
     } catch (error) {
+        console.log("error in create payment intent-->", error.message);
+        const errorMessage = error.raw ? error.raw.message : error.message;
         throw new APIError(
             'PaymentError',
             HttpStatusCode.BAD_REQUEST,
             true,
-            error.message
+            errorMessage
         );
     }
 };
@@ -37,11 +39,12 @@ export const retrievePaymentIntent = async (paymentIntentId) => {
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
         return paymentIntent;
     } catch (error) {
+        const errorMessage = error.raw ? error.raw.message : error.message;
         throw new APIError(
             'PaymentError',
             HttpStatusCode.BAD_REQUEST,
             true,
-            error.message
+            errorMessage
         );
     }
 };
