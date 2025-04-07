@@ -27,7 +27,7 @@ const Login = () => {
     if (email) {
       await createFolderInS3(email);
       localStorage.setItem("currentUser", email);
-      navigate(PageRoutes.UPLOAD);
+      navigate(PageRoutes.COLLECTION);
     }
   };
 
