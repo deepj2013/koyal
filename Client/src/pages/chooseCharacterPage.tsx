@@ -44,6 +44,7 @@ import ImagePreview from "../components/ImagePreview";
 import ShimmerWrapper from "../components/Shimmer";
 import AvatarModal from "../components/layouts/chooseCharacter/AvatarModal";
 import CharchaModal from "../components/layouts/chooseCharacter/CharchaModal";
+import NewThemeModal from "../components/layouts/chooseCharacter/NewThemeModal";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -306,6 +307,10 @@ const ChooseCharacterPage = () => {
       setStage(Stages.VERIFICATION);
     }
     setIsChooseCharModalOpen(true);
+  };
+
+  const handleTextChange = (e) => {
+    setNewThemeInput(e.target.value)
   };
 
   useEffect(() => {
@@ -669,35 +674,14 @@ const ChooseCharacterPage = () => {
                 Next
               </button>
             </div>
-
-            {isModalOpen && (
-              <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
-                <div className="bg-white/30 backdrop-blur-lg rounded-2xl shadow-2xl p-6 w-[90%] max-w-md relative z-50 border border-white/20">
-                  <button
-                    onClick={handleCloseModal}
-                    className="absolute top-3 right-3 text-white hover:text-gray-300 text-xl"
-                  >
-                    ✖
-                  </button>
-                  <h2 className="text-[18px] text-white text-center mb-4">
-                    Describe how you want the new theme to be
-                  </h2>
-                  <textarea
-                    className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200"
-                    rows={4}
-                    placeholder="Make the video more vibrant and colorful."
-                    value={newThemeInput}
-                    onChange={(e) => setNewThemeInput(e.target.value)}
-                  ></textarea>
-                  <button
-                    onClick={handleSaveTheme}
-                    className="w-full bg-white/20 text-white mt-4 py-3 rounded-lg hover:bg-white/30 transition duration-200 border border-white/30"
-                  >
-                    Create New Theme
-                  </button>
-                </div>
-              </div>
-            )}
+            <NewThemeModal
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              text={newThemeInput}
+              handleTextChange={handleTextChange}
+              onConfirm={handleSaveTheme}
+            />
+           
           </div>
         </div>
       </div>
