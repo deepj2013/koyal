@@ -47,7 +47,7 @@ const audioDetailsSchema = joi.object({
         .messages({
             'string.empty': 'Style is required',
             'any.required': 'Style is required',
-            'any.only': 'Style must be one of: REALISTIC, CARTOON, SKETCH'
+            'any.only': 'Style must be one of: Realistic, Cartoon,Animated Sketch'
         }),
     orientation: joi.string()
         .required()
@@ -55,7 +55,7 @@ const audioDetailsSchema = joi.object({
         .messages({
             'string.empty': 'Orientation is required',
             'any.required': 'Orientation is required',
-            'any.only': 'Orientation must be one of: PORTRAIT, LANDSCAPE, SQUARE'
+            'any.only': 'Orientation must be one of: portrait, landscape, square'
         })
 });
 
@@ -106,7 +106,7 @@ const updateAudioDetailSchema = joi.object({
         .messages({
             'string.empty': 'Style is required',
             'any.required': 'Style is required',
-            'any.only': 'Style must be one of: REALISTIC, CARTOON, SKETCH'
+            'any.only': 'Style must be one of: Realistic, Cartoon,Animated Sketch'
         }),
     orientation: joi.string()
         .optional()
@@ -114,7 +114,7 @@ const updateAudioDetailSchema = joi.object({
         .messages({
             'string.empty': 'Orientation is required',
             'any.required': 'Orientation is required',
-            'any.only': 'Orientation must be one of: PORTRAIT, LANDSCAPE, SQUARE'
+            'any.only': 'Orientation must be one of: portrait, landscape, square'
         })
 });
 

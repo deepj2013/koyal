@@ -6,6 +6,7 @@ import userTask from "../models/userTaskModel.js";
 import logger from "../utils/logger.js";
 import { checkXlsxFile, xlsxtojson } from "../utils/xlsxToJson.js";
 import { validateAudioDetail, validateBulkAudioDetails, validateQuery } from "../validations/user/userTaskValidation.js";
+import { toObjectId } from "../utils/mongo.js";
 
 export const bulkAudioDetailsService = async (requestData, requestFile, isExcelUpload) => {
     try {
@@ -102,6 +103,15 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
 export const getBulkAudiosService = async (requestUser, queryData) => {
     try {
         const { _id } = requestUser;
+        const { taskId } = queryData;
+        if (!taskId) {
+            throw new APIError(
+                "collectionId is required",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "collectionId is not found"
+            );
+        }
         // we can add pagination in future if required
 
         // const page = parseInt(queryData.page) || 1;
@@ -111,6 +121,7 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
         const aggr = [
             {
                 $match: {
+                    _id: toObjectId(taskId),
                     userId: _id.toString(),
                     taskType: taskTypeEnum.GROUP
                 }
