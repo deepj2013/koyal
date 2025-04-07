@@ -4,44 +4,45 @@ export const roleEnum = {
 }
 
 export const taskTypeEnum = {
-  GROUP: 'GROUP',
-  INDIVIDUAL: 'INDIVIDUAL'
+  GROUP: 'Group',
+  INDIVIDUAL: 'Individual'
 }
 export const taskStatusENUM = {
-  PENDING: 'PENDING',
-  COMPLETED: 'COMPLETED'
+  PENDING: 'Pending',
+  COMPLETED: 'Completed'
 }
 
 export const taskLogStatusENUM = {
-  PROGRESS: 'PROGRESS',
-  COMPLETED: 'COMPLETED'
+  PROGRESS: 'Progress',
+  COMPLETED: 'Completed'
 }
 
 export const visualStyleEnum = {
-  REALISTIC: 'REALISTIC',
-  CARTOON: 'CARTOON',
-  SKETCH: 'SKETCH'
+  REALISTIC: 'Realistic',
+  CARTOON: 'Cartoon',
+  SKETCH: 'Sketch',
+  ANIMATED: 'Animated'
 }
 
 export const OrientationEnum = {
-  PORTRAIT: 'PORTRAIT',
-  LANDSCAPE: 'LANDSCAPE',
-  SQUARE: 'SQUARE'
+  PORTRAIT: 'portrait',
+  LANDSCAPE: 'landscape',
+  SQUARE: 'square'
 }
 
 export const audioTypeEnum = {
-  MUSIC: 'MUSIC',
-  PODCAST: 'PODCAST',
-  VOICEOVER: 'VOICEOVER'
+  MUSIC: 'Music',
+  PODCAST: 'Podcast',
+  VOICEOVER: 'Voiceover',
 }
 
 export const userStageEnum = {
-  UPLOAD_AUDIO: 'UPLOAD_AUDIO',
-  REVIEW_TRANSCRIPT: 'REVIEW_TRANSCRIPT',
-  CHOOSE_CHARACTER: 'CHOOSE_CHARACTER',
-  SELECT_STYLE: 'SELECT_STYLE',
-  EDIT_SCENES: 'EDIT_SCENES',
-  FINAL_VIDEO: 'FINAL_VIDEO'
+  UPLOAD_AUDIO: 'upload audio',
+  REVIEW_TRANSCRIPT: 'review transcript',
+  CHOOSE_CHARACTER: 'chosse character',
+  SELECT_STYLE: 'select style',
+  EDIT_SCENES: 'edit scene',
+  FINAL_VIDEO: 'final video'
 }
 
 export const userTaskLogNameEnum = {

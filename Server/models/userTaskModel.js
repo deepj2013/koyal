@@ -40,6 +40,14 @@ const userTaskSchema = new mongoose.Schema({
         type: String,
         enum: Object.values(taskStatusENUM),
         default: taskStatusENUM.PENDING
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
     }
 },
     { timestamps: true }

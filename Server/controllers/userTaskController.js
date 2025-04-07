@@ -1,4 +1,4 @@
-import { bulkAudioDetailsService, getAllBulkAudioName, getBulkAudiosService } from "../services/userTaskService.js";
+import { bulkAudioDetailsService, getAllBulkAudioName, getAudioDetailService, getBulkAudiosService, updateAudioDetailsService } from "../services/userTaskService.js";
 import logger from "../utils/logger.js";
 
 export const addBulkTaskDetails = async (req, res, next) => {
@@ -6,8 +6,6 @@ export const addBulkTaskDetails = async (req, res, next) => {
         const requestData = req.body;
         const requestFile = req.file;
         const isExcelUpload = parseInt(req.query.isExcelUpload);
-        console.log("body data--->", requestData);
-        console.log("file data--->", requestFile);
         const response = await bulkAudioDetailsService(requestData, requestFile, isExcelUpload);
         return res.status(200).json({
             success: true,
@@ -42,6 +40,32 @@ export const getAllAudioNames = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Error in getting getAllAudioNames", error);
+        next(error)
+    }
+}
+export const getBulkAudioDetailsByTaskId = async (req, res, next) => {
+    try {
+        const response = await getAudioDetailService(req.user, req.params);
+        return res.status(200).json({
+            success: true,
+            message: "audio details fetched successfully",
+            data: response
+        });
+    } catch (error) {
+        logger.error("Error in getting getBulkAudio", error);
+        next(error)
+    }
+}
+export const updateAudioDetail = async (req, res, next) => {
+    try {
+        const response = await updateAudioDetailsService(req.user, req.body, req.params);
+        res.status(200).json({
+            success: true,
+            message: "Audio details updated successfully",
+            data: response
+        })
+    } catch (error) {
+        logger.error("Error in getting updateAudioDetail", error);
         next(error)
     }
 }

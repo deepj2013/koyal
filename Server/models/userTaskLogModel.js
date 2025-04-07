@@ -64,6 +64,14 @@ const userTaskLogSchema = new mongoose.Schema({
         required: true,
         default: taskLogStatusENUM.PROGRESS,
     },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    }
 }, { timestamps: true }
 );
 

@@ -78,3 +78,46 @@ export const validateBulkAudioDetails = (data) => {
 export const validateSingleAudioDetails = (data) => {
     return audioDetailsSchema.validate(data, { abortEarly: false });
 };
+
+const updateAudioDetailSchema = joi.object({
+    audioId: joi.string()
+        .regex(/^[a-fA-F0-9]{24}$/)
+        .required()
+        .messages({
+            'string.pattern.base': 'Invalid ObjectId format',
+            'string.empty': 'ID is required',
+            'any.required': 'ID is required'
+        }),
+    theme: joi.string()
+        .optional()
+        .messages({
+            'string.empty': 'Theme is required',
+            'any.required': 'Theme is required'
+        }),
+    character: joi.string()
+        .optional()
+        .messages({
+            'string.empty': 'Character is required',
+            'any.required': 'Character is required'
+        }),
+    style: joi.string()
+        .optional()
+        .valid(...Object.values(visualStyleEnum))
+        .messages({
+            'string.empty': 'Style is required',
+            'any.required': 'Style is required',
+            'any.only': 'Style must be one of: REALISTIC, CARTOON, SKETCH'
+        }),
+    orientation: joi.string()
+        .optional()
+        .valid(...Object.values(OrientationEnum))
+        .messages({
+            'string.empty': 'Orientation is required',
+            'any.required': 'Orientation is required',
+            'any.only': 'Orientation must be one of: PORTRAIT, LANDSCAPE, SQUARE'
+        })
+});
+
+export const validateAudioDetail = (data) => {
+    return updateAudioDetailSchema.validate(data, { abortEarly: false });
+};
