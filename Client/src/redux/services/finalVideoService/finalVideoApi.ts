@@ -25,7 +25,7 @@ export const finalVideoApi = apiSlice.injectEndpoints({
       }),
     }),
     getFinalVideo: builder.query({
-      query: (callId: string) => ({
+      query: ({callId}) => ({
         url: `${ApiRoutes.GetFinalVideo}/${callId}`,
         method: "GET",
       }),

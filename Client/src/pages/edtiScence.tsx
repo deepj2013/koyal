@@ -99,6 +99,7 @@ import { UploadAudioState } from "../redux/features/uploadSlice";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
 import { uploadJsonAsFileToS3 } from "../utils/helper";
 import ShimmerWrapper from "../components/Shimmer";
+import SceneEditModal from "../components/layouts/editScene/sceneEditModal";
 
 const images = {
   realistic: {
@@ -254,7 +255,7 @@ const GenerateVideoPage: React.FC = () => {
       state: {
         selectedStyle: location.state?.selectedStyle,
         orientationStyle: location.state?.orientationStyle,
-        sceneJson: scenes
+        sceneJson: scenes,
       },
     });
     dispatch(setScenesJson(scenes));
@@ -542,53 +543,14 @@ const GenerateVideoPage: React.FC = () => {
               </div>
             </div>
 
-            {isModalOpen && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                {/* Modal Container */}
-                <div className="bg-black/30 backdrop-blur-xl rounded-t-3xl shadow-2xl p-6 w-full max-w-md relative border border-white/20 transform translate-y-0 animate-slide-up">
-                  {/* Close Bar (iOS Style) */}
-                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1.5 bg-white/50 rounded-full"></div>
-
-                  {/* Close Button */}
-                  <button
-                    className="absolute top-3 right-3 text-white hover:text-gray-300 text-xl"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-
-                  {/* Modal Title */}
-                  <h3 className="text-xl font-semibold text-white text-center mb-4">
-                    What kind of scene do you want?
-                  </h3>
-
-                  {/* Description Input */}
-                  <textarea
-                    className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200 placeholder-opacity-50"
-                    rows={4}
-                    placeholder="Ex: make the character smile"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                  />
-
-                  {/* Save Button */}
-                  <div className="flex justify-end space-x-2 mt-4">
-                    <button
-                      className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
-                      onClick={() => setIsModalOpen(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-black text-white rounded-md"
-                      onClick={handleSave}
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <SceneEditModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              text={newDescription}
+              handleTextChange={(e) => setNewDescription(e.target.value)}
+              onConfirm={handleSave}
+            />
+         
             <div className="mt-6" id="create-btn">
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
