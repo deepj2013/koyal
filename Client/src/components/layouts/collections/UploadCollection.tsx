@@ -7,11 +7,15 @@ import {
   clearCollectionState,
   setBulkUploadedData,
   setGroupId,
+  setIsLoading,
   setTaskId,
 } from "../../../redux/features/collectionSlice";
+import { useNavigate } from "react-router-dom";
+import { PageRoutes } from "../../../routes/appRoutes";
 
-const UploadCollection = ({ handleNext }) => {
+const UploadCollection = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [
     bulkUploadAudio,
@@ -20,12 +24,17 @@ const UploadCollection = ({ handleNext }) => {
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
+  const handleNext = () => {
+    navigate(PageRoutes.COLLECTION_DETAILS);
+  };
+
   const onSubmit = () => {
     const formData = new FormData();
     uploadedFiles.forEach((file) => {
       formData.append("audioFiles", file);
     });
     bulkUploadAudio(formData);
+    dispatch(setIsLoading(true));
   };
 
   useEffect(() => {
@@ -34,6 +43,7 @@ const UploadCollection = ({ handleNext }) => {
 
   useEffect(() => {
     if (bulkUploadAudioData) {
+      dispatch(setIsLoading(false));
       dispatch(setBulkUploadedData(bulkUploadAudioData?.data?.files));
       dispatch(setTaskId(bulkUploadAudioData?.data?.files[0]?.taskId));
       dispatch(setGroupId(bulkUploadAudioData?.data?.files[0]?.groupId));

@@ -71,5 +71,6 @@ export const collectionListHeaders = [
   { id: "style", label: "Style" },
   { id: "orientation", label: "Orientation" },
   { id: "actions", label: "Actions" },
-  { id: "generate", label: "Generate" },
+  { id: "auto", label: "Auto Generate" },
+  { id: "manual", label: "Manual Generate" },
 ];

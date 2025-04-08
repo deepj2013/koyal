@@ -16,8 +16,12 @@ import {
   useEditAudioDetailsMutation,
   useLazyGetAudioDetailsQuery,
 } from "../../../redux/services/collectionService/collectionApi";
-import { CollectionState } from "../../../redux/features/collectionSlice";
-import { useSelector } from "react-redux";
+import {
+  CollectionState,
+  setIsLoading,
+} from "../../../redux/features/collectionSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { FaWrench } from "react-icons/fa";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -25,7 +29,9 @@ export const VideoOrientationIcons = {
   [VideoOrientationStyles.SQUARE]: <IoSquareOutline />,
 };
 
-export const EditCollectionScene = ({ handleNext }) => {
+export const EditCollectionScene = () => {
+  const dispatch = useDispatch();
+
   const { taskId, groupId } = useSelector(CollectionState);
 
   const [getAudioDetails, { data: audioDetailsData }] =
@@ -45,13 +51,17 @@ export const EditCollectionScene = ({ handleNext }) => {
   };
 
   const onConfirmEdit = () => {
-    setSelectedScene(null);
     const { sceneId, title, ...rest } = selectedScene;
 
-    editAudioDetails({
-      id: sceneId,
-      data: rest,
-    });
+    if (isEdit) {
+      dispatch(setIsLoading(true));
+      editAudioDetails({
+        id: sceneId,
+        data: rest,
+      });
+    } else {
+    }
+    setSelectedScene(null);
   };
 
   const addScene = () => {
@@ -71,6 +81,7 @@ export const EditCollectionScene = ({ handleNext }) => {
   };
 
   useEffect(() => {
+    dispatch(setIsLoading(true));
     getAudioDetails({ taskId, groupId });
   }, []);
 
@@ -106,8 +117,15 @@ export const EditCollectionScene = ({ handleNext }) => {
       }
       setScenes(sceneList);
       setThemeOptions(themeList);
+      dispatch(setIsLoading(false));
     }
   }, [audioDetailsData]);
+
+  useEffect(() => {
+    if (editAudioDetailsData) {
+      getAudioDetails({ taskId, groupId });
+    }
+  }, [editAudioDetailsData]);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
@@ -156,7 +174,7 @@ export const EditCollectionScene = ({ handleNext }) => {
                 <td className="py-4 px-4 text-sm text-gray-600">
                   {scene.title}
                 </td>
-                <td className="py-4 px-4 text-sm text-gray-600 max-w-xs">
+                <td className="py-4 px-4 text-sm text-gray-600">
                   {scene.theme}
                 </td>
                 <td className="py-4 px-4 text-sm text-gray-600">
@@ -192,10 +210,17 @@ export const EditCollectionScene = ({ handleNext }) => {
                     </div>
                   </button>
                 </td>
-                <td className="py-4 px-4">
-                  <button className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300">
+                <td className="py-4 px-4 ">
+                  <button className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300  mx-auto">
                     <div className="w-5 h-5 rounded-full">
                       <img src={GenerateIcon} alt="" />
+                    </div>
+                  </button>
+                </td>
+                <td className="py-4 px-4">
+                  <button className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 mx-auto">
+                    <div className="w-5 h-5 rounded-full">
+                      <FaWrench />
                     </div>
                   </button>
                 </td>

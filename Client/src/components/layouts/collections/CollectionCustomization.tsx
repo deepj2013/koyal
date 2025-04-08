@@ -3,8 +3,10 @@ import VisualStyleComponent from "../characterSelection/VisualStyle";
 import { CharacterStyles } from "../../../utils/constants";
 import { animatedStyle, realisticStyle, sketchStyle } from "../../../assets";
 import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/collectionService/collectionApi";
-import { useSelector } from "react-redux";
-import { CollectionState } from "../../../redux/features/collectionSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { CollectionState, setIsLoading } from "../../../redux/features/collectionSlice";
+import { PageRoutes } from "../../../routes/appRoutes";
+import { useNavigate } from "react-router-dom";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -12,7 +14,10 @@ const styles = [
   { name: CharacterStyles.SKETCH, image: sketchStyle },
 ];
 
-const CollectionCustomization = ({ handleNext }) => {
+const CollectionCustomization = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const { bulkUploadedData } = useSelector(CollectionState);
 
   const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData }] =
@@ -25,6 +30,10 @@ const CollectionCustomization = ({ handleNext }) => {
   const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState(styles[1]);
   const [selected, setSelected] = useState<string | null>(null);
+
+  const handleNext = () => {
+    navigate(PageRoutes.COLLECTION_LIST);
+  };
 
   const onSubmit = () => {
     const res = bulkUploadedData.map((item) => ({
@@ -39,6 +48,7 @@ const CollectionCustomization = ({ handleNext }) => {
     const payload = {
       audioDetails: res,
     };
+    dispatch(setIsLoading(true));
     bulkUploadAudioDetails({
       params: {
         isExcelUpload: 0,
@@ -52,6 +62,7 @@ const CollectionCustomization = ({ handleNext }) => {
 
   useEffect(() => {
     if (bulkUploadAudioDetailsData?.success) {
+      dispatch(setIsLoading(false));
       handleNext();
     }
   }, [bulkUploadAudioDetailsData]);

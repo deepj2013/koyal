@@ -17,6 +17,9 @@ import CharacterSelectionPage from "../pages/characterSelection";
 import FinalVideoPage from "../pages/finaVedio";
 import Home from "../pages/home";
 import GenerateVideoPage from "../pages/edtiScence";
+import CollectionCustomization from "../components/layouts/collections/CollectionCustomization";
+import { EditCollectionScene } from "../components/layouts/collections/EditCollectionScene";
+import UploadCollection from "../components/layouts/collections/UploadCollection";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -44,7 +47,20 @@ const AppRoutes: React.FC = () => {
           <Route path="/editscene" element={<GenerateVideoPage />} />
           <Route path="/finalvideo" element={<FinalVideoPage />} />
           <Route path={PageRoutes.CREATE_USER} element={<CreateUser />} />
-          <Route path={PageRoutes.COLLECTION} element={<Collection />} />
+          <Route path={PageRoutes.COLLECTION} element={<Collection />}>
+            <Route
+              path={PageRoutes.COLLECTION_UPLOAD}
+              element={<UploadCollection />}
+            />
+            <Route
+              path={PageRoutes.COLLECTION_DETAILS}
+              element={<CollectionCustomization />}
+            />
+            <Route
+              path={PageRoutes.COLLECTION_LIST}
+              element={<EditCollectionScene />}
+            />
+          </Route>
         </Route>
       </Routes>
     </Suspense>

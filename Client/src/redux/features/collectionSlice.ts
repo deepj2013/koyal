@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { CollectionModel } from "../models/collectionModel";
 
 const initialState: CollectionModel = {
+  isLoading: false,
   bulkUploadedData: null,
   taskId: null,
   groupId: null,
@@ -11,6 +12,9 @@ const collectionSlice = createSlice({
   name: "collection",
   initialState: initialState,
   reducers: {
+    setIsLoading: (state, action) => {
+      state.isLoading = action.payload;
+    },
     setBulkUploadedData: (state, action) => {
       state.bulkUploadedData = action.payload;
     },
@@ -21,13 +25,18 @@ const collectionSlice = createSlice({
       state.groupId = action.payload;
     },
     clearCollectionState: () => {
-        return initialState;
+      return initialState;
     },
-     
   },
 });
 
-export const { setBulkUploadedData, setTaskId, clearCollectionState, setGroupId } = collectionSlice.actions;
+export const {
+  setIsLoading,
+  setBulkUploadedData,
+  setTaskId,
+  clearCollectionState,
+  setGroupId,
+} = collectionSlice.actions;
 
 export default collectionSlice.reducer;
 
