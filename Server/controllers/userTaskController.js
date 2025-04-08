@@ -1,4 +1,4 @@
-import { bulkAudioDetailsService, getAllBulkAudioName, getAudioDetailService, getBulkAudiosService, updateAudioDetailsService } from "../services/userTaskService.js";
+import { addSingleAudioService, bulkAudioDetailsService, getAllBulkAudioName, getAudioDetailService, getBulkAudiosService, updateAudioDetailsService } from "../services/userTaskService.js";
 import logger from "../utils/logger.js";
 
 export const addBulkTaskDetails = async (req, res, next) => {
@@ -59,6 +59,20 @@ export const getBulkAudioDetailsByTaskId = async (req, res, next) => {
 export const updateAudioDetail = async (req, res, next) => {
     try {
         const response = await updateAudioDetailsService(req.user, req.body, req.params);
+        res.status(200).json({
+            success: true,
+            message: "Audio details updated successfully",
+            data: response
+        })
+    } catch (error) {
+        logger.error("Error in getting updateAudioDetail", error);
+        next(error)
+    }
+}
+
+export const addSingleTaskDetails = async (req, res, next) => {
+    try {
+        const response = await addSingleAudioService(req.user, req.body);
         res.status(200).json({
             success: true,
             message: "Audio details updated successfully",

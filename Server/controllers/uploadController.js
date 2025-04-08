@@ -1,4 +1,4 @@
-import { bulkAudioUploadService } from '../services/uploadService.js';
+import { bulkAudioUploadService, downloadAudioExcelService } from '../services/uploadService.js';
 import logger from '../utils/logger.js';
 
 export const bulkAudioUpload = async (req, res, next) => {
@@ -22,3 +22,22 @@ export const bulkAudioUpload = async (req, res, next) => {
         next(error);
     }
 }
+export const downloadAudioExcel = async (req, res, next) => {
+    try {
+        const buffer = await downloadAudioExcelService(req.user, req.query);
+
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename=audio_template.xlsx'
+        );
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+
+        res.send(buffer); 
+    } catch (error) {
+        logger.error("Error in getting downloadAudioExcel", error);
+        next(error);
+    }
+};

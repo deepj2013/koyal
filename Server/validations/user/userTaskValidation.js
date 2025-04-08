@@ -65,9 +65,45 @@ const audioDetailsSchema = joi.object({
         })
 });
 
+const audioExcelDetailsSchema = joi.object({
+    name: joi.string()
+        .required()
+        .messages({
+            'string.empty': 'Name is required',
+            'any.required': 'Name is required'
+        }),
+    theme: joi.string()
+        .required()
+        .messages({
+            'string.empty': 'Theme is required',
+            'any.required': 'Theme is required'
+        }),
+    character: joi.string()
+        .required()
+        .messages({
+            'string.empty': 'Character is required',
+            'any.required': 'Character is required'
+        }),
+    style: joi.string()
+        .required()
+        .valid(...Object.values(visualStyleEnum))
+        .messages({
+            'string.empty': 'Style is required',
+            'any.required': 'Style is required',
+            'any.only': 'Style must be one of: Realistic, Cartoon,Animated Sketch'
+        }),
+    orientation: joi.string()
+        .required()
+        .valid(...Object.values(OrientationEnum))
+        .messages({
+            'string.empty': 'Orientation is required',
+            'any.required': 'Orientation is required',
+            'any.only': 'Orientation must be one of: portrait, landscape, square'
+        })
+});
 const bulkAudioDetailsValidation = joi.object({
     audioDetails: joi.array()
-        .items(audioDetailsSchema)
+        .items(audioExcelDetailsSchema)
         .min(1)
         .required()
         .messages({

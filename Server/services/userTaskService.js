@@ -49,8 +49,8 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
                 );
             }
             for (let task of data) {
-                const { id, name, theme, character, style, orientation } = task;
-                const result = await userTaskLog.findOneAndUpdate({ _id: id }, {
+                const { name, theme, character, style, orientation } = task;
+                const result = await userTaskLog.findOneAndUpdate({ "audioDetails.originalFileName": name }, {
                     $set: {
                         "audioDetails.collectionName": name,
                         "audioDetails.theme": theme,
@@ -292,30 +292,92 @@ export const updateAudioDetailsService = async (requestUser, requestData, params
             "audioDetails.style": style,
             "audioDetails.orientation": orientation
         };
-            const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
-            if (!sourceAudio) {
-                throw new APIError(
-                    "Source audio not found",
-                    HttpStatusCode.BAD_REQUEST,
-                    true,
-                    "Source audio not found"
-                );
-            }
-            updateQuery = {
-                ...updateQuery,
-                audioUrl: sourceAudio.audioUrl,
-                audioPath: sourceAudio.audioPath,
-                "audioDetails.originalFileName": sourceAudio.audioDetails.originalFileName,
-                "audioMetadata.originalName": sourceAudio.audioMetadata.originalName,
-                "audioMetadata.mimeType": sourceAudio.audioMetadata.mimeType
-            };
-            
+        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
+        if (!sourceAudio) {
+            throw new APIError(
+                "Source audio not found",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "Source audio not found"
+            );
+        }
+        updateQuery = {
+            ...updateQuery,
+            audioUrl: sourceAudio.audioUrl,
+            audioPath: sourceAudio.audioPath,
+            "audioDetails.originalFileName": sourceAudio.audioDetails.originalFileName,
+            "audioMetadata.originalName": sourceAudio.audioMetadata.originalName,
+            "audioMetadata.mimeType": sourceAudio.audioMetadata.mimeType
+        };
+
         const updatedTaskLog = await userTaskLog.findOneAndUpdate(
             { _id: taskId, userId: _id.toString() },
             { $set: updateQuery },
             { new: true }
         );
         return updatedTaskLog;
+    } catch (error) {
+        logger.error("ERROR in updating audio details", error);
+        throw new APIError(
+            error.name,
+            error.httpCode,
+            error.isOperational,
+            error.message
+        );
+    }
+}
+
+export const addSingleAudioService = async (requestUser, requestData) => {
+    try {
+        const { _id } = requestUser;
+        const { error: dataError } = validateAudioDetail(requestData);
+        console.log("dataError", dataError);
+        if (dataError) {
+            throw new APIError(
+                "Validation Error",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                dataError.details[0].message
+            );
+        }
+        const { theme, character, style, orientation, audioId } = requestData;
+        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
+        if (!sourceAudio) {
+            throw new APIError(
+                "Source audio not found",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "Source audio not found"
+            );
+        }
+        const createdNewAudioTask = await userTaskLog.create(
+            {
+                userId: _id.toString(),
+                taskId: sourceAudio.taskId,
+                taskName: sourceAudio.taskName,
+                isAudioUpload: true,
+                audioUrl: sourceAudio.audioUrl,
+                audioPath: sourceAudio.audioPath,
+                groupId: sourceAudio.groupId,
+                audioDetails: {
+                    originalFileName: sourceAudio.audioDetails.originalFileName,
+                    collectionName: sourceAudio.audioDetails.collectionName,
+                    theme: theme,
+                    character: character,
+                    style: style,
+                    orientation: orientation
+                },
+                audioMetadata: {
+                    originalName: sourceAudio.audioMetadata.originalName,
+                    mimeType: sourceAudio.audioMetadata.mimeType
+                }
+            }
+        );
+        await userTask.findOneAndUpdate(
+            { _id: sourceAudio.taskId, userId: _id.toString(), groupId: sourceAudio.groupId },
+            { $push: { taskLogIds: createdNewAudioTask._id } },
+        );
+        return createdNewAudioTask;
     } catch (error) {
         logger.error("ERROR in updating audio details", error);
         throw new APIError(
