@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { returnError } from './exception/errorHandler.js';
 import router from './routes.js';
+import { getErrorLogs } from './controllers/errorLogController.js';
 
 dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 
@@ -33,9 +34,11 @@ mongoose.set('strictQuery', false);
 mongoose
   .connect(config.conn)
   .then(() => {
-    console.log( '__________________________________________________________________________________')
+    console.log('__________________________________________________________________________________')
     console.log('|' + color.green.bold(` Mongo DB Connected Successfully.. |`) + '|')
   }).catch((err) => console.error("MongoDB connection error:", err));
+
+app.get("/error/getLog", getErrorLogs);
 
 app.use(router);
 

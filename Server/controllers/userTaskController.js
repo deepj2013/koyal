@@ -32,7 +32,7 @@ export const getBulkAudioDetails = async (req, res, next) => {
 }
 export const getAllAudioNames = async (req, res, next) => {
     try {
-        const response = await getAllBulkAudioName(req.user);
+        const response = await getAllBulkAudioName(req.user, req.query);
         return res.status(200).json({
             success: true,
             message: "All audio names fetched successfully",

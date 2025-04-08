@@ -10,6 +10,11 @@ const userTaskSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'userTaskLogs'
     }],
+    groupId: {
+        type: String,
+        required: true,
+        index: true
+    },
     numberofTaskLog: {
         type: Number,
         default: 0
@@ -52,6 +57,9 @@ const userTaskSchema = new mongoose.Schema({
 },
     { timestamps: true }
 );
+
+userTaskSchema.index({ createdAt: 1 });
+userTaskSchema.index({ userId: 1, createdAt: -1 });
 const userTask = mongoose.model('userTasks', userTaskSchema);
 
 export default userTask;

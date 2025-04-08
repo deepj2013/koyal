@@ -7,7 +7,6 @@ import { taskLogStatusENUM, taskTypeEnum, userTaskLogNameEnum } from "../enums/E
 
 export const bulkAudioUploadService = async (audioFiles, user) => {
     try {
-
         const email = user.email;
         if (!audioFiles?.length) {
             throw new APIError(
@@ -27,19 +26,19 @@ export const bulkAudioUploadService = async (audioFiles, user) => {
                 "plese try again later"
             );
         }
-        const taskDetails = await userTask.findOne({ userId: user._id });
-        let createdUserTask;
+        const groupId = `group-${Date.now()}`;
+        let taskDetails = await userTask.findOne({ userId: user._id, groupId: groupId });
         if (!taskDetails) {
-            createdUserTask = new userTask({
+            taskDetails = await userTask.create({
                 userId: user._id,
                 taskLogIds: [],
+                groupId: groupId,
                 numberofTaskLog: audioFiles.length,
                 taskType: taskTypeEnum.GROUP,
                 stage: 1,
             })
-            createdUserTask = await createdUserTask.save();
         }
-        const taskId = createdUserTask ? createdUserTask._id : taskDetails._id;
+        const taskId = taskDetails?._id;
 
         const taskLogs = await Promise.all(files.map(async (file, index) => {
             const { url, fileName } = file;
@@ -51,6 +50,7 @@ export const bulkAudioUploadService = async (audioFiles, user) => {
                 audioDetails: {
                     originalFileName: fileName,
                 },
+                groupId: groupId,
                 isAudioUpload: true,
                 audioUrl: url,
                 audioPath: `${email}/collections/${fileName}`,
@@ -66,17 +66,21 @@ export const bulkAudioUploadService = async (audioFiles, user) => {
                 taskId: taskLog.taskId,
                 taskType: taskLog.taskName,
                 url: taskLog.audioUrl,
-                path: taskLog.audioPath
+                path: taskLog.audioPath,
+                groupId: taskLog.groupId,
             };
         }));
         const taskLogIds = taskLogs.map(log => log._id);
-        if (createdUserTask) {
-            createdUserTask.taskLogIds = taskLogIds;
-            await createdUserTask.save();
-        } else {
-            taskDetails.taskLogIds.push(...taskLogIds);
-            await taskDetails.save();
-        }
+        taskDetails.taskLogIds.push(...taskLogIds);
+        await taskDetails.save();
+        // const taskLogIds = taskLogs.map(log => log._id);
+        // if (createdUserTask) {
+        //     createdUserTask.taskLogIds = taskLogIds;
+        //     await createdUserTask.save();
+        // } else {
+        //     taskDetails.taskLogIds.push(...taskLogIds);
+        //     await taskDetails.save();
+        // }
         return taskLogs;
 
     } catch (error) {

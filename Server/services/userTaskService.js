@@ -103,7 +103,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
 export const getBulkAudiosService = async (requestUser, queryData) => {
     try {
         const { _id } = requestUser;
-        const { taskId } = queryData;
+        const { taskId, groupId } = queryData;
         if (!taskId) {
             throw new APIError(
                 "collectionId is required",
@@ -121,6 +121,7 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
         const aggr = [
             {
                 $match: {
+                    groupId: groupId,
                     _id: toObjectId(taskId),
                     userId: _id.toString(),
                     taskType: taskTypeEnum.GROUP
@@ -179,12 +180,22 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
     }
 }
 
-export const getAllBulkAudioName = async (requestUser) => {
+export const getAllBulkAudioName = async (requestUser, queryData) => {
     try {
         const { _id } = requestUser;
+        const { groupId } = queryData;
+        if (!groupId) {
+            throw new APIError(
+                "groupId is required",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "groupId is not found"
+            );
+        }
         const aggr = [
             {
                 $match: {
+                    groupId: groupId,
                     userId: _id.toString(),
                     taskType: taskTypeEnum.GROUP
                 }
@@ -213,6 +224,7 @@ export const getAllBulkAudioName = async (requestUser) => {
                     _id: 1,
                     taskLogs: {
                         _id: 1,
+                        groupId: 1,
                         audioDetails: {
                             originalFileName: 1,
                         },
@@ -263,6 +275,7 @@ export const updateAudioDetailsService = async (requestUser, requestData, params
         const { _id } = requestUser;
         const { taskId } = params;
         const { error: dataError } = validateAudioDetail(requestData);
+        console.log("dataError", dataError);
         if (dataError) {
             throw new APIError(
                 "Validation Error",
@@ -279,7 +292,6 @@ export const updateAudioDetailsService = async (requestUser, requestData, params
             "audioDetails.style": style,
             "audioDetails.orientation": orientation
         };
-        if (audioId) {
             const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
             if (!sourceAudio) {
                 throw new APIError(
@@ -297,8 +309,7 @@ export const updateAudioDetailsService = async (requestUser, requestData, params
                 "audioMetadata.originalName": sourceAudio.audioMetadata.originalName,
                 "audioMetadata.mimeType": sourceAudio.audioMetadata.mimeType
             };
-        }
-
+            
         const updatedTaskLog = await userTaskLog.findOneAndUpdate(
             { _id: taskId, userId: _id.toString() },
             { $set: updateQuery },

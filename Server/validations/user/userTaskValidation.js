@@ -23,6 +23,12 @@ const audioDetailsSchema = joi.object({
             'string.empty': 'ID is required',
             'any.required': 'ID is required'
         }),
+    // groupId: joi.string()
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Group ID is required',
+    //         'any.required': 'Group ID is required'
+    //     }),
     name: joi.string()
         .required()
         .messages({

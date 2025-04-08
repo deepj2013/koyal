@@ -11,7 +11,8 @@ const userTaskLogSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true,
-        ref: 'users'
+        ref: 'users',
+        index: true
     },
     taskName: {
         type: String,
@@ -30,6 +31,11 @@ const userTaskLogSchema = new mongoose.Schema({
     },
     audioJSON: {
         type: String
+    },
+    groupId: {
+        type: String,
+        required: true,
+        index: true
     },
     audioDetails: {
         originalFileName: { type: String },
@@ -66,15 +72,17 @@ const userTaskLogSchema = new mongoose.Schema({
     },
     isDeleted: {
         type: Boolean,
-        default: false
+        default: false,
+        index: true
     },
     deletedAt: {
         type: Date,
-        default: null
+        default: null,
     }
 }, { timestamps: true }
 );
 
+userTaskLogSchema.index({ createdAt: -1 })
 const userTaskLog = mongoose.model('userTaskLogs', userTaskLogSchema);
 
 export default userTaskLog;
