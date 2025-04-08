@@ -2,19 +2,15 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { IoCloudUploadOutline, IoClose } from "react-icons/io5";
 
-export const FileUpload = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-
+export const FileUpload = ({ uploadedFiles, setUploadedFiles }) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setUploadedFiles((prevFiles) => {
-      // Filter out duplicates based on file name
       const newFiles = acceptedFiles.filter(
         (newFile) => !prevFiles.some((file) => file.name === newFile.name)
       );
       return [...prevFiles, ...newFiles];
     });
   }, []);
-
 
   const removeFile = (index: number) => {
     setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));

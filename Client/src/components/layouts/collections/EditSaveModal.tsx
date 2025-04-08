@@ -14,12 +14,14 @@ import {
 } from "react-icons/io5";
 
 const EditSongModal = ({
+  isEdit,
   isOpen,
   onClose,
   onConfirm,
   options,
   selectedScene,
   setSelectedScene,
+  isConfirmDisabled,
 }) => {
   if (!isOpen) return null;
 
@@ -35,7 +37,10 @@ const EditSongModal = ({
       <div className="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg">
         {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
-          <h2 className="text-lg font-semibold">Edit Song Details</h2>
+          <h2 className="text-lg font-semibold">
+            {" "}
+            {isEdit ? "Edit" : "Add"} Song Details
+          </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-black">
             <X size={20} />
           </button>
@@ -52,7 +57,7 @@ const EditSongModal = ({
                 label={selectedScene.title}
                 options={options}
                 onChange={(selectedOption) =>
-                  handleChange("title", selectedOption)
+                  handleChange("audioId", selectedOption)
                 }
               />
             </div>
@@ -94,15 +99,13 @@ const EditSongModal = ({
                 <button
                   key={style.id}
                   className={`flex items-center space-x-2 px-3 py-1 ${
-                    selectedScene?.style === style.id &&
+                    selectedScene?.style === style.label &&
                     "border rounded-md bg-gray-100"
                   }`}
-                  onClick={(e) => handleChange("style", style.id)}
+                  onClick={(e) => handleChange("style", style.label)}
                 >
                   <span
-                    className={`w-3 h-3 bg-blue-500 rounded-full ${
-                      StyleColors[style.id]
-                    }`}
+                    className={`w-3 h-3 rounded-full ${StyleColors[style.id]}`}
                   ></span>
                   <span className="text-sm">{style.label}</span>
                 </button>
@@ -195,10 +198,15 @@ const EditSongModal = ({
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-black text-white rounded-md text-sm"
             onClick={onConfirm}
+            className={` px-4 py-2 bg-black text-white text-sm h-[40px] rounded-md relative group ${
+              isConfirmDisabled
+                ? "bg-gray-300 text-gray-800"
+                : "bg-black text-white hover:bg-gray-800"
+            }`}
+            disabled={isConfirmDisabled}
           >
-            Save changes
+            Save {isEdit ? "changes" : ""}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  collectionListHeaders,
   StyleColors,
   styles,
   VideoOrientationStyles,
@@ -11,6 +12,12 @@ import {
   IoTabletPortraitOutline,
 } from "react-icons/io5";
 import EditSongModal from "./EditSaveModal";
+import {
+  useEditAudioDetailsMutation,
+  useLazyGetAudioDetailsQuery,
+} from "../../../redux/services/collectionService/collectionApi";
+import { CollectionState } from "../../../redux/features/collectionSlice";
+import { useSelector } from "react-redux";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -19,83 +26,94 @@ export const VideoOrientationIcons = {
 };
 
 export const EditCollectionScene = ({ handleNext }) => {
-  const [styleKey, setStyleKey] = useState("realistic");
+  const { taskId, groupId } = useSelector(CollectionState);
+
+  const [getAudioDetails, { data: audioDetailsData }] =
+    useLazyGetAudioDetailsQuery();
+  const [editAudioDetails, { data: editAudioDetailsData }] =
+    useEditAudioDetailsMutation();
+
   const [selectedScene, setSelectedScene] = useState(null);
+  const [scenes, setScenes] = useState([]);
+  const [themeOptions, setThemeOptions] = useState([]);
+  const [isEdit, setIsEdit] = useState(null);
 
-  const tableHeaders = [
-    { id: "preview", label: "Preview" },
-    { id: "title", label: "Title" },
-    { id: "theme", label: "Theme" },
-    { id: "character", label: "Character" },
-    { id: "style", label: "Style" },
-    { id: "orientation", label: "Orientation" },
-    { id: "actions", label: "Actions" },
-    { id: "generate", label: "Generate" },
-  ];
-
-  const scenes = [
-    {
-      title: "God's Plan",
-      theme: "The main character is on a luxury yacht",
-      character: "drakeaubreygraham",
-      style: "realistic",
-      orientation: "landscape",
-    },
-    {
-      title: "Hotline Bling",
-      theme:
-        "The main character is in a nightclub but reminiscing about his past",
-      character: "drakeaubreygraham",
-      style: "animated",
-      orientation: "portrait",
-    },
-    {
-      title: "In My Feelings",
-      theme: "The main character is on a luxury yacht",
-      character: "drakeaubreygraham",
-      style: "animated",
-      orientation: "portrait",
-    },
-    {
-      title: "Started From The Bottom",
-      theme: "The main character is on a luxury yacht",
-      character: "drakeaubreygraham",
-      style: "animated",
-      orientation: "portrait",
-    },
-    {
-      title: "Nice For What",
-      theme: "The main character is on a luxury yacht",
-      character: "drakeaubreygraham",
-      style: "animated",
-      orientation: "portrait",
-    },
-  ];
-
-  const options = scenes.map((item) => item.title);
-
-  const handleEdit = (scene) => {
-    setSelectedScene(scene);
+  const isConfirmDisabled = () => {
+    const { theme, character, style, orientation, audioId } =
+      selectedScene || {};
+    return !theme || !character || !style || !orientation || !audioId;
   };
 
   const onConfirmEdit = () => {
     setSelectedScene(null);
+    const { sceneId, title, ...rest } = selectedScene;
+
+    editAudioDetails({
+      id: sceneId,
+      data: rest,
+    });
   };
+
   const addScene = () => {
+    setIsEdit(false);
     setSelectedScene({
-      title: null,
       theme: "",
       character: "",
       style: "",
       orientation: "",
-    },);
+      audioId: null,
+    });
   };
 
-  
+  const handleEdit = (scene) => {
+    setIsEdit(true);
+    setSelectedScene(scene);
+  };
+
+  useEffect(() => {
+    getAudioDetails({ taskId, groupId });
+  }, []);
+
+  useEffect(() => {
+    if (audioDetailsData) {
+      const sceneList = [];
+      const themeList = [];
+      for (const element of audioDetailsData?.data) {
+        const {
+          _id,
+          audioDetails: {
+            originalFileName,
+            theme,
+            character,
+            style,
+            orientation,
+          },
+        } = element.taskLogs;
+
+        themeList.push({
+          text: originalFileName,
+          value: _id,
+        });
+        sceneList.push({
+          title: originalFileName,
+          theme: theme,
+          character: character,
+          style: style,
+          orientation: orientation,
+          sceneId: _id,
+          audioId: _id,
+        });
+      }
+      setScenes(sceneList);
+      setThemeOptions(themeList);
+    }
+  }, [audioDetailsData]);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
-      <h1 className="text-2xl font-bold mb-4">Drake Music Video Scenes</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {audioDetailsData?.data?.[0]?.taskLogs?.audioDetails?.collectionName}
+      </h1>
 
       <div className="mb-6 flex items-center">
         <p className="text-sm text-gray-700 mr-2">Style Key:</p>
@@ -115,7 +133,7 @@ export const EditCollectionScene = ({ handleNext }) => {
         <table className="min-w-full bg-white">
           <thead>
             <tr className="border-b">
-              {tableHeaders.map((header) => (
+              {collectionListHeaders.map((header) => (
                 <th
                   key={header.id}
                   className="py-2 px-4 text-left text-sm font-medium text-gray-700 bg-[#F9FAFB]"
@@ -148,7 +166,7 @@ export const EditCollectionScene = ({ handleNext }) => {
                   <div className="flex items-center">
                     <div
                       className={`w-3 h-3 rounded-full mr-2 ${
-                        StyleColors[scene.style]
+                        StyleColors[scene.style.toLowerCase()]
                       }`}
                     ></div>
                     <span className="text-sm text-gray-600">{scene.style}</span>
@@ -187,16 +205,21 @@ export const EditCollectionScene = ({ handleNext }) => {
         </table>
       </div>
       <EditSongModal
+        isEdit={isEdit}
         isOpen={selectedScene}
         onClose={() => setSelectedScene(null)}
         onConfirm={onConfirmEdit}
-        options={options}
+        options={themeOptions}
         selectedScene={selectedScene}
         setSelectedScene={setSelectedScene}
+        isConfirmDisabled={isConfirmDisabled()}
       />
 
       <div className="flex justify-center mt-6">
-        <button className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300" onClick={addScene}>
+        <button
+          className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+          onClick={addScene}
+        >
           <span className="text-xl font-bold text-gray-600">+</span>
         </button>
       </div>

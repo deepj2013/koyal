@@ -14,7 +14,11 @@ export enum CharacterStyles {
   SKETCH = "Sketch",
 }
 
-export const CharacterStylesList = [CharacterStyles.REALISTIC, CharacterStyles.ANIMATED, CharacterStyles.SKETCH]
+export const CharacterStylesList = [
+  CharacterStyles.REALISTIC,
+  CharacterStyles.ANIMATED,
+  CharacterStyles.SKETCH,
+];
 
 export enum VideoOrientationStyles {
   PORTRAIT = "portrait",
@@ -58,3 +62,14 @@ export const StyleColors = {
   animated: "bg-[#FFB2B2]",
   sketch: "bg-[#B2FFB2]",
 };
+
+export const collectionListHeaders = [
+  { id: "preview", label: "Preview" },
+  { id: "title", label: "Title" },
+  { id: "theme", label: "Theme" },
+  { id: "character", label: "Character" },
+  { id: "style", label: "Style" },
+  { id: "orientation", label: "Orientation" },
+  { id: "actions", label: "Actions" },
+  { id: "generate", label: "Generate" },
+];

@@ -8,9 +8,9 @@ const Dropdown = ({ label, options = [], onChange, defaultOption = null }) => {
   const toggleDropdown = () => setIsOpen(!isOpen);
 
   const handleSelect = (option) => {
-    setSelectedOption(option);
+    setSelectedOption(option.text);
     setIsOpen(false);
-    if (onChange) onChange(option);
+    if (onChange) onChange(option.value);
   };
 
   // Close dropdown when clicking outside
@@ -59,7 +59,7 @@ const Dropdown = ({ label, options = [], onChange, defaultOption = null }) => {
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                 onClick={() => handleSelect(option)}
               >
-                {option}
+                {option.text}
               </button>
             ))}
           </div>
