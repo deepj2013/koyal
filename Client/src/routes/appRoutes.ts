@@ -3,5 +3,8 @@ export enum PageRoutes {
   CREATE_USER = "/admin/createUser",
   ADMIN_LOGIN = "/admin/login",
   COLLECTION = "/collection",
-  UPLOAD = '/upload'
+  UPLOAD = "/upload",
+  COLLECTION_UPLOAD = "/collection/upload",
+  COLLECTION_DETAILS = "/collection/details",
+  COLLECTION_LIST = "/collection/list",
 }

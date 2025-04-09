@@ -14,6 +14,7 @@ import { persistStore } from "redux-persist";
 import AppReducer from "../features/appSlice";
 import uploadAudioReducer from "../features/uploadSlice";
 import lyricEditReducer from "../features/lyricEditSlice";
+import collectionReducer from "../features/collectionSlice";
 import AuthReducer from "../features/authSlice";
 import { uploadAudioApi } from "../services/uploadAudioService/uploadAudioApi";
 import { lyricEditApi } from "../services/lyricEditService/lyricEditApi";
@@ -23,6 +24,7 @@ import { editSceneApi } from "../services/editSceneService/editSceneApi";
 import { finalVideoApi } from "../services/finalVideoService/finalVideoApi";
 import { adminApi } from "../services/adminService/adminApi";
 import { authApi } from "../services/authService/authApi";
+import { collectionApi } from "../services/collectionService/collectionApi";
 
 const persistConfig = {
   key: "root",
@@ -34,6 +36,7 @@ const rootReducer = combineReducers({
   uploadAudio: uploadAudioReducer,
   lyricEdit: lyricEditReducer,
   auth: AuthReducer,
+  collection : collectionReducer,
   [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,
   [lyricEditApi.reducerPath]: lyricEditApi.reducer,
   [chooseCharacterApi.reducerPath]: chooseCharacterApi.reducer,
@@ -42,6 +45,7 @@ const rootReducer = combineReducers({
   [finalVideoApi.reducerPath]: finalVideoApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
   [authApi.reducerPath]: authApi.reducer,
+  [collectionApi.reducerPath]: collectionApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -62,6 +66,7 @@ export const store = configureStore({
       finalVideoApi.middleware,
       adminApi.middleware,
       authApi.middleware,
+      collectionApi.middleware
     ]),
 });
 
