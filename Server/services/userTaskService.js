@@ -23,7 +23,6 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
         }
         let response = [];
         if (isExcelUpload === 1) {
-            console.log("groupID--->", groupId)
             if (!groupId) {
                 throw new APIError(
                     "groupId is required",
@@ -33,7 +32,6 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                 );
             }
             if (!checkXlsxFile(requestFile)) {
-                console.log("Invalid file format");
                 throw new APIError(
                     "Invalid file format",
                     HttpStatusCode.BAD_REQUEST,
@@ -43,10 +41,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
             }
             const { buffer } = requestFile;
             const { _id } = requestUser;
-            console.log("userID", _id);
-            console.log("string-id", toStringId(_id));
             const { status, message, data } = await xlsxtojson(buffer);
-            console.log("data==>", data);
             if (status == 400 || status == 500) {
                 throw new APIError(
                     message,
@@ -65,36 +60,16 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                 );
             }
 
-            // const userTassk = await userTaskLog.find({
-            //     userId: toStringId(_id),
-            //     groupId: groupId,
-            // })
-            // console.log("userTassk", userTassk);
-            const songofTheme = {};
-
-            for (const item of data) {
-                const { name, ...details } = item;
-                if (!songofTheme[name]) {
-                    songofTheme[name] = [];
-                }
-                songofTheme[name].push(details);
-            }
-
-            console.log("grouped object--->", songofTheme);
-
-
             for (let task of data) {
                 const { name, theme, character, style, orientation } = task;
                 const result = await userTaskLog.findOneAndUpdate({ userId: toStringId(_id), groupId: groupId, "audioDetails.originalFileName": name }, {
-                  
-                    
-                    // $set: {
-                    //     "audioDetails.collectionName": name,
-                    //     "audioDetails.theme": theme,
-                    //     "audioDetails.character": character,
-                    //     "audioDetails.style": style,
-                    //     "audioDetails.orientation": orientation
-                    // }
+                    $set: {
+                        "audioDetails.collectionName": name,
+                        "audioDetails.theme": theme,
+                        "audioDetails.character": character,
+                        "audioDetails.style": style,
+                        "audioDetails.orientation": orientation
+                    }
                 }, { new: true })
                 response.push(result);
             }
