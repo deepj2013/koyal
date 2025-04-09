@@ -13,7 +13,7 @@ import {
   IoTabletPortraitOutline,
 } from "react-icons/io5";
 
-const EditSongModal = ({
+const AddEditSongModal = ({
   isEdit,
   isOpen,
   onClose,
@@ -214,4 +214,4 @@ const EditSongModal = ({
   );
 };
 
-export default EditSongModal;
+export default AddEditSongModal;

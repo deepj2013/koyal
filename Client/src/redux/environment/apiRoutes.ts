@@ -28,7 +28,8 @@ export const CollectionApiRoutes = {
   BulkUploadAudio: "api/user/uploads/bulk-upload",
   BulkUploadAudioDetails: "api/user/task/update-bulk-audio-details",
   GetAudioDetails: "api/user/task/get-bulk-audio-details",
-  EditAudioDetails: "api/user/task/update-audio-details"
+  EditAudioDetails: "api/user/task/update-audio-details",
+  AddNewAudio: "api/user/task/add-audio-task",
 } as const;
 
 export const AdminApiRoutes = {

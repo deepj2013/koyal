@@ -32,6 +32,13 @@ export const collectionApi = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    addNewAudio: builder.mutation({
+      query: (data) => ({
+        url: CollectionApiRoutes.AddNewAudio,
+        method: "POST",
+        body: data,
+      }),
+    }),    
   }),
 });
 
@@ -40,4 +47,5 @@ export const {
   useBulkUploadAudioDetailsMutation,
   useLazyGetAudioDetailsQuery,
   useEditAudioDetailsMutation,
+  useAddNewAudioMutation,
 } = collectionApi;

@@ -11,8 +11,8 @@ import {
   IoTabletLandscapeOutline,
   IoTabletPortraitOutline,
 } from "react-icons/io5";
-import EditSongModal from "./EditSaveModal";
 import {
+  useAddNewAudioMutation,
   useEditAudioDetailsMutation,
   useLazyGetAudioDetailsQuery,
 } from "../../../redux/services/collectionService/collectionApi";
@@ -22,6 +22,7 @@ import {
 } from "../../../redux/features/collectionSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaWrench } from "react-icons/fa";
+import AddEditSongModal from "./EditSaveModal";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -38,6 +39,7 @@ export const EditCollectionScene = () => {
     useLazyGetAudioDetailsQuery();
   const [editAudioDetails, { data: editAudioDetailsData }] =
     useEditAudioDetailsMutation();
+  const [addNewAudio, { data: addAudioData }] = useAddNewAudioMutation();
 
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
@@ -50,16 +52,17 @@ export const EditCollectionScene = () => {
     return !theme || !character || !style || !orientation || !audioId;
   };
 
-  const onConfirmEdit = () => {
+  const onConfirm = () => {
     const { sceneId, title, ...rest } = selectedScene;
 
+    dispatch(setIsLoading(true));
     if (isEdit) {
-      dispatch(setIsLoading(true));
       editAudioDetails({
         id: sceneId,
         data: rest,
       });
     } else {
+      addNewAudio(selectedScene);
     }
     setSelectedScene(null);
   };
@@ -122,17 +125,16 @@ export const EditCollectionScene = () => {
   }, [audioDetailsData]);
 
   useEffect(() => {
-    if (editAudioDetailsData) {
+    if (editAudioDetailsData || addAudioData) {
       getAudioDetails({ taskId, groupId });
     }
-  }, [editAudioDetailsData]);
+  }, [editAudioDetailsData, addAudioData]);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
       <h1 className="text-2xl font-bold mb-4">
         {audioDetailsData?.data?.[0]?.taskLogs?.audioDetails?.collectionName}
       </h1>
-
       <div className="mb-6 flex items-center">
         <p className="text-sm text-gray-700 mr-2">Style Key:</p>
         <div className="flex space-x-4">
@@ -202,10 +204,10 @@ export const EditCollectionScene = () => {
                 </td>
                 <td className="py-4 px-4 flex justify-center">
                   <button
-                    className="p-1 rounded hover:bg-gray-100"
+                    className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300  mx-auto"
                     onClick={() => handleEdit(scene)}
                   >
-                    <div className="w-5 h-5  rounded">
+                    <div className="w-5 h-5 rounded-full">
                       <img src={pencilIcon} alt="" />
                     </div>
                   </button>
@@ -229,11 +231,11 @@ export const EditCollectionScene = () => {
           </tbody>
         </table>
       </div>
-      <EditSongModal
+      <AddEditSongModal
         isEdit={isEdit}
         isOpen={selectedScene}
         onClose={() => setSelectedScene(null)}
-        onConfirm={onConfirmEdit}
+        onConfirm={onConfirm}
         options={themeOptions}
         selectedScene={selectedScene}
         setSelectedScene={setSelectedScene}
