@@ -4,9 +4,14 @@ import { CharacterStyles } from "../../../utils/constants";
 import { animatedStyle, realisticStyle, sketchStyle } from "../../../assets";
 import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/collectionService/collectionApi";
 import { useDispatch, useSelector } from "react-redux";
-import { CollectionState, setIsLoading } from "../../../redux/features/collectionSlice";
+import {
+  CollectionState,
+  setIsLoading,
+} from "../../../redux/features/collectionSlice";
 import { PageRoutes } from "../../../routes/appRoutes";
 import { useNavigate } from "react-router-dom";
+import { AuthState } from "../../../redux/features/authSlice";
+import { downloadSampleExcelFile } from "../../../redux/services/collectionService/collectionService";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -18,7 +23,8 @@ const CollectionCustomization = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { bulkUploadedData } = useSelector(CollectionState);
+  const { taskId, groupId, bulkUploadedData } = useSelector(CollectionState);
+  const { userInfo } = useSelector(AuthState);
 
   const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData }] =
     useBulkUploadAudioDetailsMutation();
@@ -33,6 +39,10 @@ const CollectionCustomization = () => {
 
   const handleNext = () => {
     navigate(PageRoutes.COLLECTION_LIST);
+  };
+
+  const onSampleDownload = () => {
+    downloadSampleExcelFile({ taskId, groupId, token: userInfo.token });
   };
 
   const onSubmit = () => {
@@ -73,9 +83,17 @@ const CollectionCustomization = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Collection Customization</h2>
-          <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg">
-            Upload Excel
-          </button>
+          <div>
+            <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg">
+              Upload Excel
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg"
+              onClick={onSampleDownload}
+            >
+              Download Sample
+            </button>
+          </div>
         </div>
         {/* Input Fields */}
         <div className="mt-4 space-y-4">
