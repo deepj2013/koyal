@@ -20,15 +20,13 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    userLogin({ email, password });
+    userLogin({ email: "test@gmail.com", password:"test@123" });
   };
 
   const handleLoginSuccess = async () => {
-    if (email) {
       await createFolderInS3(email);
       localStorage.setItem("currentUser", email);
-      navigate(PageRoutes.COLLECTION_UPLOAD);
-    }
+      navigate(PageRoutes.UPLOAD);
   };
 
   useEffect(() => {

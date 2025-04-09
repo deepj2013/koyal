@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Pencil, X } from "lucide-react";
+import muxData from "../assets/sample/lyrics.json";
+import promptsData from "../assets/sample/proto_prompts.json";
 import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -81,27 +83,14 @@ import animatedImage34 from "../assets/images/newEditScene/portrait_animated/ima
 import animatedImage35 from "../assets/images/newEditScene/portrait_animated/image_35.png";
 import animatedImage36 from "../assets/images/newEditScene/portrait_animated/image_36.png";
 import animatedImage37 from "../assets/images/newEditScene/portrait_animated/image_37.png";
+import replaced18 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_18_new.png";
+import replaced23 from "../assets/images/newEditScene/landscape_realistic/replacement_images/image_23_new.png";
 import { FaUndo } from "react-icons/fa";
 
-import { CharacterStyles, EditStoryModes } from "../utils/constants";
+import { CharacterStyles } from "../utils/constants";
 import ImagePreview from "../components/ImagePreview";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  AppState,
-  setImageFolderUrl,
-  setProtoPromptsUrl,
-  setScenesJson,
-} from "../redux/features/appSlice";
-import { LyricEditState } from "../redux/features/lyricEditSlice";
-import { processImage } from "../redux/services/editSceneService/editSceneService";
-import { useEditStoryElementMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
-import { UploadAudioState } from "../redux/features/uploadSlice";
-import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { uploadJsonAsFileToS3 } from "../utils/helper";
-import ShimmerWrapper from "../components/Shimmer";
-import SceneEditModal from "../components/layouts/editScene/sceneEditModal";
 
-const images = {
+export const images = {
   realistic: {
     0: img0,
     1: img1,
@@ -184,135 +173,117 @@ const images = {
   },
 };
 
-const emotions = {
-  euphoric: "bg-yellow-300",
-  serene: "bg-blue-300",
-  melancholy: "bg-purple-300",
-  tense: "bg-red-300",
-  default: "bg-gray-200",
-};
+const newDescription18 =
+  "mehulagarwal scribbles on hotel notepad at night, sketching the skyline visible from the moonlit window, adding whimsical details like stars and planets";
+const newDescription23 =
+  "mehulagarwal dances with his shadow being lit up by dramatic floor lamp lighting.";
 
 const GenerateVideoPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
-
-  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
-  const [getStoryElement, { data: storyElementData }] =
-    useLazyGetStoryElementQuery();
-
-  const { loraPath, protoPromptsUrl, characterName, lyricsJsonUrl } =
-    useSelector(AppState);
-  const { storyEleementFileUrl } = useSelector(LyricEditState);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingScene, setEditingScene] = useState(null);
   const [newDescription, setNewDescription] = useState("");
   const [scenes, setScenes] = useState<any[]>([]);
   const [tableBodyHeight, setTableBodyHeight] = useState("auto");
-  const [storyElement, setStoryElement] = useState(null);
-  const [promptsJson, setPromptsJson] = useState([]);
-  const [currentEditIndex, setCurrentEditIndex] = useState(null);
-  const [lyrics, setLyrics] = useState<any[]>([]);
 
   // Open Modal and Load Scene Data
   const handleEditClick = (scene, index) => {
-    setCurrentEditIndex(index);
+    setEditingScene({ ...scene, index });
     setNewDescription("");
     setIsModalOpen(true);
   };
 
-  const callProcessImageApi = (index: number) => {
-    processImage({
-      prompt_indices: index,
-      proto_prompts: protoPromptsUrl,
-      character_lora_path: loraPath,
-      character_name: characterName,
-      character_outfit: storyElement?.character_details,
-      style: location.state?.selectedStyle?.name?.toLowerCase(),
-      orientation: location.state?.orientationStyle?.toLowerCase(),
-      id_image: location.state?.selectedStyle?.image,
-      getImage: getImage,
-    });
-  };
-
-  const handleRedo = async (index) => {
-    callProcessImageApi(index + 1);
+  const handleRedo = (index) => {
+    // const updatedScenes = [...scenes];
+    // const { narrative, dialogue, emotion } = promptsData[index];
+    // updatedScenes[index] = {
+    //   description: narrative,
+    //   dialog: dialogue,
+    //   emotion: emotion,
+    //   image:
+    //     images[
+    //       location.state?.selectedStyle === CharacterStyles.ANIMATED
+    //         ? "animated"
+    //         : "realistic"
+    //     ][index],
+    // };
+    // setScenes(updatedScenes);
   };
 
   // Save Changes and Update Table
   const handleSave = () => {
-    editStory({
-      mode: EditStoryModes.EDIT_PROMPT,
-      prompts_path: protoPromptsUrl,
-      prompt_index: currentEditIndex,
-      edit_instruction: newDescription,
-    });
+    const updatedScenes = [...scenes];
+
+    let replacedImage =
+      location.state?.selectedStyle === CharacterStyles.ANIMATED
+        ? animatedImage37
+        : img37;
+
+    let newDesc =
+      "mehulagarwal sits on edge of unmade bed surrounded by evidence of night's adventures – pillows, snacks, improvised toys – gazing at morning sun reflecting off countless apartment windows across Seoul, a small smile acknowledging the joy found in solitude.";
+
+    if (location.state?.selectedStyle === CharacterStyles.REALISTIC) {
+      if (editingScene.index === 18) {
+        replacedImage = replaced18;
+        newDesc = newDescription18;
+      } else if (editingScene.index === 23) {
+        replacedImage = replaced23;
+        newDesc = newDescription23;
+      }
+    }
+
+    updatedScenes[editingScene.index] = {
+      ...editingScene,
+      description: newDesc,
+      image: replacedImage,
+    };
+    setScenes(updatedScenes);
     setIsModalOpen(false);
   };
 
-  const generateVideo = () => {
-    navigate("/finalvideo", {
-      state: {
-        selectedStyle: location.state?.selectedStyle,
-        orientationStyle: location.state?.orientationStyle,
-        sceneJson: scenes,
-      },
-    });
-    dispatch(setScenesJson(scenes));
-  };
-
-  const replaceGeneratedImage = (imageUrl, index) => {
-    setScenes((prev) => {
-      const updatedJson = [...prev];
-
-      const ind = Number(index);
-      if (updatedJson[ind]) {
-        updatedJson[ind] = {
-          ...updatedJson[ind],
-          image: imageUrl,
-        };
-      }
-      return updatedJson;
-    });
-  };
-
-  const setFolderPath = (fileUrl: string) => {
-    const folderPath = fileUrl.substring(0, fileUrl.lastIndexOf("/") + 1);
-    console.log("folderPath for images:", folderPath);
-    dispatch(setImageFolderUrl(folderPath));
+  const emotions = {
+    euphoric: "bg-yellow-300",
+    serene: "bg-blue-300",
+    melancholy: "bg-purple-300",
+    tense: "bg-red-300",
+    default: "bg-gray-200",
   };
 
   useEffect(() => {
-    if (lyrics?.length > 0 && promptsJson.length > 0) {
-      try {
-        const mergedScenes = lyrics
-          .map((muxItem) => {
-            const promptMatch = promptsJson?.find(
-              (prompt) =>
-                prompt.start === muxItem.start && prompt.end === muxItem.end
-            );
+    try {
+      const mergedScenes = muxData
+        .map((muxItem) => {
+          const promptMatch = promptsData?.find(
+            (prompt) =>
+              prompt.start === muxItem.start && prompt.end === muxItem.end
+          );
 
-            if (promptMatch) {
-              const { start, end } = promptMatch;
-              return {
-                image: null,
-                description: promptMatch.narrative,
-                dialogue: promptMatch.dialogue || muxItem[2],
-                emotion: promptMatch.emotion || muxItem[3],
-                start,
-                end,
-              };
-            }
-            return null;
-          })
-          .filter(Boolean);
+          if (promptMatch) {
+            const { start, end } = promptMatch;
+            return {
+              image:
+                images[
+                  location.state?.selectedStyle === CharacterStyles.ANIMATED
+                    ? "animated"
+                    : "realistic"
+                ][promptMatch.number - 1],
+              description: promptMatch.narrative,
+              dialogue: promptMatch.dialogue || muxItem[2],
+              emotion: promptMatch.emotion || muxItem[3],
+              start,
+              end,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
 
-        setScenes(mergedScenes);
-      } catch (error) {
-        console.error("Error loading scene data", error);
-      }
+      setScenes(mergedScenes);
+    } catch (error) {
+      console.error("Error loading scene data", error);
     }
-  }, [lyrics, promptsJson]);
+  }, []);
 
   useEffect(() => {
     const updateTableHeight = () => {
@@ -347,104 +318,6 @@ const GenerateVideoPage: React.FC = () => {
       window.removeEventListener("resize", updateTableHeight);
     };
   }, []);
-
-  useEffect(() => {
-    const fetchStoryElement = async () => {
-      try {
-        const response = await fetch(storyEleementFileUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setStoryElement(jsonData.story_elements);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-      }
-    };
-
-    fetchStoryElement();
-  }, []);
-
-  const getImage = (index, obj) => {
-    const { image_path, prompt_index } = obj;
-    setScenes((prevScenes) =>
-      prevScenes.map((scene, i) =>
-        i + 1 === index ? { ...scene, image: image_path } : scene
-      )
-    );
-
-    setFolderPath(image_path);
-    replaceGeneratedImage(image_path, prompt_index);
-  };
-
-  useEffect(() => {
-    const fetchProtoPrompts = async () => {
-      try {
-        const response = await fetch(protoPromptsUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setPromptsJson(jsonData.prompts);
-        return jsonData.prompts;
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-        return []; // Return an empty array to avoid further issues
-      }
-    };
-
-    const processPrompts = async () => {
-      try {
-        const prompts: any = await fetchProtoPrompts();
-
-        for (const element of prompts) {
-          callProcessImageApi(element.number);
-        }
-      } catch (error) {
-        console.error("Error processing prompts:", error);
-      }
-    };
-
-    processPrompts();
-  }, []);
-
-  useEffect(() => {
-    const fetchLyrics = async () => {
-      try {
-        const response = await fetch(lyricsJsonUrl);
-        if (!response.ok) {
-          throw new Error("Failed to fetch JSON file");
-        }
-        const jsonData = await response.json();
-        setLyrics(jsonData);
-      } catch (error) {
-        console.error("Error fetching JSON:", error);
-        return [];
-      }
-    };
-
-    fetchLyrics();
-  }, []);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
-    }
-  }, [sceneLLMResponse]);
-
-  useEffect(() => {
-    if (storyElementData) {
-      callProcessImageApi(currentEditIndex + 1);
-      uploadJsonAsFileToS3(storyElementData, "proto_prompts.json")
-        .then((url) => {
-          dispatch(setProtoPromptsUrl(url));
-          console.log("upload proto_prompts.json successful", url);
-        })
-        .catch((err) => {
-          console.log("Error while replacing proto_prompts.json :", err);
-        });
-    }
-  }, [storyElementData]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,9 +366,7 @@ const GenerateVideoPage: React.FC = () => {
                     className="grid grid-cols-[2fr_2fr_2fr_1fr_0.4fr_0.5fr] gap-4 items-center p-4"
                   >
                     {/* Image */}
-                    <ShimmerWrapper isLoading={!scene.image}>
-                      {scene.image && <ImagePreview imageURL={scene.image} />}
-                    </ShimmerWrapper>
+                    <ImagePreview imageURL={scene.image} />
 
                     {/* Description */}
                     <p className="text-sm text-gray-700">{scene.description}</p>
@@ -543,18 +414,64 @@ const GenerateVideoPage: React.FC = () => {
               </div>
             </div>
 
-            <SceneEditModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              text={newDescription}
-              handleTextChange={(e) => setNewDescription(e.target.value)}
-              onConfirm={handleSave}
-            />
-         
+            {isModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+                {/* Modal Container */}
+                <div className="bg-black/30 backdrop-blur-xl rounded-t-3xl shadow-2xl p-6 w-full max-w-md relative border border-white/20 transform translate-y-0 animate-slide-up">
+                  {/* Close Bar (iOS Style) */}
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1.5 bg-white/50 rounded-full"></div>
+
+                  {/* Close Button */}
+                  <button
+                    className="absolute top-3 right-3 text-white hover:text-gray-300 text-xl"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  {/* Modal Title */}
+                  <h3 className="text-xl font-semibold text-white text-center mb-4">
+                    What kind of scene do you want?
+                  </h3>
+
+                  {/* Description Input */}
+                  <textarea
+                    className="w-full p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg focus:ring-2 focus:ring-white outline-none text-white placeholder-gray-200 placeholder-opacity-50"
+                    rows={4}
+                    placeholder="Ex: make the character smile"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                  />
+
+                  {/* Save Button */}
+                  <div className="flex justify-end space-x-2 mt-4">
+                    <button
+                      className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-black text-white rounded-md"
+                      onClick={handleSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="mt-6" id="create-btn">
               <button
                 className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={generateVideo}
+                onClick={() =>
+                  navigate("/finalvideo", {
+                    state: {
+                      selectedStyle: location.state?.selectedStyle,
+                      scenes
+                    },
+                  })
+                }
               >
                 Create Video
               </button>

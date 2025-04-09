@@ -3,73 +3,35 @@ import Navbar from "../components/Navbar";
 import ProgressBar from "../components/ProgressBar";
 import { Download, Play } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import {
-  useLazyGetFinalVideoQuery,
-  useLazyGetProcessedVideoQuery,
-  useProcessFinalVideoMutation,
-  useProcessVideoMutation,
-} from "../redux/services/finalVideoService/finalVideoApi";
-import { AppState } from "../redux/features/appSlice";
-import { useSelector } from "react-redux";
+
 import { formatTime } from "../utils/helper";
 import { ConfirmationModal } from "../components/common/ConfirmationModal/ConfirmationModal";
-import ShimmerWrapper from "../components/Shimmer";
+import muxData from "../assets/sample/lyrics.json";
+import { CharacterStyles } from "../utils/constants";
+import AnimatedVideo from "../assets/vedio/portrait_video.mp4";
+import RealisticVideo from "../assets/vedio/realistic_video.mp4";
+import promptsData from "../assets/sample/proto_prompts.json";
+import { images } from "./edtiScence";
 
 const FinalVideoPage = () => {
   const location = useLocation();
   const videoRef = useRef<any>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  const { selectedStyle, orientationStyle, sceneJson } = location?.state || {};
-
-  const { protoPromptsUrl, characterName, imageFolderUrl, replacementWord } =
-    useSelector(AppState);
-
-  const [
-    processVideo,
-    {
-      data: processVideoData,
-      reset: resetProcessVideoData,
-      isLoading: processVideoLoading,
-    },
-  ] = useProcessVideoMutation();
-  const [
-    getProcessedVideo,
-    {
-      data: getProcessedVideoData,
-      reset: resetGetProcessedVideoData,
-      isLoading: getProcessedVideoLoading,
-    },
-  ] = useLazyGetProcessedVideoQuery();
-  const [
-    processFinalVideo,
-    {
-      data: processFinalVideoData,
-      reset: resetProcessFinalVideoData,
-      isLoading: processFinalVideoLoading,
-    },
-  ] = useProcessFinalVideoMutation();
-  const [
-    getFinalVideo,
-    {
-      data: getFinalVideoData,
-      reset: resetGetFinalVideoData,
-      isLoading: getFinalVideoLoading,
-    },
-  ] = useLazyGetFinalVideoQuery();
+  const FinalVideo =
+    location.state?.selectedStyle === CharacterStyles.ANIMATED
+      ? AnimatedVideo
+      : RealisticVideo;
 
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
-  const [finalVideo, setFinalVideo] = useState(null);
   const [previewImages, setPreviewImages] = useState([]);
-  const [regenerateIndex, setRegenerateIndex] = useState(null);
   const [confirmRegenerateModal, setConfirmRegenerateModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = finalVideo; // Video file path
+    link.href = FinalVideo; // Video file path
     link.download = "Final_Video.mp4"; // File name
     document.body.appendChild(link);
     link.click();
@@ -92,26 +54,14 @@ const FinalVideoPage = () => {
   };
 
   const onCancelRegenerate = () => {
-    setRegenerateIndex(null);
     setConfirmRegenerateModal(false);
   };
 
   const onConfirmRegenerate = () => {
-    processVideo({
-      proto_prompts: protoPromptsUrl,
-      character_name: characterName,
-      style: selectedStyle?.name?.toLowerCase(),
-      orientation: orientationStyle?.toLowerCase(),
-      image_folder_path: imageFolderUrl,
-      replacement_word: replacementWord,
-      prompt: regenerateIndex,
-    });
     setConfirmRegenerateModal(false);
-    setIsLoading(true);
   };
 
   const regenerateVideo = (index: number) => {
-    setRegenerateIndex(index);
     setConfirmRegenerateModal(true);
   };
 
@@ -143,60 +93,45 @@ const FinalVideoPage = () => {
   }, []);
 
   useEffect(() => {
-    if (sceneJson) {
-      setPreviewImages(sceneJson);
+    try {
+      const mergedScenes = muxData
+        .map((muxItem) => {
+          const promptMatch = promptsData?.find(
+            (prompt) =>
+              prompt.start === muxItem.start && prompt.end === muxItem.end
+          );
+
+          if (promptMatch) {
+            const { start, end } = promptMatch;
+            return {
+              image:
+                images[
+                  location.state?.selectedStyle === CharacterStyles.ANIMATED
+                    ? "animated"
+                    : "realistic"
+                ][promptMatch.number - 1],
+              description: promptMatch.narrative,
+              dialogue: promptMatch.dialogue || muxItem[2],
+              emotion: promptMatch.emotion || muxItem[3],
+              start,
+              end,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      setPreviewImages(mergedScenes);
+    } catch (error) {
+      console.error("Error loading scene data", error);
     }
   }, []);
 
   useEffect(() => {
-    processVideo({
-      proto_prompts: protoPromptsUrl,
-      character_name: characterName,
-      style: selectedStyle?.name?.toLowerCase(),
-      orientation: orientationStyle?.toLowerCase(),
-      image_folder_path: imageFolderUrl,
-      replacement_word: replacementWord,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (processVideoData?.call_id) {
-      getProcessedVideo(processVideoData?.call_id);
-      resetProcessVideoData();
+    if (location?.state?.scenes) {
+      setPreviewImages(location?.state?.scenes);
     }
-  }, [processVideoData]);
-
-  useEffect(() => {
-    if (getProcessedVideoData) {
-      processFinalVideo({
-        proto_prompts: protoPromptsUrl,
-        video_folder_path: processVideoData?.video_folder_path,
-      });
-      resetGetProcessedVideoData();
-    }
-  }, [getProcessedVideoData]);
-
-  useEffect(() => {
-    if (processFinalVideoData?.call_id) {
-      getFinalVideo({
-        callId: processFinalVideoData?.call_id,
-        timestamp: Date.now(),
-      });
-      resetProcessFinalVideoData();
-    }
-  }, [processFinalVideoData]);
-
-  useEffect(() => {
-    if (getFinalVideoData?.final_video_path) {
-      setFinalVideo(getFinalVideoData?.final_video_path);
-      setIsLoading(false);
-      resetGetFinalVideoData();
-
-      if (videoRef.current) {
-        videoRef.current.load();
-      }
-    }
-  }, [getFinalVideoData]);
+  }, [location.state]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -208,7 +143,7 @@ const FinalVideoPage = () => {
           <div className="w-full mt-10">
             <div className="flex justify-start w-[60%] mb-6">
               <h1 className="text-[20px] font-medium leading-[30px] tracking-[0%] text-gray-900">
-                {isGenerating || isLoading
+                {isGenerating
                   ? "Generating your video... ⏳"
                   : "Your video is ready! 🥳"}
               </h1>
@@ -226,7 +161,7 @@ const FinalVideoPage = () => {
               <video
                 ref={videoRef}
                 className="w-full h-full"
-                src={finalVideo}
+                src={FinalVideo}
                 controls={!isGenerating} // Enable controls after 10 sec
                 autoPlay={false} // AutoPlay disabled initially
               />
@@ -261,44 +196,39 @@ const FinalVideoPage = () => {
                         : ""
                     }`}
                   >
-                    <ShimmerWrapper
-                      isLoading={index === regenerateIndex && isLoading}
-                      spinner={index === regenerateIndex && isLoading}
+                    <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
+                      <span
+                        className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
+                        title={preview?.description}
+                      >
+                        i
+                      </span>
+                    </div>
+
+                    <div
+                      onClick={() => regenerateVideo(index)}
+                      className="absolute z-10 top-1 right-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer"
                     >
-                      <div className="absolute z-10 top-1 left-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer">
-                        <span
-                          className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200"
-                          title={preview?.description}
-                        >
-                          i
-                        </span>
-                      </div>
+                      <span className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200">
+                        ↺
+                      </span>
+                    </div>
 
-                      <div
-                        onClick={() => regenerateVideo(index)}
-                        className="absolute z-10 top-1 right-1 bg-gray-800 p-0.5 rounded-full shadow-md hover:shadow-lg transition-all hover:bg-gray-700 hover:scale-110 cursor-pointer"
-                      >
-                        <span className="flex justify-center items-center w-[14px] h-[14px] text-gray-300 hover:text-white transition-colors duration-200">
-                          ↺
-                        </span>
-                      </div>
-
-                      <button
-                        key={index}
-                        className="relative w-36 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
-                        onClick={() => handleSkipTo(preview.start)}
-                      >
-                        <img
-                          src={preview.image}
-                          alt={`Preview ${index}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full flex justify-between">
-                          <span>Shot {index + 1}</span>
-                          <span>{formatTime(preview.start)}</span>
-                        </span>
-                      </button>
-                    </ShimmerWrapper>
+                    <button
+                      key={index}
+                      className="relative w-36 min-w-[8rem] rounded-lg overflow-hidden border border-gray-300 hover:border-white transition-all"
+                      onClick={() => handleSkipTo(preview.start)}
+                    >
+                      <img
+                        src={preview.image}
+                        alt={`Preview ${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-0 left-0 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-tr-lg w-full flex justify-between">
+                        <span>Shot {index + 1}</span>
+                        <span>{formatTime(preview.start)}</span>
+                      </span>
+                    </button>
                   </div>
                 ))}
               </div>

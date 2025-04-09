@@ -41,27 +41,13 @@ const AudioUploadPage = () => {
         // Simulate file upload progress up to 90%
         let progress = 0;
         const interval = setInterval(() => {
-          if (progress < 90) {
+          if (progress <= 90) {
             progress += 10;
-            setUploadProgress((prevProgress) =>
-              prevProgress < 100 ? progress : prevProgress
-            );
+            setUploadProgress(progress);
           } else {
             clearInterval(interval);
           }
         }, 100);
-
-        // Upload file to S3
-        const fileUrl = await uploadFileToS3(
-          file,
-          localStorage.getItem("currentUser")
-        );
-
-        clearInterval(interval);
-        setUploadProgress(100);
-
-        dispatch(setAudioFileUrl(fileUrl));
-        console.log("fileUrl", fileUrl);
       } catch (error) {
         console.error("Upload failed:", error);
         console.log("File upload failed. Please try again.");
@@ -71,7 +57,7 @@ const AudioUploadPage = () => {
       console.log("Please select an MP3 or WAV file.");
     }
   };
-
+  
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
