@@ -23,6 +23,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { FaWrench } from "react-icons/fa";
 import AddEditSongModal from "./EditSaveModal";
+import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -95,6 +96,7 @@ export const EditCollectionScene = () => {
       for (const element of audioDetailsData?.data) {
         const {
           _id,
+          audioUrl,
           audioDetails: {
             originalFileName,
             theme,
@@ -116,6 +118,7 @@ export const EditCollectionScene = () => {
           orientation: orientation,
           sceneId: _id,
           audioId: _id,
+          audioUrl: audioUrl,
         });
       }
       setScenes(sceneList);
@@ -167,14 +170,11 @@ export const EditCollectionScene = () => {
             {scenes.map((scene, index) => (
               <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="py-4 px-4">
-                  <div className="w-16 h-10 bg-gray-300 rounded flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                      <div className="w-0 h-0 border-t-4 border-t-transparent border-l-8 border-l-gray-500 border-b-4 border-b-transparent"></div>
-                    </div>
-                  </div>
+                  <AudioPlayer audioUrl={scene?.audioUrl} />
                 </td>
+
                 <td className="py-4 px-4 text-sm text-gray-600">
-                  {scene.title}
+                  {scene.title?.substring(0, scene.title.lastIndexOf("."))}
                 </td>
                 <td className="py-4 px-4 text-sm text-gray-600">
                   {scene.theme}
