@@ -64,6 +64,20 @@ const audioDetailsSchema = joi.object({
             'any.only': 'Orientation must be one of: portrait, landscape, square'
         })
 });
+const bulkAudioDetailsValidation = joi.object({
+    audioDetails: joi.array()
+        .items(audioDetailsSchema)
+        .min(1)
+        .required()
+        .messages({
+            'array.min': 'At least one audio detail is required',
+            'array.base': 'Audio details must be an array',
+            'any.required': 'Audio details are required'
+        })
+});
+export const validateBulkAudioDetails = (data) => {
+    return bulkAudioDetailsValidation.validate(data, { abortEarly: false });
+};
 
 const audioExcelDetailsSchema = joi.object({
     name: joi.string()
@@ -101,9 +115,10 @@ const audioExcelDetailsSchema = joi.object({
             'any.only': 'Orientation must be one of: portrait, landscape, square'
         })
 });
-const bulkAudioDetailsValidation = joi.object({
+
+const bulkAudioDetailsExcelValidation = joi.object({
     audioDetails: joi.array()
-        .items(audioDetailsSchema)
+        .items(audioExcelDetailsSchema)
         .min(1)
         .required()
         .messages({
@@ -112,10 +127,9 @@ const bulkAudioDetailsValidation = joi.object({
             'any.required': 'Audio details are required'
         })
 });
-
-export const validateBulkAudioDetails = (data) => {
-    return bulkAudioDetailsValidation.validate(data, { abortEarly: false });
-};
+export const validateBulkAudioDetailsExcel = (data) => {
+    return bulkAudioDetailsExcelValidation.validate(data, { abortEarly: false }); 
+}
 
 export const validateSingleAudioDetails = (data) => {
     return audioDetailsSchema.validate(data, { abortEarly: false });

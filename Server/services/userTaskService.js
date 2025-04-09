@@ -5,11 +5,13 @@ import userTaskLog from "../models/userTaskLogModel.js";
 import userTask from "../models/userTaskModel.js";
 import logger from "../utils/logger.js";
 import { checkXlsxFile, xlsxtojson } from "../utils/xlsxToJson.js";
-import { validateAudioDetail, validateBulkAudioDetails, validateQuery } from "../validations/user/userTaskValidation.js";
-import { toObjectId } from "../utils/mongo.js";
+import { validateAudioDetail, validateBulkAudioDetails, validateBulkAudioDetailsExcel, validateQuery } from "../validations/user/userTaskValidation.js";
+import { toObjectId, toStringId } from "../utils/mongo.js";
 
-export const bulkAudioDetailsService = async (requestData, requestFile, isExcelUpload) => {
+export const bulkAudioDetailsService = async (requestData, requestFile, queryData, requestUser) => {
     try {
+        const isExcelUpload = parseInt(queryData.isExcelUpload);
+        const groupId = queryData.groupId;
         const { error: queryError } = validateQuery({ isExcelUpload });
         if (queryError) {
             throw new APIError(
@@ -21,7 +23,17 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
         }
         let response = [];
         if (isExcelUpload === 1) {
+            console.log("groupID--->", groupId)
+            if (!groupId) {
+                throw new APIError(
+                    "groupId is required",
+                    HttpStatusCode.BAD_REQUEST,
+                    true,
+                    "groupId is not found"
+                );
+            }
             if (!checkXlsxFile(requestFile)) {
+                console.log("Invalid file format");
                 throw new APIError(
                     "Invalid file format",
                     HttpStatusCode.BAD_REQUEST,
@@ -30,7 +42,11 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
                 );
             }
             const { buffer } = requestFile;
+            const { _id } = requestUser;
+            console.log("userID", _id);
+            console.log("string-id", toStringId(_id));
             const { status, message, data } = await xlsxtojson(buffer);
+            console.log("data==>", data);
             if (status == 400 || status == 500) {
                 throw new APIError(
                     message,
@@ -39,7 +55,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
                     message
                 );
             }
-            const { error: dataError } = validateBulkAudioDetails({ audioDetails: data });
+            const { error: dataError } = validateBulkAudioDetailsExcel({ audioDetails: data });
             if (dataError) {
                 throw new APIError(
                     "Validation Error",
@@ -48,20 +64,41 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
                     dataError.details[0].message
                 );
             }
+
+            // const userTassk = await userTaskLog.find({
+            //     userId: toStringId(_id),
+            //     groupId: groupId,
+            // })
+            // console.log("userTassk", userTassk);
+            const songofTheme = {};
+
+            for (const item of data) {
+                const { name, ...details } = item;
+                if (!songofTheme[name]) {
+                    songofTheme[name] = [];
+                }
+                songofTheme[name].push(details);
+            }
+
+            console.log("grouped object--->", songofTheme);
+
+
             for (let task of data) {
                 const { name, theme, character, style, orientation } = task;
-                const result = await userTaskLog.findOneAndUpdate({ "audioDetails.originalFileName": name }, {
-                    $set: {
-                        "audioDetails.collectionName": name,
-                        "audioDetails.theme": theme,
-                        "audioDetails.character": character,
-                        "audioDetails.style": style,
-                        "audioDetails.orientation": orientation
-                    }
+                const result = await userTaskLog.findOneAndUpdate({ userId: toStringId(_id), groupId: groupId, "audioDetails.originalFileName": name }, {
+                  
+                    
+                    // $set: {
+                    //     "audioDetails.collectionName": name,
+                    //     "audioDetails.theme": theme,
+                    //     "audioDetails.character": character,
+                    //     "audioDetails.style": style,
+                    //     "audioDetails.orientation": orientation
+                    // }
                 }, { new: true })
                 response.push(result);
             }
-        } else {
+        } else if (isExcelUpload === 0) {
             const { audioDetails } = requestData;
             const { error: dataError } = validateBulkAudioDetails({ audioDetails });
             if (dataError) {
@@ -86,6 +123,13 @@ export const bulkAudioDetailsService = async (requestData, requestFile, isExcelU
                 }, { new: true })
                 response.push(result);
             }
+        } else {
+            throw new APIError(
+                "isExcelUpload must be either 0 or 1",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "isExcelUpload must be either 0 or 1"
+            );
         }
         return response;
     } catch (error) {

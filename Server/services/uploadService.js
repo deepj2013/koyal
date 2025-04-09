@@ -141,9 +141,9 @@ export const downloadAudioExcelService = async (requestUser, queryData) => {
             logger.error("ERROR in creating audio excel", result.message);
             throw new APIError(
                 "Something went wrong while creating the Excel file",
-                HttpStatusCode.INTERNAL_SERVER,
+                HttpStatusCode.NOT_FOUND,
                 true,
-                "Please try again later"
+                result.message
             );
         }
 
