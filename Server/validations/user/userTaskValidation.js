@@ -103,7 +103,7 @@ const audioExcelDetailsSchema = joi.object({
 });
 const bulkAudioDetailsValidation = joi.object({
     audioDetails: joi.array()
-        .items(audioExcelDetailsSchema)
+        .items(audioDetailsSchema)
         .min(1)
         .required()
         .messages({
