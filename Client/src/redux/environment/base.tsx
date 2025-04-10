@@ -22,3 +22,35 @@ export const apiSlice = createApi({
   refetchOnMountOrArgChange: true,
   keepUnusedDataFor: 1,
 });
+
+const externalBaseQuery = fetchBaseQuery({
+  baseUrl: "",
+  prepareHeaders: (headers) => {
+    headers.set("Accept", "application/json");
+    return headers;
+  },
+});
+
+// Create an enhanced base query that includes status code
+const baseQueryWithStatus = async (args, api, extraOptions) => {
+  const result: any = await externalBaseQuery(args, api, extraOptions);
+  const statusCode = result.meta?.response?.status || 200;
+
+  if (result?.data) {
+    return {
+      ...result,
+      data: {
+        data: result.data,
+        statusCode: statusCode,
+      },
+    };
+  }
+  return result;
+};
+
+export const externalApiSlice = createApi({
+  baseQuery: baseQueryWithStatus,
+  endpoints: () => ({}),
+  refetchOnMountOrArgChange: true,
+  keepUnusedDataFor: 1,
+});
