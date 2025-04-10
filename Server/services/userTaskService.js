@@ -114,7 +114,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                     "Audio not found for this user"
                 );
             }
-            const userTask = [];
+            const audioprocessedTask = [];
             for (let audio of audioDetails) {
                 const createdInstance = new userTaskLog({
                     userId: toStringId(_id),
@@ -133,9 +133,9 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                         lipSync: lipSync
                     },
                 })
-                userTask.push(createdInstance);
+                audioprocessedTask.push(createdInstance);
             }
-            const createdTask = await userTaskLog.insertMany(userTask)
+            const createdTask = await userTaskLog.insertMany(audioprocessedTask)
             console.log("Created TAsk-->", createdTask)
             const createdTaskIds = createdTask.map(task => task._id);
             await userTask.findOneAndUpdate(
