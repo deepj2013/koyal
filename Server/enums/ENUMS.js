@@ -19,7 +19,6 @@ export const taskLogStatusENUM = {
 
 export const visualStyleEnum = {
   REALISTIC: 'Realistic',
-  CARTOON: 'Cartoon',
   SKETCH: 'Sketch',
   ANIMATED: 'Animated'
 }

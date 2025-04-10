@@ -5,7 +5,6 @@ export const addBulkTaskDetails = async (req, res, next) => {
     try {
         const requestData = req.body;
         const requestFile = req.file;
-      //  const isExcelUpload = parseInt(req.query.isExcelUpload);
         const response = await bulkAudioDetailsService(requestData, requestFile, req.query, req.user);
         return res.status(200).json({
             success: true,

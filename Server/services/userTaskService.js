@@ -1,17 +1,16 @@
 import { request } from "express";
-import { taskTypeEnum } from "../enums/ENUMS.js";
+import { taskTypeEnum, userStageEnum } from "../enums/ENUMS.js";
 import APIError, { HttpStatusCode } from "../exception/errorHandler.js";
-import userTaskLog from "../models/userTaskLogModel.js";
 import userTask from "../models/userTaskModel.js";
 import logger from "../utils/logger.js";
-import { checkXlsxFile, xlsxtojson } from "../utils/xlsxToJson.js";
-import { validateAudioDetail, validateBulkAudioDetails, validateBulkAudioDetailsExcel, validateQuery } from "../validations/user/userTaskValidation.js";
+import { validateAudioDetail, validateCollectionDetails, validateExcelRequest, validateQuery } from "../validations/user/userTaskValidation.js";
 import { toObjectId, toStringId } from "../utils/mongo.js";
+import userAudio from "../models/userAudioModel.js";
+import userTaskLog from "../models/userTaskLogModel.js";
 
 export const bulkAudioDetailsService = async (requestData, requestFile, queryData, requestUser) => {
     try {
         const isExcelUpload = parseInt(queryData.isExcelUpload);
-        const groupId = queryData.groupId;
         const { error: queryError } = validateQuery({ isExcelUpload });
         if (queryError) {
             throw new APIError(
@@ -21,86 +20,78 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                 queryError.details[0].message
             );
         }
-        let response = [];
         if (isExcelUpload === 1) {
-            console.log("groupID--->", groupId)
-            if (!groupId) {
+            const { groupId, taskId, filesData } = requestData;
+            const { error: dataError } = validateExcelRequest(requestData);
+            if (dataError) {
                 throw new APIError(
-                    "groupId is required",
+                    "Validation Error",
                     HttpStatusCode.BAD_REQUEST,
                     true,
-                    "groupId is not found"
+                    dataError.details[0].message
                 );
             }
-            if (!checkXlsxFile(requestFile)) {
-                console.log("Invalid file format");
-                throw new APIError(
-                    "Invalid file format",
-                    HttpStatusCode.BAD_REQUEST,
-                    true,
-                    "Invalid file format file should be xlsx & xls"
-                );
-            }
-            const { buffer } = requestFile;
             const { _id } = requestUser;
-            console.log("userID", _id);
-            console.log("string-id", toStringId(_id));
-            const { status, message, data } = await xlsxtojson(buffer);
-            console.log("data==>", data);
-            if (status == 400 || status == 500) {
-                throw new APIError(
-                    message,
-                    HttpStatusCode.BAD_REQUEST,
-                    true,
-                    message
-                );
-            }
-            const { error: dataError } = validateBulkAudioDetailsExcel({ audioDetails: data });
-            if (dataError) {
-                throw new APIError(
-                    "Validation Error",
-                    HttpStatusCode.BAD_REQUEST,
-                    true,
-                    dataError.details[0].message
-                );
-            }
+            const userIdStr = toStringId(_id);
+            const userTaskPromises = filesData.map(async (file) => {
+                const { fileName, theme, character, style, orientation, lipSync, collectionName } = file;
+                const audioDetails = await userAudio.find({
+                    userId: userIdStr,
+                    groupId,
+                    fileName: fileName
+                });
+                console.log("audioDetails", audioDetails);
 
-            // const userTassk = await userTaskLog.find({
-            //     userId: toStringId(_id),
-            //     groupId: groupId,
-            // })
-            // console.log("userTassk", userTassk);
-            const songofTheme = {};
-
-            for (const item of data) {
-                const { name, ...details } = item;
-                if (!songofTheme[name]) {
-                    songofTheme[name] = [];
+                if (!audioDetails || audioDetails.length === 0) {
+                    console.warn(`Audio not found for filename: ${fileName}`);
+                    return [];
                 }
-                songofTheme[name].push(details);
+
+                const tasks = audioDetails.map(audio => ({
+                    userId: userIdStr,
+                    taskId: taskId,
+                    taskName: userStageEnum.UPLOAD_AUDIO,
+                    groupId,
+                    audioDetails: {
+                        audioId: audio._id,
+                        audioUrl: audio.audioUrl,
+                        originalFileName: fileName,
+                        collectionName: collectionName || 'N/A',
+                        theme,
+                        character,
+                        style,
+                        orientation,
+                        lipSync
+                    }
+                }));
+                return tasks;
+            });
+            console.log("userTaskPromises", userTaskPromises);
+
+            const allTaskLogsArrays = await Promise.all(userTaskPromises);
+
+            const userTaskLogs = allTaskLogsArrays.flat();
+
+            if (userTaskLogs.length === 0) {
+                throw new APIError(
+                    "No valid audio files found.",
+                    HttpStatusCode.BAD_REQUEST,
+                    true,
+                    "No matching audio data found for given filenames"
+                );
             }
 
-            console.log("grouped object--->", songofTheme);
+            const createdTask = await userTaskLog.insertMany(userTaskLogs);
+            const createdTaskIds = createdTask.map(task => task._id);
+            await userTask.findOneAndUpdate(
+                { _id: toObjectId(taskId), userId: userIdStr, groupId: groupId },
+                { $push: { taskLogIds: { $each: createdTaskIds } } },
+                { new: true }
+            );
+            return createdTask;
 
-
-            for (let task of data) {
-                const { name, theme, character, style, orientation } = task;
-                const result = await userTaskLog.findOneAndUpdate({ userId: toStringId(_id), groupId: groupId, "audioDetails.originalFileName": name }, {
-                  
-                    
-                    // $set: {
-                    //     "audioDetails.collectionName": name,
-                    //     "audioDetails.theme": theme,
-                    //     "audioDetails.character": character,
-                    //     "audioDetails.style": style,
-                    //     "audioDetails.orientation": orientation
-                    // }
-                }, { new: true })
-                response.push(result);
-            }
         } else if (isExcelUpload === 0) {
-            const { audioDetails } = requestData;
-            const { error: dataError } = validateBulkAudioDetails({ audioDetails });
+            const { error: dataError } = validateCollectionDetails(requestData);
             if (dataError) {
                 throw new APIError(
                     "Validation Error",
@@ -109,29 +100,51 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                     dataError.details[0].message
                 );
             }
-
-            for (let task of audioDetails) {
-                const { id, name, theme, character, style, orientation } = task;
-                const result = await userTaskLog.findOneAndUpdate({ _id: id }, {
-                    $set: {
-                        "audioDetails.collectionName": name,
-                        "audioDetails.theme": theme,
-                        "audioDetails.character": character,
-                        "audioDetails.style": style,
-                        "audioDetails.orientation": orientation
-                    }
-                }, { new: true })
-                response.push(result);
+            const { groupId, taskId, collectionName, theme, character, style, orientation, lipSync } = requestData;
+            const { _id } = requestUser;
+            const audioDetails = await userAudio.find({
+                userId: toStringId(_id),
+                groupId: groupId,
+            })
+            if (!audioDetails || audioDetails.length === 0) {
+                throw new APIError(
+                    "Audio not found",
+                    HttpStatusCode.BAD_REQUEST,
+                    true,
+                    "Audio not found for this user"
+                );
             }
-        } else {
-            throw new APIError(
-                "isExcelUpload must be either 0 or 1",
-                HttpStatusCode.BAD_REQUEST,
-                true,
-                "isExcelUpload must be either 0 or 1"
+            const userTask = [];
+            for (let audio of audioDetails) {
+                const createdInstance = new userTaskLog({
+                    userId: toStringId(_id),
+                    taskId: taskId,
+                    taskName: userStageEnum.UPLOAD_AUDIO,
+                    groupId: groupId,
+                    audioDetails: {
+                        audioId: audio._id,
+                        audioUrl: audio.audioUrl,
+                        originalFileName: audio.originalFileName,
+                        collectionName: collectionName,
+                        theme: theme,
+                        character: character,
+                        style: style,
+                        orientation: orientation,
+                        lipSync: lipSync
+                    },
+                })
+                userTask.push(createdInstance);
+            }
+            const createdTask = await userTaskLog.insertMany(userTask)
+            console.log("Created TAsk-->", createdTask)
+            const createdTaskIds = createdTask.map(task => task._id);
+            await userTask.findOneAndUpdate(
+                { _id: toObjectId(taskId), userId: toStringId(_id), groupId: groupId },
+                { $push: { taskLogIds: { $each: createdTaskIds } } },
+                { new: true }
             );
+            return createdTask;
         }
-        return response;
     } catch (error) {
         logger.error(error)
         console.log(error);
@@ -167,7 +180,7 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
                 $match: {
                     groupId: groupId,
                     _id: toObjectId(taskId),
-                    userId: _id.toString(),
+                    userId: toStringId(_id),
                     taskType: taskTypeEnum.GROUP
                 }
             },
@@ -195,11 +208,9 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
                     _id: 1,
                     taskLogs: {
                         _id: 1,
+                        groupId: 1,
+                        taskId: 1,
                         audioDetails: 1,
-                        audioMetadata: 1,
-                        audioUrl: 1,
-                        audioPath: 1,
-                        audioMetaData: 1,
                     }
                 }
             },
@@ -241,42 +252,17 @@ export const getAllBulkAudioName = async (requestUser, queryData) => {
                 $match: {
                     groupId: groupId,
                     userId: _id.toString(),
-                    taskType: taskTypeEnum.GROUP
-                }
-            },
-            {
-                $lookup: {
-                    from: "usertasklogs",
-                    localField: "taskLogIds",
-                    foreignField: "_id",
-                    as: "taskLogs"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$taskLogs",
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $sort: {
-                    "taskLogs.createdAt": -1
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    taskLogs: {
-                        _id: 1,
-                        groupId: 1,
-                        audioDetails: {
-                            originalFileName: 1,
-                        },
-                    }
+                    groupId: 1,
+                    fileName: 1,
                 }
             }
         ]
-        const response = await userTask.aggregate(aggr);
+        const response = await userAudio.aggregate(aggr);
         return response;
     } catch (error) {
         logger.error("ERROR in getting bulk Audio api", error)
@@ -330,32 +316,29 @@ export const updateAudioDetailsService = async (requestUser, requestData, params
         }
         const { theme, character, style, orientation, audioId } = requestData;
 
+        const sourceAudio = await userAudio.findOne({
+            userId: toStringId(_id),
+            _id: toObjectId(audioId)
+        })
+        console.log("userAudio-->", userAudio)
+
         let updateQuery = {
             "audioDetails.theme": theme,
             "audioDetails.character": character,
             "audioDetails.style": style,
             "audioDetails.orientation": orientation
         };
-        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
-        if (!sourceAudio) {
-            throw new APIError(
-                "Source audio not found",
-                HttpStatusCode.BAD_REQUEST,
-                true,
-                "Source audio not found"
-            );
-        }
         updateQuery = {
             ...updateQuery,
+            "audioDetails.audioId": sourceAudio._id,
             audioUrl: sourceAudio.audioUrl,
             audioPath: sourceAudio.audioPath,
-            "audioDetails.originalFileName": sourceAudio.audioDetails.originalFileName,
-            "audioMetadata.originalName": sourceAudio.audioMetadata.originalName,
-            "audioMetadata.mimeType": sourceAudio.audioMetadata.mimeType
+            "audioDetails.originalFileName": sourceAudio.fileName,
+            "audioDetails.mimeType": sourceAudio.mimeType
         };
 
         const updatedTaskLog = await userTaskLog.findOneAndUpdate(
-            { _id: taskId, userId: _id.toString() },
+            { _id: taskId, userId: toStringId(_id) },
             { $set: updateQuery },
             { new: true }
         );

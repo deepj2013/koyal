@@ -176,7 +176,8 @@ export const createAudioExcel = async (audioData = []) => {
             { header: 'theme', key: 'theme', width: 25 },
             { header: 'character', key: 'character', width: 25 },
             { header: 'style', key: 'style', width: 25 },
-            { header: 'orientation', key: 'orientation', width: 25 }
+            { header: 'orientation', key: 'orientation', width: 25 },
+            { header: 'lipsync', key: 'lipsync', width: 15 }
         ];
 
         const headerRow = worksheet.getRow(1);
@@ -190,25 +191,26 @@ export const createAudioExcel = async (audioData = []) => {
         headerRow.height = 20;
         headerRow.commit();
 
-        const audioFileNames = audioData.map(audio => 
-            audio?.audioDetails?.originalFileName || 'N/A'
+        const audioFileNames = audioData.map(audio =>
+            audio?.fileName || 'N/A'
         );
         const uniqueAudioNames = [...new Set(audioFileNames)].filter(name => name !== 'N/A');
         const audioNamesString = uniqueAudioNames.join(',');
 
-        const initialRowCount = 20; 
+        const initialRowCount = 20;
         for (let i = 0; i < initialRowCount; i++) {
             worksheet.addRow({
                 name: '',
                 theme: '',
                 character: '',
                 style: '',
-                orientation: ''
+                orientation: '',
+                lipsync: '',
             });
         }
 
         const lastRow = worksheet.rowCount;
-        
+
         worksheet.getColumn('name').eachCell({ includeEmpty: true }, (cell, rowNumber) => {
             if (rowNumber > 1) {
                 cell.dataValidation = {
@@ -220,7 +222,7 @@ export const createAudioExcel = async (audioData = []) => {
         });
 
 
-        const styleValues = Object.values(visualStyleEnum).join(','); 
+        const styleValues = Object.values(visualStyleEnum).join(',');
         worksheet.getColumn('style').eachCell({ includeEmpty: true }, (cell, rowNumber) => {
             if (rowNumber > 1) {
                 cell.dataValidation = {
@@ -242,22 +244,32 @@ export const createAudioExcel = async (audioData = []) => {
             }
         });
 
+        worksheet.getColumn('lipsync').eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+            if (rowNumber > 1) {
+                cell.dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formulae: ['"true,false"']
+                };
+            }
+        });
+
         const instructionRow = worksheet.getRow(lastRow + 2);
         const instructionCell = instructionRow.getCell(1);
         instructionCell.value = "Note: You can add as many rows as needed. Right-click and select 'Insert' to add new rows.";
         instructionCell.font = { italic: true, color: { argb: 'FF808080' } };
-        
+
         for (let rowNumber = 2; rowNumber <= lastRow; rowNumber++) {
-            for (let colNumber = 1; colNumber <= 5; colNumber++) {
+            for (let colNumber = 1; colNumber <= 6; colNumber++) {
                 const cell = worksheet.getRow(rowNumber).getCell(colNumber);
                 cell.protection = { locked: false };
-                
+
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: { argb: 'FFF0F0F0' }
                 };
-                
+
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
@@ -267,14 +279,14 @@ export const createAudioExcel = async (audioData = []) => {
             }
         }
 
-        worksheet.protect('koyal@123', { 
+        worksheet.protect('koyal@123', {
             selectLockedCells: true,
             selectUnlockedCells: true,
             formatCells: false,
             formatColumns: false,
             formatRows: false,
             insertColumns: false,
-            insertRows: true, 
+            insertRows: true,
             insertHyperlinks: false,
             deleteColumns: false,
             deleteRows: false,

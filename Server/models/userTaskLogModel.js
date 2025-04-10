@@ -19,50 +19,49 @@ const userTaskLogSchema = new mongoose.Schema({
         enum: Object.values(userTaskLogNameEnum),
         required: true
     },
-    isAudioUpload: {
-        type: Boolean,
-        default: false
-    },
-    audioUrl: {
-        type: String
-    },
-    audioPath: {
-        type: String
-    },
-    audioJSON: {
-        type: String
-    },
     groupId: {
         type: String,
         required: true,
         index: true
     },
     audioDetails: {
-        originalFileName: { type: String },
-        collectionName: { type: String },
-        theme: { type: String },
+        audioId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'userAudios',
+            index: true
+        },
+        audioUrl: {
+            type: String
+        },
+        originalFileName: {
+            type: String
+        },
+        collectionName: {
+            type: String
+        },
+        theme: {
+            type: String
+        },
         style: {
             type: String,
             enum: Object.values(visualStyleEnum),
-            default: visualStyleEnum.SKETCH
+            default: visualStyleEnum.REALISTIC
         },
         orientation: {
             type: String,
             enum: Object.values(OrientationEnum),
             default: OrientationEnum.PORTRAIT
         },
-        character: { type: String }
-    },
-    audioMetadata: {
-        originalName: { type: String },
-        mimeType: { type: String },
-        size: { type: Number },
-        encoding: { type: String },
-        uploadTime: {
-            type: Date,
-            default: Date.now()
+        character: {
+            type: String
         },
-        duration: { type: Number },
+        lipSync: {
+            type: Boolean,
+            default: false,
+        },
+        audioJSON: {
+            type: String
+        },
     },
     status: {
         type: String,
