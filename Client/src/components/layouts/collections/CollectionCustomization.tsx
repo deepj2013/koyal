@@ -12,6 +12,8 @@ import { PageRoutes } from "../../../routes/appRoutes";
 import { useNavigate } from "react-router-dom";
 import { AuthState } from "../../../redux/features/authSlice";
 import { downloadSampleExcelFile } from "../../../redux/services/collectionService/collectionService";
+import { FaDownload } from "react-icons/fa";
+import UploadExcelButton from "./UploadExcelButton";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -83,15 +85,17 @@ const CollectionCustomization = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Collection Customization</h2>
-          <div>
-            <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg">
-              Upload Excel
-            </button>
+          <div className="flex">
+            <UploadExcelButton
+              onFileSelect={(file) => console.log("Selected file:", file)}
+            />
+
             <button
-              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg"
+              className="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 ml-2"
               onClick={onSampleDownload}
+              title="Download Sample"
             >
-              Download Sample
+              <FaDownload className="w-4 h-4" />
             </button>
           </div>
         </div>
