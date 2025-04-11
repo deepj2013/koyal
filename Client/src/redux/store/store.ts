@@ -25,6 +25,7 @@ import { finalVideoApi } from "../services/finalVideoService/finalVideoApi";
 import { adminApi } from "../services/adminService/adminApi";
 import { authApi } from "../services/authService/authApi";
 import { collectionApi } from "../services/collectionService/collectionApi";
+import { apiSlice, externalApiSlice } from "../environment/base";
 
 const persistConfig = {
   key: "root",
@@ -37,6 +38,8 @@ const rootReducer = combineReducers({
   lyricEdit: lyricEditReducer,
   auth: AuthReducer,
   collection : collectionReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
+  [externalApiSlice.reducerPath]: externalApiSlice.reducer,
   [uploadAudioApi.reducerPath]: uploadAudioApi.reducer,
   [lyricEditApi.reducerPath]: lyricEditApi.reducer,
   [chooseCharacterApi.reducerPath]: chooseCharacterApi.reducer,
@@ -58,6 +61,9 @@ export const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }).concat([
+
+      apiSlice.middleware,
+      externalApiSlice.middleware,
       uploadAudioApi.middleware,
       lyricEditApi.middleware,
       chooseCharacterApi.middleware,
