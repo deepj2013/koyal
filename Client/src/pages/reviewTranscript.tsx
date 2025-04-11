@@ -257,8 +257,7 @@ const TranscriptPage = () => {
       startApiPolling(
         emotionResponse?.call_id,
         fetchEmotionResult,
-        onSuccess,
-        5000
+        onSuccess
       );
     }
   }, [emotionResponse]);
@@ -280,7 +279,6 @@ const TranscriptPage = () => {
         transcriberResponse?.call_id,
         fetchTranscriberResult,
         onSuccess,
-        5000
       );
     }
   }, [transcriberResponse]);
@@ -301,7 +299,6 @@ const TranscriptPage = () => {
         sceneResponse?.call_id,
         fetchSceneResult,
         onSuccess,
-        5000
       );
       fetchSceneResult(sceneResponse?.call_id);
     }

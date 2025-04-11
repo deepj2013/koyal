@@ -83,7 +83,7 @@ export const startApiPolling = (
   payload,
   fetchFn,
   onSuccess,
-  intervalMs = 5 * 1000
+  intervalMs = 10 * 1000
 ): (() => void) => {
   let interval: ReturnType<typeof setInterval>;
 
