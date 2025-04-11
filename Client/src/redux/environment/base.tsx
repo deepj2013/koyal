@@ -16,12 +16,6 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-export const apiSlice = createApi({
-  baseQuery,
-  endpoints: () => ({}),
-  refetchOnMountOrArgChange: true,
-  keepUnusedDataFor: 1,
-});
 
 const externalBaseQuery = fetchBaseQuery({
   baseUrl: "",
@@ -48,9 +42,20 @@ const baseQueryWithStatus = async (args, api, extraOptions) => {
   return result;
 };
 
+
+export const apiSlice = createApi({
+  reducerPath: "internalApi",
+  baseQuery: baseQuery,
+  endpoints: () => ({}),
+  refetchOnMountOrArgChange: true,
+  keepUnusedDataFor: 1,
+});
+
 export const externalApiSlice = createApi({
+  reducerPath: "externalApi",
   baseQuery: baseQueryWithStatus,
   endpoints: () => ({}),
   refetchOnMountOrArgChange: true,
   keepUnusedDataFor: 1,
 });
+
