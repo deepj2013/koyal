@@ -1,7 +1,7 @@
 import { ApiRoutes } from "../../environment/apiRoutes";
-import { apiSlice } from "../../environment/base";
+import { apiSlice, externalApiSlice } from "../../environment/base";
 
-export const uploadAudioApi = apiSlice.injectEndpoints({
+export const uploadAudioApi = externalApiSlice.injectEndpoints({
   endpoints: (builder) => ({
     emotionEndpoint: builder.mutation({
       query: (data) => ({

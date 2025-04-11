@@ -3,17 +3,10 @@ import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setSceneDataFileUrl,
-  UploadAudioState,
-} from "../redux/features/uploadSlice";
+import { setSceneDataFileUrl } from "../redux/features/uploadSlice";
 import { uploadFileToS3 } from "../aws/s3-service";
-import { convertJsonToFile } from "../utils/helper";
-import {
-  useLazyGetStoryElementQuery,
-  useSceneLLMEndpointMutation,
-} from "../redux/services/lyricEditService/lyricEditApi";
-import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
+import { convertJsonToFile, startApiPolling } from "../utils/helper";
+
 import { AppState, setLyricsJsonUrl } from "../redux/features/appSlice";
 import {
   useEmotionEndpointMutation,
@@ -33,28 +26,33 @@ const TranscriptPage = () => {
 
   const [
     processEmotion,
-    { data: emotionResponse, isLoading: isProcessEmotionLoading },
+    {
+      data: { data: emotionResponse } = {},
+      isLoading: isProcessEmotionLoading,
+    },
   ] = useEmotionEndpointMutation();
-  const [
-    fetchEmotionResult,
-    { data: emotionResult, isLoading: isEmotionResLoading },
-  ] = useLazyGetEmotionResultQuery();
+
+  const [fetchEmotionResult, { isLoading: isEmotionResLoading }] =
+    useLazyGetEmotionResultQuery();
+
   const [
     processTranscriber,
-    { data: transcriberResponse, isLoading: isProcessTranscriberLoading },
+    {
+      data: { data: transcriberResponse } = {},
+      isLoading: isProcessTranscriberLoading,
+    },
   ] = useTranscriberEndpointMutation();
-  const [
-    fetchTranscriberResult,
-    { data: transcriberResult, isLoading: isTranscriberResLoading },
-  ] = useLazyGetTranscriberResultQuery();
+
+  const [fetchTranscriberResult, { isLoading: isTranscriberResLoading }] =
+    useLazyGetTranscriberResultQuery();
+
   const [
     procesScene,
-    { data: sceneResponse, isLoading: isProcessSceneLoading },
+    { data: { data: sceneResponse } = {}, isLoading: isProcessSceneLoading },
   ] = useSceneEndpointMutation();
-  const [
-    fetchSceneResult,
-    { data: sceneResult, isLoading: isSceneResultLoading },
-  ] = useLazyGetSceneResultQuery();
+
+  const [fetchSceneResult, { isLoading: isSceneResultLoading }] =
+    useLazyGetSceneResultQuery();
 
   const isLoading =
     isEmotionResLoading ||
@@ -69,6 +67,8 @@ const TranscriptPage = () => {
   const [selectedParagraph, setSelectedParagraph] = useState(null);
   const [emotionsFileURL, setEmotionsFileURL] = useState(null);
   const [wordTimeStampFileURL, setWordTimeStampFileURL] = useState(null);
+  const [isEmotionSuccess, setIsEmotionSuccess] = useState(false);
+  const [isTranscriberSuccess, setIsTranscriberSuccess] = useState(false);
 
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
@@ -212,6 +212,14 @@ const TranscriptPage = () => {
     });
   };
 
+  useEffect(() => {
+    if (isEmotionSuccess && isTranscriberSuccess) {
+      callSceneAPI();
+      setIsEmotionSuccess(false);
+      setIsTranscriberSuccess(false);
+    }
+  }, [isEmotionSuccess, isTranscriberSuccess]);
+
   const fetchJsonData = async (url) => {
     try {
       const response = await fetch(url);
@@ -229,54 +237,57 @@ const TranscriptPage = () => {
   useEffect(() => {
     if (audioFileUrl) {
       callEmotionsAPI(audioFileUrl);
+      callTranscriberAPI(audioFileUrl);
     }
   }, []);
 
   useEffect(() => {
+    const onSuccess = (result) => {
+      handleJsonFileUpload(
+        result?.data,
+        "emotion_data.json",
+        setEmotionsFileURL,
+        () => {
+          setIsEmotionSuccess(true);
+        }
+      );
+    };
+
     if (emotionResponse?.call_id) {
-      fetchEmotionResult(emotionResponse?.call_id);
+      startApiPolling(
+        emotionResponse?.call_id,
+        fetchEmotionResult,
+        onSuccess,
+        5000
+      );
     }
   }, [emotionResponse]);
 
   useEffect(() => {
-    if (emotionResult) {
+    const onSuccess = (result) => {
       handleJsonFileUpload(
-        emotionResult,
-        "emotion_data.json",
-        setEmotionsFileURL,
+        result?.data,
+        "word_timestamp.json",
+        setWordTimeStampFileURL,
         () => {
-          callTranscriberAPI(audioFileUrl);
+          setIsTranscriberSuccess(true);
         }
       );
-    }
-  }, [emotionResult]);
+    };
 
-  useEffect(() => {
     if (transcriberResponse?.call_id) {
-      fetchTranscriberResult(transcriberResponse?.call_id);
+      startApiPolling(
+        transcriberResponse?.call_id,
+        fetchTranscriberResult,
+        onSuccess,
+        5000
+      );
     }
   }, [transcriberResponse]);
 
   useEffect(() => {
-    if (transcriberResult) {
-      handleJsonFileUpload(
-        transcriberResult,
-        "word_timestamp.json",
-        setWordTimeStampFileURL,
-        callSceneAPI
-      );
-    }
-  }, [transcriberResult]);
-
-  useEffect(() => {
-    if (sceneResponse?.call_id) {
-      fetchSceneResult(sceneResponse?.call_id);
-    }
-  }, [sceneResponse]);
-
-  useEffect(() => {
-    if (sceneResult) {
-      handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
+    const onSuccess = (response) => {
+      handleJsonFileUpload(response.data, "scene.json", null, null).then(
         (url) => {
           console.log("scene json url:", url);
           dispatch(setSceneDataFileUrl(url));
@@ -284,8 +295,17 @@ const TranscriptPage = () => {
           fetchJsonData(url);
         }
       );
+    };
+    if (sceneResponse?.call_id) {
+      startApiPolling(
+        sceneResponse?.call_id,
+        fetchSceneResult,
+        onSuccess,
+        5000
+      );
+      fetchSceneResult(sceneResponse?.call_id);
     }
-  }, [sceneResult]);
+  }, [sceneResponse]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
