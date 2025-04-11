@@ -1,7 +1,7 @@
 import { ApiRoutes } from "../../environment/apiRoutes";
-import { apiSlice } from "../../environment/base";
+import { externalApiSlice } from "../../environment/base";
 
-export const chooseCharacterApi = apiSlice.injectEndpoints({
+export const chooseCharacterApi = externalApiSlice.injectEndpoints({
   endpoints: (builder) => ({
     editStoryElement: builder.mutation({
       query: (data) => ({

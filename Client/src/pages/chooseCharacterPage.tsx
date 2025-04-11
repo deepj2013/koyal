@@ -18,10 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   useEditStoryElementMutation,
   useLazyGetProcessedAvatarQuery,
-  useLazyGetProcessedCharacterQuery,
-  usePreprocessCharacterMutation,
   useProcessAvatarMutation,
-  useTrainCharacterMutation,
 } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 import {
@@ -31,6 +28,7 @@ import {
 import {
   dataURLtoFile,
   getRandomActions,
+  startApiPolling,
   uploadJsonAsFileToS3,
 } from "../utils/helper";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
@@ -57,31 +55,32 @@ const ChooseCharacterPage = () => {
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl } = useSelector(UploadAudioState);
 
-  const [editStory, { data: editStoryData, isLoading: isEditStoryLoading }] =
-    useEditStoryElementMutation();
+  const [
+    editStory,
+    { data: { data: editStoryData } = {}, isLoading: isEditStoryLoading },
+  ] = useEditStoryElementMutation();
+
   const [
     procesStory,
     {
-      data: sceneLLMResponse,
+      data: { data: sceneLLMResponse } = {},
       isLoading: isProcessStoryLoading,
       reset: resetSceneLLMResponse,
     },
   ] = useSceneLLMEndpointMutation();
   const [
     getStoryElement,
-    {
-      data: storyElementData,
-      isLoading: isGetStoryLoading,
-      reset: resetStoryElemetData,
-    },
+    { isLoading: isGetStoryLoading, reset: resetStoryElemetData },
   ] = useLazyGetStoryElementQuery();
 
   const [
     processAvatar,
-    { data: processedAvatarResponse, isLoading: isAvatarLoading },
+    {
+      data: { data: processedAvatarResponse } = {},
+      isLoading: isAvatarLoading,
+    },
   ] = useProcessAvatarMutation();
-  const [getAvatar, { data: avatarData, isLoading: isAvatarDataLoading }] =
-    useLazyGetProcessedAvatarQuery();
+  const [getAvatar] = useLazyGetProcessedAvatarQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,9 +101,14 @@ const ChooseCharacterPage = () => {
   const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
   const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
   const [actions, setActions] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isAvatarDataLoading, setIsAvatarDataLoading] = useState(false);
 
   const isLoading =
-    isProcessStoryLoading || isGetStoryLoading || isEditStoryLoading;
+    isProcessStoryLoading ||
+    isGetStoryLoading ||
+    isEditStoryLoading ||
+    isProcessing;
 
   const handleAICharClick = async () => {
     setIsCustomAvatarModalOpen(true);
@@ -310,23 +314,21 @@ const ChooseCharacterPage = () => {
   };
 
   const handleTextChange = (e) => {
-    setNewThemeInput(e.target.value)
+    setNewThemeInput(e.target.value);
   };
 
-  useEffect(() => {
-    procesStory({
-      mode: "create-story",
-      scenes_path: sceneDataFileUrl,
+  const onGetStorySuccess = ({ data }) => {
+    setStoryElement(data?.story_elements);
+    resetStoryElemetData();
+    uploadJsonAsFileToS3(
+      { story_elements: data?.story_elements },
+      "story_element.json"
+    ).then((url) => {
+      dispatch(setStoryEleementFileUrl(url));
+      setIsProcessing(false);
+      console.log("story_element.json upload successful");
     });
-    setActions(getRandomActions());
-  }, []);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
-      resetSceneLLMResponse();
-    }
-  }, [sceneLLMResponse]);
+  };
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -392,35 +394,54 @@ const ChooseCharacterPage = () => {
   }, [timeLeft, currentAction, isComplete, stage]);
 
   useEffect(() => {
+    procesStory({
+      mode: "create-story",
+      scenes_path: sceneDataFileUrl,
+    });
+    setActions(getRandomActions());
+  }, []);
+
+  useEffect(() => {
+    if (sceneLLMResponse?.call_id) {
+      setIsProcessing(true);
+      startApiPolling(
+        sceneLLMResponse?.call_id,
+        getStoryElement,
+        onGetStorySuccess,
+        10000
+      );
+      resetSceneLLMResponse();
+    }
+  }, [sceneLLMResponse]);
+
+  useEffect(() => {
     if (editStoryData?.call_id) {
-      getStoryElement(editStoryData?.call_id);
+      setIsProcessing(true);
+      startApiPolling(
+        editStoryData?.call_id,
+        getStoryElement,
+        onGetStorySuccess,
+        8000
+      );
     }
   }, [editStoryData]);
 
   useEffect(() => {
-    if (processedAvatarResponse?.call_id) {
-      getAvatar(processedAvatarResponse?.call_id);
-    }
-  }, [processedAvatarResponse]);
+    const onSuccess = ({ data }) => {
+      setAnimatedImages(Object?.values(data));
+      setIsAvatarDataLoading(false);
+    };
 
-  useEffect(() => {
-    if (storyElementData) {
-      setStoryElement(storyElementData.story_elements);
-      resetStoryElemetData();
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
-        (url) => {
-          dispatch(setStoryEleementFileUrl(url));
-          console.log("story_element.json upload successful");
-        }
+    if (processedAvatarResponse?.call_id) {
+      setIsAvatarDataLoading(true)
+      startApiPolling(
+        processedAvatarResponse?.call_id,
+        getAvatar,
+        onSuccess,
+        7000
       );
     }
-  }, [storyElementData]);
-
-  useEffect(() => {
-    if (avatarData) {
-      setAnimatedImages(Object?.values(avatarData));
-    }
-  }, [avatarData]);
+  }, [processedAvatarResponse]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -681,7 +702,6 @@ const ChooseCharacterPage = () => {
               handleTextChange={handleTextChange}
               onConfirm={handleSaveTheme}
             />
-           
           </div>
         </div>
       </div>

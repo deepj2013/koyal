@@ -1,7 +1,7 @@
 import { ApiRoutes } from "../../environment/apiRoutes";
-import { apiSlice } from "../../environment/base";
+import { externalApiSlice } from "../../environment/base";
 
-export const lyricEditApi = apiSlice.injectEndpoints({
+export const lyricEditApi = externalApiSlice.injectEndpoints({
   endpoints: (builder) => ({
     sceneLLMEndpoint: builder.mutation({
       query: (data) => ({
