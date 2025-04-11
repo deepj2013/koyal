@@ -67,3 +67,43 @@ export const formatTime = (seconds: number) => {
   const secs = Math.floor(seconds % 60);
   return `${minutes}:${secs.toString().padStart(2, "0")}`;
 };
+
+/**
+ * Starts polling an API endpoint immediately and continues at a set interval until a condition is met.
+ * @param {any} payload - The payload to pass to the fetch function (e.g., an ID or request params).
+ * @param {(payload: any) => Promise<T>} fetchFn - An async function that makes the API call and returns a response.
+ *        This function must return an object with `data` containing a `statusCode` field.
+ * @param {(response: T) => void} onSuccess - Callback function executed once the status code is 200.
+ *        Receives the full response object.
+ * @param {number} [intervalMs=5000] - Polling interval in milliseconds. Default is 5000 ms (5 seconds).
+ *
+ * @returns {() => void} A cleanup function that can be used to manually clear the polling interval.
+ */
+export const startApiPolling = (
+  payload,
+  fetchFn,
+  onSuccess,
+  intervalMs = 5 * 1000
+): (() => void) => {
+  let interval: ReturnType<typeof setInterval>;
+
+  const poll = async () => {
+    try {
+      const response = await fetchFn(payload);
+      const status = response?.data?.statusCode;
+
+      if (status === 200) {
+        onSuccess(response?.data);
+        clearInterval(interval);
+      }
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  };
+
+  poll();
+
+  interval = setInterval(poll, intervalMs);
+
+  return () => clearInterval(interval);
+};
