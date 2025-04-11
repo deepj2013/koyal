@@ -92,8 +92,9 @@ export const startApiPolling = (
       const response = await fetchFn(payload);
       const status = response?.data?.statusCode;
 
+
       if (status === 200) {
-        onSuccess(response?.data);
+        onSuccess(response?.data?.data);
         clearInterval(interval);
       }
     } catch (err) {

@@ -25,7 +25,11 @@ import { UploadAudioState } from "../redux/features/uploadSlice";
 import { LyricEditState } from "../redux/features/lyricEditSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useLazyGetStoryElementQuery } from "../redux/services/lyricEditService/lyricEditApi";
-import { convertJsonToFile, uploadJsonAsFileToS3 } from "../utils/helper";
+import {
+  convertJsonToFile,
+  startApiPolling,
+  uploadJsonAsFileToS3,
+} from "../utils/helper";
 import { uploadFileToS3 } from "../aws/s3-service";
 import {
   AppState,
@@ -37,7 +41,6 @@ import { Modal } from "../components/Modal";
 import AdvertiserSection from "../components/layouts/AdvertiserSection";
 import CountdownTimer from "../components/CountdownTimer";
 import VisualStyleComponent from "../components/layouts/characterSelection/VisualStyle";
-import { animatedStyle, realisticStyle, sketchStyle } from "../assets";
 
 const CHARACTER_DETAILS = storyElement.character_details;
 const styles = [
@@ -54,29 +57,26 @@ const CharacterSelectionPage = () => {
   const { characterName, loraPath, isCharchaChosen, characterFolderPath } =
     useSelector(AppState);
 
-  const [preprocessCharacter, { data: processedCharResponse }] =
+  const [preprocessCharacter, { data: { data: processedCharResponse } = {} }] =
     usePreprocessCharacterMutation();
-  const [getCharResult, { data: charResult, reset: resetCharResult }] =
-    useLazyGetProcessedCharacterQuery();
-  const [trainCharacter, { data: trainedCharResponse, reset: resetTrainedCharResponse }] =
+  const [getCharResult] = useLazyGetProcessedCharacterQuery();
+  const [trainCharacter, { data: { data: trainedCharResponse } = {} }] =
     useTrainCharacterMutation();
 
+  const [processAvatar, { data: { data: processedAvatarResponse } = {} }] =
+    useProcessAvatarMutation();
+  const [getAvatar] = useLazyGetProcessedAvatarQuery();
+
+  const [getTrainedCharacter] = useLazyGetTrainedCharacterQuery();
+
+  const [editStory, { data: { data: sceneLLMResponse } = {} }] =
+    useEditStoryElementMutation();
+  const [getStoryElement] = useLazyGetStoryElementQuery();
   const [
-    processAvatar,
-    { data: processedAvatarResponse, isLoading: isAvatarLoading },
-  ] = useProcessAvatarMutation();
-  const [getAvatar, { data: avatarData, isLoading: isAvatarDataLoading }] =
-    useLazyGetProcessedAvatarQuery();
-
-  const [getTrainedCharacter, { data: trainedCharacter, isLoading }] =
-    useLazyGetTrainedCharacterQuery();
-
-  const [editStory, { data: sceneLLMResponse }] = useEditStoryElementMutation();
-  const [getStoryElement, { data: storyElementData }] =
-    useLazyGetStoryElementQuery();
-  const [submitStyle, { data: submitStyleData, reset: resetSubmitStyleData }] =
-    useSubmitStyleMutation();
-  const [getStyle, { data: getStyleData }] = useLazyGetStyleQuery();
+    submitStyle,
+    { data: { data: submitStyleData } = {}, reset: resetSubmitStyleData },
+  ] = useSubmitStyleMutation();
+  const [getStyle] = useLazyGetStyleQuery();
 
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl, audioType } = useSelector(UploadAudioState);
@@ -87,6 +87,7 @@ const CharacterSelectionPage = () => {
   const [storyElement, setStoryElement] = useState(null);
   const [styleImages, setStyleImages] = useState<any>(styles);
   const [activeOption, setActiveOption] = useState("advertisers");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChangeLook = async () => {
     const file = convertJsonToFile({ storyElement }, "story_element.json");
@@ -166,89 +167,86 @@ const CharacterSelectionPage = () => {
   }, []);
 
   useEffect(() => {
-    if (processedCharResponse?.call_id) {
-      getCharResult(processedCharResponse?.call_id);
-    }
-  }, [processedCharResponse]);
+    const onSuccess = (response) => {
+      if (response) {
+        uploadJsonAsFileToS3(response, "proto_prompts.json").then((url) => {
+          dispatch(setProtoPromptsUrl(url));
+          console.log("upload proto_prompts.json successful", url);
+        });
+      }
+    };
 
-  useEffect(() => {
-    if (charResult) {
-      trainCharacter({
-        processed_path: charResult?.processed_path,
-        character_name: characterName,
-      });
-      resetCharResult();
-    }
-  }, [charResult]);
-
-  useEffect(() => {
-    if (trainedCharResponse?.call_id) {
-      getTrainedCharacter(trainedCharResponse?.call_id);
-      resetTrainedCharResponse();
-    }
-  }, [trainedCharResponse]);
-
-  useEffect(() => {
-    if (processedAvatarResponse?.call_id) {
-      getAvatar(processedAvatarResponse?.call_id);
-    }
-  }, [processedAvatarResponse]);
-
-  useEffect(() => {
-    if (avatarData?.upscaled_path) {
-      callProcessCharacterAPI(avatarData?.upscaled_path);
-    }
-  }, [avatarData]);
-
-  useEffect(() => {
     if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
+      startApiPolling(sceneLLMResponse?.call_id, getStoryElement, onSuccess);
     }
   }, [sceneLLMResponse]);
 
   useEffect(() => {
-    if (storyElementData) {
-      uploadJsonAsFileToS3(storyElementData, "proto_prompts.json").then(
-        (url) => {
-          dispatch(setProtoPromptsUrl(url));
-          console.log("upload proto_prompts.json successful", url);
-        }
-      );
+    const onSuccess = (response) => {
+      trainCharacter({
+        processed_path: response?.processed_path,
+        character_name: characterName,
+      });
+    };
+
+    if (processedCharResponse?.call_id) {
+      startApiPolling(processedCharResponse?.call_id, getCharResult, onSuccess);
     }
-  }, [storyElementData]);
+  }, [processedCharResponse]);
 
   useEffect(() => {
-    if (trainedCharacter?.lora_path) {
-      dispatch(setLoraPath(trainedCharacter.lora_path));
+    const onSuccess = (response) => {
+      if (response?.upscaled_path) {
+        callProcessCharacterAPI(response?.upscaled_path);
+      }
+    };
+
+    if (processedAvatarResponse?.call_id) {
+      startApiPolling(processedAvatarResponse?.call_id, getAvatar, onSuccess);
+    }
+  }, [processedAvatarResponse]);
+
+  useEffect(() => {
+    const onSuccess = (response) => {
+      setIsLoading(false)
+      dispatch(setLoraPath(response.lora_path));
       submitStyle({
-        lora_path: trainedCharacter.lora_path,
+        lora_path: response.lora_path,
         character_name: location?.state?.characterName,
         character_outfit: storyElement?.character_outfit,
       });
+    };
+
+    if (trainedCharResponse?.call_id) {
+      setIsLoading(true)
+      startApiPolling(
+        trainedCharResponse?.call_id,
+        getTrainedCharacter,
+        onSuccess
+      );
     }
-  }, [trainedCharacter]);
+  }, [trainedCharResponse]);
 
   useEffect(() => {
-    if (submitStyleData?.call_id) {
-      getStyle(submitStyleData?.call_id);
-      resetSubmitStyleData();
-    }
-  }, [submitStyleData]);
-
-  useEffect(() => {
-    if (getStyleData) {
+    const onSuccess = (result) => {
       setStyleImages((prev) =>
         prev.map((style) => {
           const key = style.name.toLowerCase();
           return {
             ...style,
-            image: getStyleData[key] || style.image,
+            image: result[key] || style.image,
           };
         })
       );
-      dispatch(setStyleImagesUrl(getStyleData));
+      dispatch(setStyleImagesUrl(result));
+    };
+
+    if (submitStyleData?.call_id) {
+      startApiPolling(submitStyleData?.call_id, getStyle, onSuccess);
+      getStyle(submitStyleData?.call_id);
+      resetSubmitStyleData();
     }
-  }, [getStyleData]);
+  }, [submitStyleData]);
 
   return (
     <div className="min-h-screen bg-gray-50">

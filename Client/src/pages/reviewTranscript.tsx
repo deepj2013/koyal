@@ -244,7 +244,7 @@ const TranscriptPage = () => {
   useEffect(() => {
     const onSuccess = (result) => {
       handleJsonFileUpload(
-        result?.data,
+        result,
         "emotion_data.json",
         setEmotionsFileURL,
         () => {
@@ -265,7 +265,7 @@ const TranscriptPage = () => {
   useEffect(() => {
     const onSuccess = (result) => {
       handleJsonFileUpload(
-        result?.data,
+        result,
         "word_timestamp.json",
         setWordTimeStampFileURL,
         () => {
@@ -285,7 +285,7 @@ const TranscriptPage = () => {
 
   useEffect(() => {
     const onSuccess = (response) => {
-      handleJsonFileUpload(response.data, "scene.json", null, null).then(
+      handleJsonFileUpload(response, "scene.json", null, null).then(
         (url) => {
           console.log("scene json url:", url);
           dispatch(setSceneDataFileUrl(url));

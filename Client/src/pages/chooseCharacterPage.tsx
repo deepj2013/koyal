@@ -317,7 +317,7 @@ const ChooseCharacterPage = () => {
     setNewThemeInput(e.target.value);
   };
 
-  const onGetStorySuccess = ({ data }) => {
+  const onGetStorySuccess = (data) => {
     setStoryElement(data?.story_elements);
     resetStoryElemetData();
     uploadJsonAsFileToS3(
@@ -427,7 +427,7 @@ const ChooseCharacterPage = () => {
   }, [editStoryData]);
 
   useEffect(() => {
-    const onSuccess = ({ data }) => {
+    const onSuccess = (data) => {
       setAnimatedImages(Object?.values(data));
       setIsAvatarDataLoading(false);
     };
