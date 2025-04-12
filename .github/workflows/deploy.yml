@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - koyal-demo
+      - koyal-demo-v2
       - koyal-charcha
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
             echo "🚀 Restarting backend with PM2"
             "$PM2_PATH" restart koyal-backend || "$PM2_PATH" start server.js --name koyal-backend
 
-          elif [ "$BRANCH" = "koyal-demo" ]; then
+          elif [ "$BRANCH" = "koyal-demo-v2" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
             cd /var/www/demo-koyal 
             git pull origin koyal-demo
