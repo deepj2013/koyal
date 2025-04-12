@@ -254,11 +254,7 @@ const TranscriptPage = () => {
     };
 
     if (emotionResponse?.call_id) {
-      startApiPolling(
-        emotionResponse?.call_id,
-        fetchEmotionResult,
-        onSuccess
-      );
+      startApiPolling(emotionResponse?.call_id, fetchEmotionResult, onSuccess);
     }
   }, [emotionResponse]);
 
@@ -278,28 +274,22 @@ const TranscriptPage = () => {
       startApiPolling(
         transcriberResponse?.call_id,
         fetchTranscriberResult,
-        onSuccess,
+        onSuccess
       );
     }
   }, [transcriberResponse]);
 
   useEffect(() => {
     const onSuccess = (response) => {
-      handleJsonFileUpload(response, "scene.json", null, null).then(
-        (url) => {
-          console.log("scene json url:", url);
-          dispatch(setSceneDataFileUrl(url));
-          dispatch(setLyricsJsonUrl(url));
-          fetchJsonData(url);
-        }
-      );
+      handleJsonFileUpload(response, "scene.json", null, null).then((url) => {
+        console.log("scene json url:", url);
+        dispatch(setSceneDataFileUrl(url));
+        dispatch(setLyricsJsonUrl(url));
+        fetchJsonData(url);
+      });
     };
     if (sceneResponse?.call_id) {
-      startApiPolling(
-        sceneResponse?.call_id,
-        fetchSceneResult,
-        onSuccess,
-      );
+      startApiPolling(sceneResponse?.call_id, fetchSceneResult, onSuccess);
       fetchSceneResult(sceneResponse?.call_id);
     }
   }, [sceneResponse]);
@@ -368,11 +358,18 @@ const TranscriptPage = () => {
                           {/* Add Section Buttons */}
                           <div className="flex items-center">
                             <div
-                              className={`bg-yellow-100 p-1 rounded-md cursor-pointer ${
-                                selectedParagraph?.index === index
-                                  ? "border-[3px] border-black"
-                                  : "border border-black"
-                              }`}
+                              className={`${
+                                emotionColors[emotion]?.bg ||
+                                emotionColors.default.bg
+                              }
+                                p-1 rounded-md cursor-pointer ${
+                                  selectedParagraph?.index === index
+                                    ? `${
+                                        emotionColors[emotion]?.border ||
+                                        "border-black"
+                                      } border-[4px]`
+                                    : ""
+                                }`}
                               onClick={() => handleAddSection(index)}
                               style={{
                                 display: "inline-flex",
