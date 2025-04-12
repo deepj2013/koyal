@@ -124,7 +124,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                     audioDetails: {
                         audioId: audio._id,
                         audioUrl: audio.audioUrl,
-                        originalFileName: audio.originalFileName,
+                        originalFileName: audio.fileName,
                         collectionName: collectionName,
                         theme: theme,
                         character: character,
