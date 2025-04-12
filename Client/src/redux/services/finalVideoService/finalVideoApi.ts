@@ -1,7 +1,7 @@
 import { ApiRoutes } from "../../environment/apiRoutes";
-import { apiSlice } from "../../environment/base";
+import { apiSlice, externalApiSlice } from "../../environment/base";
 
-export const finalVideoApi = apiSlice.injectEndpoints({
+export const finalVideoApi = externalApiSlice.injectEndpoints({
   endpoints: (builder) => ({
     processVideo: builder.mutation({
       query: (data) => ({
@@ -25,7 +25,7 @@ export const finalVideoApi = apiSlice.injectEndpoints({
       }),
     }),
     getFinalVideo: builder.query({
-      query: ({callId}) => ({
+      query: (callId) => ({
         url: `${ApiRoutes.GetFinalVideo}/${callId}`,
         method: "GET",
       }),

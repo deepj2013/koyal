@@ -11,7 +11,7 @@ import {
 } from "../redux/services/finalVideoService/finalVideoApi";
 import { AppState } from "../redux/features/appSlice";
 import { useSelector } from "react-redux";
-import { formatTime } from "../utils/helper";
+import { formatTime, startApiPolling } from "../utils/helper";
 import { ConfirmationModal } from "../components/common/ConfirmationModal/ConfirmationModal";
 import ShimmerWrapper from "../components/Shimmer";
 
@@ -27,36 +27,18 @@ const FinalVideoPage = () => {
 
   const [
     processVideo,
-    {
-      data: processVideoData,
-      reset: resetProcessVideoData,
-      isLoading: processVideoLoading,
-    },
+    { data: { data: processVideoData } = {}, reset: resetProcessVideoData },
   ] = useProcessVideoMutation();
-  const [
-    getProcessedVideo,
-    {
-      data: getProcessedVideoData,
-      reset: resetGetProcessedVideoData,
-      isLoading: getProcessedVideoLoading,
-    },
-  ] = useLazyGetProcessedVideoQuery();
+  const [getProcessedVideo] = useLazyGetProcessedVideoQuery();
+
   const [
     processFinalVideo,
     {
-      data: processFinalVideoData,
+      data: { data: processFinalVideoData } = {},
       reset: resetProcessFinalVideoData,
-      isLoading: processFinalVideoLoading,
     },
   ] = useProcessFinalVideoMutation();
-  const [
-    getFinalVideo,
-    {
-      data: getFinalVideoData,
-      reset: resetGetFinalVideoData,
-      isLoading: getFinalVideoLoading,
-    },
-  ] = useLazyGetFinalVideoQuery();
+  const [getFinalVideo] = useLazyGetFinalVideoQuery();
 
   const [isGenerating, setIsGenerating] = useState(true);
   const [showPlayButton, setShowPlayButton] = useState(false);
@@ -115,16 +97,6 @@ const FinalVideoPage = () => {
     setConfirmRegenerateModal(true);
   };
 
-  // Remove "5 minutes remaining" after 10 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsGenerating(false);
-      setShowPlayButton(true);
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   useEffect(() => {
     const updateTime = () => {
       if (videoRef.current) {
@@ -157,46 +129,41 @@ const FinalVideoPage = () => {
       image_folder_path: imageFolderUrl,
       replacement_word: replacementWord,
     });
+    setIsGenerating(true);
+    setShowPlayButton(false);
   }, []);
 
   useEffect(() => {
+    const onSuccess = (response) => {
+      processFinalVideo({
+        proto_prompts: protoPromptsUrl,
+        video_folder_path: response?.video_folder_path,
+      });
+    };
+
     if (processVideoData?.call_id) {
-      getProcessedVideo(processVideoData?.call_id);
+      startApiPolling(processVideoData?.call_id, getProcessedVideo, onSuccess);
       resetProcessVideoData();
     }
   }, [processVideoData]);
 
   useEffect(() => {
-    if (getProcessedVideoData) {
-      processFinalVideo({
-        proto_prompts: protoPromptsUrl,
-        video_folder_path: processVideoData?.video_folder_path,
-      });
-      resetGetProcessedVideoData();
-    }
-  }, [getProcessedVideoData]);
-
-  useEffect(() => {
-    if (processFinalVideoData?.call_id) {
-      getFinalVideo({
-        callId: processFinalVideoData?.call_id,
-        timestamp: Date.now(),
-      });
-      resetProcessFinalVideoData();
-    }
-  }, [processFinalVideoData]);
-
-  useEffect(() => {
-    if (getFinalVideoData?.final_video_path) {
-      setFinalVideo(getFinalVideoData?.final_video_path);
+    const onSuccess = (response) => {
+      setFinalVideo(response?.final_video_path);
       setIsLoading(false);
-      resetGetFinalVideoData();
-
+      setIsGenerating(false);
+      setShowPlayButton(true);
       if (videoRef.current) {
         videoRef.current.load();
       }
+    };
+
+    if (processFinalVideoData?.call_id) {
+      console.log("calling")
+      startApiPolling(processFinalVideoData?.call_id, getFinalVideo, onSuccess);
+      resetProcessFinalVideoData();
     }
-  }, [getFinalVideoData]);
+  }, [processFinalVideoData]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
