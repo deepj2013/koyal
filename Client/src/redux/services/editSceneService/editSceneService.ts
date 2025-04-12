@@ -1,20 +1,15 @@
 import axios from "axios";
-import { config } from "../../../config/config";
 import { ApiRoutes } from "../../environment/apiRoutes";
 
-export const getProcessedImage = async (index, callId, getImage) => {
+export const getProcessedImage = async (callId) => {
   try {
-    const response = await axios.get(
-      `${config.baseUrl}/${ApiRoutes.GetFluxPrompts}/${callId}`,
-      {
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
+    const response = await axios.get(`${ApiRoutes.GetFluxPrompts}/${callId}`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-    getImage(index, response.data);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error fetching flux prompts:", error);
     return null;
@@ -23,29 +18,45 @@ export const getProcessedImage = async (index, callId, getImage) => {
 
 export const processImage = async (data) => {
   try {
-    const response = await axios.post(
-      `${config.baseUrl}/${ApiRoutes.ProcessFluxPrompts}`,
-      data,
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(ApiRoutes.ProcessFluxPrompts, data, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
 
-    getProcessedImage(
-      data.prompt_indices,
-      response?.data?.call_id,
-      data?.getImage
-    );
+    const callId = response?.data?.call_id;
 
-    return {
-      itemNumber: data.prompt_indices,
-      response: response.data,
-    };
+    if (callId) {
+      pollUntilCompleteOrNotFound(callId, (resultData) => {
+        data?.getImage(data.prompt_indices, resultData);
+      });
+    }
   } catch (error) {
     console.error("Error processing flux prompts:", error);
     return null;
   }
+};
+
+const pollUntilCompleteOrNotFound = async (callId, callback) => {
+  const poll = async () => {
+    try {
+      const result = await getProcessedImage(callId);
+      console.log("Polling status:", result?.status);
+
+      if (result?.status === 200) {
+        callback(result.data);
+      } else if (result?.status === 404) {
+        console.warn("Data not found. Stopping polling.");
+        return;
+      } else {
+        setTimeout(poll, 10000);
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
+      setTimeout(poll, 10000);
+    }
+  };
+
+  poll();
 };
