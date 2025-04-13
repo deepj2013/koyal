@@ -38,7 +38,9 @@ const CollectionCustomization = () => {
     collectionFormDetails?.collectionName
   );
   const [themeName, setThemeName] = useState<any>(collectionFormDetails?.theme);
-  const [character, setCharacter] = useState<any>(collectionFormDetails?.character);
+  const [character, setCharacter] = useState<any>(
+    collectionFormDetails?.character
+  );
   const [orientationStyle, setOrientationStyle] = useState<string | null>(
     collectionFormDetails?.orientation
   );
@@ -48,6 +50,9 @@ const CollectionCustomization = () => {
   const [selected, setSelected] = useState<string | null>(
     collectionFormDetails?.lipSync
   );
+
+  const isNextDisabled =
+    !collectionName || !themeName || !character || !orientationStyle;
 
   const handleNext = () => {
     navigate(PageRoutes.COLLECTION_LIST);
@@ -90,8 +95,34 @@ const CollectionCustomization = () => {
     });
   };
 
-  const isNextDisabled =
-    !collectionName || !themeName || !character || !orientationStyle;
+  const handleExcelData = (data: any) => {
+    
+    let filesData = data.map(
+      ({ name, theme, character, style, orientation, lipsync }) => ({
+        fileName: name,
+        theme: theme,
+        character: character,
+        style: style,
+        orientation: orientation,
+        lipSync: lipsync, // to be implemented from excel
+      })
+    );
+    filesData.pop();
+
+    const payload = {
+      groupId,
+      taskId,
+      filesData: filesData,
+    };
+
+    bulkUploadAudioDetails({
+      params: {
+        isExcelUpload: 1,
+      },
+      data: payload,
+    });
+  };
+
 
   useEffect(() => {
     if (bulkUploadAudioDetailsData?.success) {
@@ -107,9 +138,7 @@ const CollectionCustomization = () => {
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Collection Customization</h2>
           <div className="flex">
-            <UploadExcelButton
-              onFileSelect={(file) => console.log("Selected file:", file)}
-            />
+            <UploadExcelButton onFileRead={handleExcelData} />
 
             <button
               className="px-4 py-2 ml-2 bg-blue-500 text-white text-sm rounded-lg"
