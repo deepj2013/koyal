@@ -52,9 +52,9 @@ const AddEditSongModal = ({
             <label className="block text-sm font-medium text-gray-700">
               Title
             </label>
-            <div className=" mt-1 w-[50%] ">
+            <div className=" mt-1">
               <Dropdown
-                label={selectedScene.title}
+                label={options[0]?.text || ""}
                 options={options}
                 onChange={(selectedOption) =>
                   handleChange("audioId", selectedOption)

@@ -6,6 +6,7 @@ import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/colle
 import { useDispatch, useSelector } from "react-redux";
 import {
   CollectionState,
+  setCollectionFormDetails,
   setIsLoading,
 } from "../../../redux/features/collectionSlice";
 import { PageRoutes } from "../../../routes/appRoutes";
@@ -25,19 +26,28 @@ const CollectionCustomization = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { taskId, groupId, bulkUploadedData } = useSelector(CollectionState);
+  const { taskId, groupId, bulkUploadedData, collectionFormDetails } =
+    useSelector(CollectionState);
   const { userInfo } = useSelector(AuthState);
 
   const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData }] =
     useBulkUploadAudioDetailsMutation();
 
   const [styleImages, setStyleImages] = useState<any>(styles);
-  const [collectionName, setCollectionName] = useState<any>("");
-  const [themeName, setThemeName] = useState<any>("");
-  const [character, setCharacter] = useState<any>("");
-  const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState(styles[1]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [collectionName, setCollectionName] = useState<any>(
+    collectionFormDetails?.collectionName
+  );
+  const [themeName, setThemeName] = useState<any>(collectionFormDetails?.theme);
+  const [character, setCharacter] = useState<any>(collectionFormDetails?.character);
+  const [orientationStyle, setOrientationStyle] = useState<string | null>(
+    collectionFormDetails?.orientation
+  );
+  const [selectedStyle, setSelectedStyle] = useState(
+    collectionFormDetails?.style || styles[1]
+  );
+  const [selected, setSelected] = useState<string | null>(
+    collectionFormDetails?.lipSync
+  );
 
   const handleNext = () => {
     navigate(PageRoutes.COLLECTION_LIST);
@@ -48,19 +58,30 @@ const CollectionCustomization = () => {
   };
 
   const onSubmit = () => {
-    const res = bulkUploadedData.map((item) => ({
-      id: item._id,
-      name: collectionName,
+    const payload = {
+      groupId: groupId,
+      taskId: taskId,
+      collectionName: collectionName,
       theme: themeName,
       character: character,
       style: selectedStyle?.name,
       orientation: orientationStyle,
-    }));
-
-    const payload = {
-      audioDetails: res,
+      lipSync: selected === "yes",
     };
+
+    dispatch(
+      setCollectionFormDetails({
+        collectionName: collectionName,
+        theme: themeName,
+        character: character,
+        style: selectedStyle,
+        orientation: orientationStyle,
+        lipSync: selected,
+      })
+    );
+
     dispatch(setIsLoading(true));
+
     bulkUploadAudioDetails({
       params: {
         isExcelUpload: 0,
@@ -91,11 +112,14 @@ const CollectionCustomization = () => {
             />
 
             <button
-              className="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 ml-2"
+              className="px-4 py-2 ml-2 bg-blue-500 text-white text-sm rounded-lg"
               onClick={onSampleDownload}
               title="Download Sample"
             >
-              <FaDownload className="w-4 h-4" />
+              <div className="flex">
+                <FaDownload className="w-4 h-4 mr-2" />
+                Download Template
+              </div>
             </button>
           </div>
         </div>

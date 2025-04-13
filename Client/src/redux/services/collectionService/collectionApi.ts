@@ -25,6 +25,13 @@ export const collectionApi = apiSlice.injectEndpoints({
         params,
       }),
     }),
+    getAllAudios: builder.query({
+      query: (params) => ({
+        url: CollectionApiRoutes.getAllAudios,
+        method: "GET",
+        params,
+      }),
+    }),
     editAudioDetails: builder.mutation({
       query: ({id, data}) => ({
         url: `${CollectionApiRoutes.EditAudioDetails}/${id}`,
@@ -38,7 +45,8 @@ export const collectionApi = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-    }),    
+    }), 
+
   }),
 });
 
@@ -46,6 +54,8 @@ export const {
   useBulkUploadAudioMutation,
   useBulkUploadAudioDetailsMutation,
   useLazyGetAudioDetailsQuery,
+  useLazyGetAllAudiosQuery,
   useEditAudioDetailsMutation,
   useAddNewAudioMutation,
+
 } = collectionApi;

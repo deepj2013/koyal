@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLogin from "../pages/adminLogin";
 import { PageRoutes } from "./appRoutes";
 import AdminRoute from "../components/routing/adminRoute/AdminRoutes";
@@ -48,6 +48,11 @@ const AppRoutes: React.FC = () => {
           <Route path="/finalvideo" element={<FinalVideoPage />} />
           <Route path={PageRoutes.CREATE_USER} element={<CreateUser />} />
           <Route path={PageRoutes.COLLECTION} element={<Collection />}>
+            <Route
+              index
+              element={<Navigate to={PageRoutes.COLLECTION_UPLOAD} replace />}
+            />
+
             <Route
               path={PageRoutes.COLLECTION_UPLOAD}
               element={<UploadCollection />}

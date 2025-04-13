@@ -14,6 +14,7 @@ import {
 import {
   useAddNewAudioMutation,
   useEditAudioDetailsMutation,
+  useLazyGetAllAudiosQuery,
   useLazyGetAudioDetailsQuery,
 } from "../../../redux/services/collectionService/collectionApi";
 import {
@@ -41,6 +42,7 @@ export const EditCollectionScene = () => {
   const [editAudioDetails, { data: editAudioDetailsData }] =
     useEditAudioDetailsMutation();
   const [addNewAudio, { data: addAudioData }] = useAddNewAudioMutation();
+  const [getAllAudio, { data: getAllAudioData }] = useLazyGetAllAudiosQuery();
 
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
@@ -87,17 +89,18 @@ export const EditCollectionScene = () => {
   useEffect(() => {
     dispatch(setIsLoading(true));
     getAudioDetails({ taskId, groupId });
+    getAllAudio({ groupId });
   }, []);
 
   useEffect(() => {
     if (audioDetailsData) {
       const sceneList = [];
-      const themeList = [];
       for (const element of audioDetailsData?.data) {
         const {
           _id,
-          audioUrl,
           audioDetails: {
+            audioId,
+            audioUrl,
             originalFileName,
             theme,
             character,
@@ -106,10 +109,6 @@ export const EditCollectionScene = () => {
           },
         } = element.taskLogs;
 
-        themeList.push({
-          text: originalFileName,
-          value: _id,
-        });
         sceneList.push({
           title: originalFileName,
           theme: theme,
@@ -117,12 +116,11 @@ export const EditCollectionScene = () => {
           style: style,
           orientation: orientation,
           sceneId: _id,
-          audioId: _id,
+          audioId: audioId,
           audioUrl: audioUrl,
         });
       }
       setScenes(sceneList);
-      setThemeOptions(themeList);
       dispatch(setIsLoading(false));
     }
   }, [audioDetailsData]);
@@ -132,6 +130,17 @@ export const EditCollectionScene = () => {
       getAudioDetails({ taskId, groupId });
     }
   }, [editAudioDetailsData, addAudioData]);
+
+  useEffect(() => {
+    if (getAllAudioData) {
+      setThemeOptions(
+        getAllAudioData.data.map(({ fileName, _id }) => ({
+          text: fileName?.substring(0, fileName.lastIndexOf(".")),
+          value: _id,
+        }))
+      );
+    }
+  }, [getAllAudioData]);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">

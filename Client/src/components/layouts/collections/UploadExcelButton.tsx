@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { FaDownload, FaUpload } from "react-icons/fa";
 
 const UploadExcelButton = ({ onFileSelect }) => {
   const fileInputRef = useRef(null);
@@ -27,7 +28,10 @@ const UploadExcelButton = ({ onFileSelect }) => {
         className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg"
         onClick={handleButtonClick}
       >
-        Upload Excel
+        <div className="flex">
+          <FaUpload className="w-4 h-4 mr-2" />
+          Upload Excel
+        </div>
       </button>
     </>
   );
