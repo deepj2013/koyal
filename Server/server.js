@@ -37,7 +37,11 @@ mongoose
 
 app.get("/error/getLog", getErrorLogs);
 
-app.use(router);
+app.use("/api", router);
+
+app.get("/api", (req, res) => {
+  res.send("Welcome! The server is up and running smoothly. 🎉");
+})
 
 app.use(returnError);
 
