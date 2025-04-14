@@ -49,3 +49,10 @@ export const userTaskLogNameEnum = {
   REVIEW_TRANSCRIPT: 'review transcript',
   CHOOSE_CHARACTER: 'choose character',
 }
+
+export const editStoryModes = {
+  CREATE_PROMPT: "create-prompts",
+  EDIT_PROMPT: "edit-prompts",
+  EDIT_STORY: "edit-story",
+  EDIT_CHARACTER: "edit-character",
+}

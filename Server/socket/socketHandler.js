@@ -1,6 +1,5 @@
-// socketHandler.js
 import jwt from "jsonwebtoken";
-import { audioprocessedSocket, lyricsProcessedSocket } from "../controllers/aiController.js"
+import { audioprocessedSocket, lyricsProcessedSocket, themeCharacterSocket } from "../controllers/aiController.js"
 import User from "../models/userModel.js";
 import { toObjectId } from "../utils/mongo.js";
 
@@ -37,11 +36,15 @@ export const socketHandler = (io) => {
             audioprocessedSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
 
-        socket.on("lyrics-edit-request", (data) => {
+        socket.on("lyrics-edit-processing", (data) => {
             console.log("lyrics-edit-request", data)
             lyricsProcessedSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
 
+        socket.on("theme-character-processing", (data) => {
+            console.log("theme-character-request", data)
+            themeCharacterSocket({...data, socket, socketId: socket.id, user: socket.user })
+        })
         socket.on("disconnect", () => {
             console.log("Client disconnected:", socket.id)
         })
