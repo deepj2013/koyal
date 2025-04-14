@@ -7,6 +7,7 @@ import userRoutes from './routes/userRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import userTask from './routes/userTaskRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.use('/api/user', userRoutes);
 router.use('/api/payment', paymentRoutes);
 router.use('/api/user/uploads', uploadRoutes);
 router.use('/api/user/task', userTask);
+router.use("/api/user/ai", aiRoutes);
 
 router.get('/', (req, res) => {
   res.send('Hello World, from express.');

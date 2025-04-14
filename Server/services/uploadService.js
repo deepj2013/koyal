@@ -3,8 +3,11 @@ import { uploadSongsToS3 } from "./s3Service.js";
 import userTaskLog from "../models/userTaskLogModel.js";
 import logger from "../utils/logger.js";
 import userTask from "../models/userTaskModel.js";
-import { taskLogStatusENUM, taskTypeEnum, userTaskLogNameEnum } from "../enums/ENUMS.js";
+import { taskTypeEnum } from "../enums/ENUMS.js";
 import { createAudioExcel } from "../utils/xlsxToJson.js";
+import userAudio from "../models/userAudioModel.js";
+import { v4 as uuidv4 } from 'uuid';
+import { toStringId } from "../utils/mongo.js";
 
 export const bulkAudioUploadService = async (audioFiles, user) => {
     try {
@@ -27,55 +30,39 @@ export const bulkAudioUploadService = async (audioFiles, user) => {
                 "plese try again later"
             );
         }
-        const groupId = `group-${Date.now()}`;
-        let taskDetails = await userTask.findOne({ userId: user._id, groupId: groupId });
-        if (!taskDetails) {
-            taskDetails = await userTask.create({
-                userId: user._id,
-                taskLogIds: [],
-                groupId: groupId,
-                numberofTaskLog: audioFiles.length,
-                taskType: taskTypeEnum.GROUP,
-                stage: 1,
-            })
-        }
-        const taskId = taskDetails?._id;
-
-        const taskLogs = await Promise.all(files.map(async (file, index) => {
+        const groupId = `group-${uuidv4()}`;
+        const audioLogDocs = files.map(file => {
             const { url, fileName } = file;
             const fileExtension = fileName.split('.').pop();
-            const taskLog = new userTaskLog({
-                taskId: taskId,
-                userId: user._id,
-                taskName: userTaskLogNameEnum.UPLOAD_AUDIO,
-                audioDetails: {
-                    originalFileName: fileName,
-                },
-                groupId: groupId,
-                isAudioUpload: true,
-                audioUrl: url,
-                audioPath: `${email}/collections/${fileName}`,
-                status: taskLogStatusENUM.COMPLETED,
-                audioMetadata: {
-                    originalName: fileName,
-                    mimeType: fileExtension,
-                }
-            });
-            await taskLog.save();
             return {
-                _id: taskLog._id,
-                taskId: taskLog.taskId,
-                taskType: taskLog.taskName,
-                url: taskLog.audioUrl,
-                path: taskLog.audioPath,
-                groupId: taskLog.groupId,
+                userId: user._id,
+                groupId,
+                audioUrl: url,
+                fileName,
+                mimeType: fileExtension,
+                audioPath: `${email}/collections/${fileName}`,
             };
-        }));
-        const taskLogIds = taskLogs.map(log => log._id);
-        taskDetails.taskLogIds.push(...taskLogIds);
-        await taskDetails.save();
-        return taskLogs;
+        });
 
+        const savedAudioLogs = await userAudio.insertMany(audioLogDocs);
+        const audioIds = savedAudioLogs.map(log => log._id);
+
+        const taskDetails = await userTask.create({
+            userId: user._id,
+            groupId,
+            audioIds,
+            numberofTaskLog: audioIds.length,
+            taskType: taskTypeEnum.GROUP,
+            stage: 1,
+        })
+        return savedAudioLogs.map(log => ({
+            _id: log._id,
+            url: log.audioUrl,
+            path: log.audioPath,
+            groupId: log.groupId,
+            fileName: log.fileName,
+            taskId: taskDetails._id,
+        }));
     } catch (error) {
         logger.error('Bulk upload error:', error);
         throw new APIError(
@@ -101,31 +88,24 @@ export const downloadAudioExcelService = async (requestUser, queryData) => {
         const aggr = [
             {
                 $match: {
-                    userId: _id.toString(),
+                    userId: toStringId(_id),
                     groupId: groupId,
-                    taskId: taskId,
-                    isAudioUpload: true,
                     isDeleted: false
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    "audioDetails.originalFileName": 1,
-                    "audioDetails.collectionName": 1,
-                    "audioDetails.theme": 1,
-                    "audioDetails.character": 1,
-                    "audioDetails.style": 1,
-                    "audioDetails.orientation": 1
+                    fileName: 1,
+                    audioUrl: 1,
+                    audioPath: 1,
                 }
             }
         ];
 
-        const audioLogs = await userTaskLog.aggregate(aggr);
+        const audioLogs = await userAudio.aggregate(aggr);
 
         console.log("audioLogs", audioLogs);
-        
-
         if (!audioLogs.length) {
             throw new APIError(
                 "No audio files found",

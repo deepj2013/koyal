@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
-import { taskTypeEnum, taskStatusENUM, OrientationEnum, visualStyleEnum } from '../enums/ENUMS.js';
+import { taskTypeEnum, taskStatusENUM } from '../enums/ENUMS.js';
 
 const userTaskSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true
     },
+    audioIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'userAudios'
+    }],
     taskLogIds: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'userTaskLogs'
@@ -19,23 +23,17 @@ const userTaskSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    taskDetails: {
-        collectionName: { type: String },
-        theme: { type: String },
-        character: { type: String },
-        style: {
-            type: String,
-            enum: Object.values(visualStyleEnum),
-        },
-        orientation: {
-            type: String,
-            enum: Object.values(OrientationEnum),
-        }
-    },
     taskType: {
         type: String,
         enum: Object.values(taskTypeEnum),
         default: taskTypeEnum.INDIVIDUAL
+    },
+    isAudioUpload: {
+        type: Boolean,
+        default: false
+    },
+    collectionName: {
+        type: String
     },
     stage: {
         type: Number,

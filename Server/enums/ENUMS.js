@@ -19,7 +19,6 @@ export const taskLogStatusENUM = {
 
 export const visualStyleEnum = {
   REALISTIC: 'Realistic',
-  CARTOON: 'Cartoon',
   SKETCH: 'Sketch',
   ANIMATED: 'Animated'
 }
@@ -49,4 +48,11 @@ export const userTaskLogNameEnum = {
   UPLOAD_AUDIO: 'upload audio',
   REVIEW_TRANSCRIPT: 'review transcript',
   CHOOSE_CHARACTER: 'choose character',
+}
+
+export const editStoryModes = {
+  CREATE_PROMPT: "create-prompts",
+  EDIT_PROMPT: "edit-prompts",
+  EDIT_STORY: "edit-story",
+  EDIT_CHARACTER: "edit-character",
 }

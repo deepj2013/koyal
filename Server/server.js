@@ -8,6 +8,8 @@ import { createServer } from 'http';
 import { returnError } from './exception/errorHandler.js';
 import router from './routes.js';
 import { getErrorLogs } from './controllers/errorLogController.js';
+import { socketHandler } from "./socket/socketHandler.js";
+
 
 dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 
@@ -21,15 +23,10 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"]
   }
 });
-// Socket.IO connection handling
-io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
-  });
-});
+socketHandler(io);
 
+export { io };
 mongoose.set('strictQuery', false);
 mongoose
   .connect(config.conn)
@@ -44,7 +41,7 @@ app.use(router);
 
 app.use(returnError);
 
-app.listen(process.env.PORT || port, () => {
+httpServer.listen(process.env.PORT || port, () => {
   console.log('__________________________________________________________________________________')
   console.log('|' + color.green.bold(` $Server is running on: | http://localhost:${process.env.PORT} |`) + '|')
 })

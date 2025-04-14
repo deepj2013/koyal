@@ -99,33 +99,34 @@ export const uploadSongsToS3 = async (files, email) => {
   }
 };
 
-
-// for uploading a single file in s3 for a user
-export const uploadFileToS3 = async (file, email) => {
-  if (!file) {
-    throw new Error('No file provided');
+export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
+  if (!jsonData) {
+    throw new Error("No JSON data provided");
   }
 
-  const fileKey = `${email}/${file.originalname}`;
+  const fileKey = `${email}/${fileName}`;
 
   try {
+    const fileBuffer =  Buffer.from(JSON.stringify(jsonData));
+
     const params = {
       Bucket: BUCKET_NAME,
       Key: fileKey,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-      ACL: 'private'
+      Body: fileBuffer,
+      ContentType: 'application/json',
+      ACL: "public-read",
     };
 
     const command = new PutObjectCommand(params);
     await s3.send(command);
+    const encodedFileKey = encodeURIComponent(fileKey);
 
-    return {
-      message: 'File uploaded successfully',
-      fileKey: fileKey
-    };
+    // Return the uploaded file URL
+    const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}`;
+    console.log("File uploaded successfully:", fileUrl);
+    return fileUrl;
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error("Error uploading file:", error);
     throw error;
   }
 };
