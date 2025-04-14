@@ -10,7 +10,6 @@ import logger from '../utils/logger.js';
 const userLoginService = async (requestData) => {
     try {
         const { error } = validateLogin(requestData);
-        console.log("validate error--->", error);
         if (error) {
             throw new APIError(
                 'ValidationError',
@@ -39,7 +38,7 @@ const userLoginService = async (requestData) => {
                 await generateTokenService(isExistsUser._id);
                 tokenObj = await getTokenOfUserService(isExistsUser._id);
             }
-
+          // create folder in s3
             const createFolder = await createUserFolder(email);
             logger.info("createFolder--->", createFolder);
 
@@ -122,7 +121,6 @@ const userSignupService = async (requestData) => {
         );
     }
 }
-
 
 export {
     userLoginService,
