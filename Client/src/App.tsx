@@ -6,18 +6,17 @@ import AppRoutes from "./routes/Routes";
 import ToastProvider from "./components/common/Toast/ToastProvider";
 import { AuthState } from "./redux/features/authSlice";
 import { createSocket } from "./socket/socket";
+import { setSocket } from "./socket/socketInstance"; 
 
 const App: React.FC = () => {
   const { userInfo } = useSelector(AuthState);
-  const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     if (!userInfo?.token) return;
 
-    const socket = createSocket(userInfo?.token);
-    socketRef.current = socket;
-
+    const socket = createSocket(userInfo.token);
+    setSocket(socket);
     socket.connect();
 
     socket.on("connect", () => {
