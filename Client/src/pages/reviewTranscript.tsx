@@ -3,72 +3,26 @@ import ProgressBar from "../components/ProgressBar";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setSceneDataFileUrl,
-  UploadAudioState,
-} from "../redux/features/uploadSlice";
+import { setSceneDataFileUrl } from "../redux/features/uploadSlice";
 import { uploadFileToS3 } from "../aws/s3-service";
 import { convertJsonToFile } from "../utils/helper";
-import {
-  useLazyGetStoryElementQuery,
-  useSceneLLMEndpointMutation,
-} from "../redux/services/lyricEditService/lyricEditApi";
-import { setStoryEleementFileUrl } from "../redux/features/lyricEditSlice";
 import { AppState, setLyricsJsonUrl } from "../redux/features/appSlice";
-import {
-  useEmotionEndpointMutation,
-  useLazyGetEmotionResultQuery,
-  useLazyGetSceneResultQuery,
-  useLazyGetTranscriberResultQuery,
-  useSceneEndpointMutation,
-  useTranscriberEndpointMutation,
-} from "../redux/services/uploadAudioService/uploadAudioApi";
+
 import ShimmerWrapper from "../components/Shimmer";
+import { getSocket } from "../socket/socketInstance";
+import toast from "react-hot-toast";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const socket = getSocket();
 
   const { isEnglish, audioFileUrl } = useSelector(AppState);
-
-  const [
-    processEmotion,
-    { data: emotionResponse, isLoading: isProcessEmotionLoading },
-  ] = useEmotionEndpointMutation();
-  const [
-    fetchEmotionResult,
-    { data: emotionResult, isLoading: isEmotionResLoading },
-  ] = useLazyGetEmotionResultQuery();
-  const [
-    processTranscriber,
-    { data: transcriberResponse, isLoading: isProcessTranscriberLoading },
-  ] = useTranscriberEndpointMutation();
-  const [
-    fetchTranscriberResult,
-    { data: transcriberResult, isLoading: isTranscriberResLoading },
-  ] = useLazyGetTranscriberResultQuery();
-  const [
-    procesScene,
-    { data: sceneResponse, isLoading: isProcessSceneLoading },
-  ] = useSceneEndpointMutation();
-  const [
-    fetchSceneResult,
-    { data: sceneResult, isLoading: isSceneResultLoading },
-  ] = useLazyGetSceneResultQuery();
-
-  const isLoading =
-    isEmotionResLoading ||
-    isTranscriberResLoading ||
-    isSceneResultLoading ||
-    isProcessEmotionLoading ||
-    isProcessSceneLoading ||
-    isProcessTranscriberLoading;
 
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
   const [selectedParagraph, setSelectedParagraph] = useState(null);
-  const [emotionsFileURL, setEmotionsFileURL] = useState(null);
-  const [wordTimeStampFileURL, setWordTimeStampFileURL] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const regexNoVocals = /no vocals/i;
   const emotionColors = {
@@ -163,129 +117,48 @@ const TranscriptPage = () => {
     }
   };
 
-  const handleJsonFileUpload = async (
-    data,
-    fileName,
-    setFileURL,
-    nextAPICall
-  ) => {
-    try {
-      const file = convertJsonToFile(data, fileName);
-      const url = await uploadFileToS3(
-        file,
-        localStorage.getItem("currentUser")
-      );
-      console.log(fileName, url);
-
-      if (setFileURL) {
-        setFileURL(url);
-      }
-
-      if (nextAPICall) {
-        nextAPICall();
-      }
-
-      return url;
-    } catch (err) {
-      console.error("Upload failed:", err);
-      throw err;
-    }
-  };
-
   const handleNextClick = () => {
     navigate("/choosecharacter");
   };
 
-  const callEmotionsAPI = (fileURL: string) => {
-    processEmotion({ data: fileURL });
-  };
-
-  const callTranscriberAPI = (fileURL: string) => {
-    processTranscriber({ data: fileURL, english_priority: isEnglish });
-  };
-
-  const callSceneAPI = () => {
-    procesScene({
-      word_timestamps: wordTimeStampFileURL,
-      emotion_data: emotionsFileURL,
-      audio_file: audioFileUrl,
-    });
-  };
-
-  const fetchJsonData = async (url) => {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Failed to fetch JSON file");
-      }
-      const jsonData = await response.json();
-      setTranscriptData(jsonData);
-      return jsonData;
-    } catch (error) {
-      console.error("Error fetching JSON:", error);
-    }
-  };
-
   useEffect(() => {
     if (audioFileUrl) {
-      callEmotionsAPI(audioFileUrl);
+      setIsLoading(true);
+      socket?.emit("start-audio-processing", {
+        audio: audioFileUrl,
+        english_priority: isEnglish,
+      });
     }
-  }, []);
+  }, [audioFileUrl, socket]);
 
   useEffect(() => {
-    if (emotionResponse?.call_id) {
-      fetchEmotionResult(emotionResponse?.call_id);
-    }
-  }, [emotionResponse]);
+    if (!socket) return;
 
-  useEffect(() => {
-    if (emotionResult) {
-      handleJsonFileUpload(
-        emotionResult,
-        "emotion_data.json",
-        setEmotionsFileURL,
-        () => {
-          callTranscriberAPI(audioFileUrl);
-        }
-      );
-    }
-  }, [emotionResult]);
+    const onUploadSuccess = (data: any) => {
+      const { scene_data, scene_url } = data;
+      dispatch(setSceneDataFileUrl(scene_url));
+      dispatch(setLyricsJsonUrl(scene_url));
+      setTranscriptData(scene_data);
+      setIsLoading(false);
+    };
 
-  useEffect(() => {
-    if (transcriberResponse?.call_id) {
-      fetchTranscriberResult(transcriberResponse?.call_id);
-    }
-  }, [transcriberResponse]);
+    const onError = (data: any) => {
+      toast.error(data?.message || "Error occured");
+      setIsLoading(false);
+    };
 
-  useEffect(() => {
-    if (transcriberResult) {
-      handleJsonFileUpload(
-        transcriberResult,
-        "word_timestamp.json",
-        setWordTimeStampFileURL,
-        callSceneAPI
-      );
-    }
-  }, [transcriberResult]);
+    const onprocess = (data: any) => {
+      console.log("processing-status", data);
+    };
 
-  useEffect(() => {
-    if (sceneResponse?.call_id) {
-      fetchSceneResult(sceneResponse?.call_id);
-    }
-  }, [sceneResponse]);
+    socket.on("processing-complete", onUploadSuccess);
+    socket.on("processing-error", onError);
+    socket.on("processing-status", onprocess);
 
-  useEffect(() => {
-    if (sceneResult) {
-      handleJsonFileUpload(sceneResult, "scene.json", null, null).then(
-        (url) => {
-          console.log("scene json url:", url);
-          dispatch(setSceneDataFileUrl(url));
-          dispatch(setLyricsJsonUrl(url));
-          fetchJsonData(url);
-        }
-      );
-    }
-  }, [sceneResult]);
+    return () => {
+      socket.off("processing-complete", onUploadSuccess);
+    };
+  }, [socket]);
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -336,9 +209,7 @@ const TranscriptPage = () => {
             <div className="w-full overflow-y-scroll pl-2">
               <div className="w-[63%]">
                 {transcriptData?.length < 1 && (
-                  <ShimmerLyricsComponent
-                    isLoading={transcriptData?.length < 1}
-                  />
+                  <ShimmerLyricsComponent isLoading={isLoading} />
                 )}
 
                 {transcriptData.map((entry, index) => {
