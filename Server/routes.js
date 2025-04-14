@@ -23,15 +23,15 @@ router.get('/payment', (req, res) => {
 });
 
 router.use('/', temp);
-router.use('/api/public', publicRoutes);
-router.use('/api/admin', adminRoutes);
-router.use('/api/user', userRoutes);
-router.use('/api/payment', paymentRoutes);
-router.use('/api/user/uploads', uploadRoutes);
-router.use('/api/user/task', userTask);
-router.use("/api/user/ai", aiRoutes);
+router.use('/public', publicRoutes);
+router.use('/admin', adminRoutes);
+router.use('/user', userRoutes);
+router.use('/payment', paymentRoutes);
+router.use('/user/uploads', uploadRoutes);
+router.use('/user/task', userTask);
+router.use("/user/ai", aiRoutes);
 
-router.get('/', (req, res) => {
+router.get('/route', (req, res) => {
   res.send('Hello World, from express.');
 });
 
