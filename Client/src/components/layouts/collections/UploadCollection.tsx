@@ -12,6 +12,7 @@ import {
 } from "../../../redux/features/collectionSlice";
 import { useNavigate } from "react-router-dom";
 import { PageRoutes } from "../../../routes/appRoutes";
+import toast from "react-hot-toast";
 
 const UploadCollection = () => {
   const dispatch = useDispatch();
@@ -19,8 +20,12 @@ const UploadCollection = () => {
 
   const [
     bulkUploadAudio,
-    { data: bulkUploadAudioData, isLoading: isBulkUploading },
-  ] = useBulkUploadAudioMutation();
+    {
+      data: bulkUploadAudioData,
+      isLoading: isBulkUploading,
+      error: bulkUploadError,
+    },
+  ] = useBulkUploadAudioMutation<any>();
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
@@ -50,6 +55,14 @@ const UploadCollection = () => {
       handleNext();
     }
   }, [bulkUploadAudioData]);
+
+  useEffect(() => {
+    if (bulkUploadError?.data?.errors) {
+      toast.error(bulkUploadError?.data?.errors?.message);
+    } else if (bulkUploadError?.error) {
+      toast.error(bulkUploadError?.error);
+    }
+  }, [bulkUploadError]);
 
   return (
     <div className="px-20 max-w-[1200px]">

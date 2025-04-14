@@ -15,6 +15,7 @@ import { AuthState } from "../../../redux/features/authSlice";
 import { downloadSampleExcelFile } from "../../../redux/services/collectionService/collectionService";
 import { FaDownload } from "react-icons/fa";
 import UploadExcelButton from "./UploadExcelButton";
+import toast from "react-hot-toast";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -30,8 +31,8 @@ const CollectionCustomization = () => {
     useSelector(CollectionState);
   const { userInfo } = useSelector(AuthState);
 
-  const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData }] =
-    useBulkUploadAudioDetailsMutation();
+  const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData, error: bulkUploadError }] =
+    useBulkUploadAudioDetailsMutation<any>();
 
   const [styleImages, setStyleImages] = useState<any>(styles);
   const [collectionName, setCollectionName] = useState<any>(
@@ -130,6 +131,12 @@ const CollectionCustomization = () => {
       handleNext();
     }
   }, [bulkUploadAudioDetailsData]);
+
+  useEffect(() => {
+    if (bulkUploadError?.data?.error) {
+      toast.error(bulkUploadError?.data?.error?.message)
+    }
+  }, [bulkUploadError]);
 
   return (
     <div className="px-20 max-w-[1200px]">
