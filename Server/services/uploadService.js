@@ -1,5 +1,5 @@
 import APIError, { HttpStatusCode } from "../exception/errorHandler.js";
-import { uploadSongsToS3 } from "./s3Service.js";
+import { uploadSingleSongToS3, uploadSongsToS3 } from "./s3Service.js";
 import userTaskLog from "../models/userTaskLogModel.js";
 import logger from "../utils/logger.js";
 import userTask from "../models/userTaskModel.js";
@@ -127,7 +127,7 @@ export const downloadAudioExcelService = async (requestUser, queryData) => {
             );
         }
 
-        return result.data; 
+        return result.data;
     } catch (error) {
         logger.error("ERROR in downloading audio excel", error);
         throw new APIError(
@@ -135,6 +135,70 @@ export const downloadAudioExcelService = async (requestUser, queryData) => {
             error.httpCode,
             error.isOperational,
             error.message
+        );
+    }
+}
+export const singleAudioUploadService = async (audioFile, user) => {
+    try {
+        const email = user.email;
+
+        if (!audioFile) {
+            throw new APIError(
+                "No audio file found",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "Audio file is required"
+            );
+        }
+
+        const { code, file } = await uploadSingleSongToS3(audioFile, email);
+
+        if (code !== 200 || !file) {
+            throw new APIError(
+                "Error uploading the audio file",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "Please try again later"
+            );
+        }
+
+        const { url, fileName } = file;
+        const fileExtension = fileName.split('.').pop();
+        const groupId = `single-${uuidv4()}`;
+
+        const savedAudioLog = await userAudio.create({
+            userId: toStringId(user._id),
+            groupId,
+            audioUrl: url,
+            fileName,
+            mimeType: fileExtension,
+            audioPath: `${email}/${fileName}`,
+        });
+
+        const taskDetails = await userTask.create({
+            userId: toStringId(user._id),
+            groupId,
+            audioIds: [savedAudioLog._id],
+            numberofTaskLog: 1,
+            taskType: taskTypeEnum.INDIVIDUAL,
+            stage: 1,
+        });
+
+        return {
+           // _id: savedAudioLog._id,
+            url: savedAudioLog.audioUrl,
+            path: savedAudioLog.audioPath,
+            groupId: savedAudioLog.groupId,
+            fileName: savedAudioLog.fileName,
+            taskId: taskDetails._id,
+        };
+    } catch (error) {
+        logger.error('Single audio upload error:', error);
+        throw new APIError(
+            error.name || "UploadError",
+            error.httpCode || HttpStatusCode.INTERNAL_SERVER,
+            error.isOperational ?? false,
+            error.message || "Something went wrong"
         );
     }
 }

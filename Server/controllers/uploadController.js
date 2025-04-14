@@ -1,10 +1,10 @@
-import { bulkAudioUploadService, downloadAudioExcelService } from '../services/uploadService.js';
+import { bulkAudioUploadService, downloadAudioExcelService, singleAudioUploadService } from '../services/uploadService.js';
 import logger from '../utils/logger.js';
 
 export const bulkAudioUpload = async (req, res, next) => {
     try {
         const audioFiles = req.files;
-    
+
         const user = req.user;
 
         const uploadedFiles = await bulkAudioUploadService(audioFiles, user);
@@ -35,9 +35,30 @@ export const downloadAudioExcel = async (req, res, next) => {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         );
 
-        res.send(buffer); 
+        res.send(buffer);
     } catch (error) {
         logger.error("Error in getting downloadAudioExcel", error);
         next(error);
     }
 };
+export const singleAudioUpload = async (req, res, next) => {
+    try {
+        const audioFile = req.file;
+        console.log(audioFile);
+        const user = req.user;
+
+        const uploadedFile = await singleAudioUploadService(audioFile, user);
+
+        return res.status(200).json({
+            success: true,
+            message: "Audio files uploaded successfully",
+            data: {
+                file: uploadedFile,
+            }
+        });
+
+    } catch (error) {
+        logger.error('single upload controller error:', error);
+        next(error);
+    }
+}
