@@ -3,9 +3,13 @@ import APIError, { HttpStatusCode } from '../exception/errorHandler.js';
 import { audioFileTypes } from '../config.js';
 
 const storage = multer.memoryStorage();
+const MAX_FILE_SIZE = 200 * 1024 * 1024; 
 
 const audioUpload = multer({
   storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE
+  },
   fileFilter: (req, file, cb) => {
     if (!audioFileTypes.includes(file.mimetype)) {
       return cb(new APIError(
