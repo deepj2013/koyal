@@ -1,7 +1,9 @@
+import { config } from "../../../config/config";
+
 export const downloadSampleExcelFile = async ({ taskId, groupId, token }) => {
   try {
     const response = await fetch(
-      `http://localhost:5001/api/user/uploads/download-excel?taskId=${taskId}&groupId=${groupId}`,
+      `${config.baseUrl}/api/user/uploads/download-excel?taskId=${taskId}&groupId=${groupId}`,
       {
         method: "GET",
         headers: {
