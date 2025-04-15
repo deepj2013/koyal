@@ -24,7 +24,7 @@ const Login = () => {
   };
 
   const handleLoginSuccess = async () => {
-      await createFolderInS3(email);
+      // await createFolderInS3(email);
       localStorage.setItem("currentUser", email);
       navigate(PageRoutes.UPLOAD);
   };
