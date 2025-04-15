@@ -49,21 +49,27 @@ jobs:
             echo "📦 Installing backend"
             cd ../Server
             npm install
-
+            
             echo "🔍 Checking if PM2 is installed"
             if ! command -v pm2 &> /dev/null
             then
               echo "🛠 PM2 not found. Installing PM2 globally..."
               npm install -g pm2
+            
+              # After installation, refresh shell path
+              export PATH=$(npm bin -g):$PATH
             fi
-
+            
             echo "⚙️ Getting PM2 path"
-            PM2_PATH=$(which pm2 || echo "/usr/local/bin/pm2")
+            PM2_PATH=$(command -v pm2)
             echo "📍 Using PM2 at: $PM2_PATH"
-
-            echo "🚀 Restarting backend with PM2"
-            "$PM2_PATH" restart koyal-backend || "$PM2_PATH" start server.js --name koyal-backend
-
+            
+            echo "🧹 Deleting old PM2 process if exists"
+            "$PM2_PATH" delete koyal-backend || echo "ℹ️ No previous process to delete"
+            
+            echo "🚀 Starting backend with PM2"
+            "$PM2_PATH" start server.js --name koyal-backend
+            
           elif [ "$BRANCH" = "koyal-demo-v2" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
             cd /var/www/demo-koyal 
