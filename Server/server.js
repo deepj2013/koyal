@@ -35,7 +35,6 @@ mongoose
     console.log('|' + color.green.bold(` Mongo DB Connected Successfully.. |`) + '|')
   }).catch((err) => console.error("MongoDB connection error:", err));
 
-app.get("/error/getLog", getErrorLogs);
 
 app.use("/api", router);
 
