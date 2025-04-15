@@ -1,19 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const Dropdown = ({ label, options = [], onChange, defaultOption = null }) => {
+const Dropdown = ({ label, options = [], onChange, value }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(defaultOption || label);
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
   const handleSelect = (option) => {
-    setSelectedOption(option.text);
+    onChange?.(option.value);
     setIsOpen(false);
-    if (onChange) onChange(option.value);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -27,6 +25,8 @@ const Dropdown = ({ label, options = [], onChange, defaultOption = null }) => {
     };
   }, []);
 
+  const selected = options.find((opt) => opt.value === value);
+
   return (
     <div className="relative inline-block text-left w-full" ref={dropdownRef}>
       <button
@@ -34,7 +34,7 @@ const Dropdown = ({ label, options = [], onChange, defaultOption = null }) => {
         className="inline-flex justify-between items-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none"
         onClick={toggleDropdown}
       >
-        <span className="mr-2">{selectedOption}</span>
+        <span className="mr-2">{selected ? selected.text : label}</span>
         <svg
           className="w-5 h-5 ml-2 -mr-1"
           xmlns="http://www.w3.org/2000/svg"
