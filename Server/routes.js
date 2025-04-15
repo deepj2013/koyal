@@ -14,8 +14,8 @@ const router = express.Router();
 router.options('*', cors({ origin: '*', optionsSuccessStatus: 200 }));
 router.use(cors({ origin: '*', optionsSuccessStatus: 200 }));
 
-router.use(express.json());
-router.use(express.urlencoded({ extended: true }));
+router.use(express.json({ limit: '200mb' }));
+router.use(express.urlencoded({ extended: true, limit: '200mb' }));
 
 
 router.get('/payment', (req, res) => {

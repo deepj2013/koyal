@@ -99,6 +99,41 @@ export const uploadSongsToS3 = async (files, email) => {
   }
 };
 
+// for uploading single song in s3 for a user
+export const uploadSingleSongToS3 = async (file, email) => {
+  try {
+    const fileKey = `${email}/${file.originalname}`;
+
+    await s3.send(new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read'
+    }));
+
+    const encodedKey = encodeURIComponent(fileKey).replace(/%2F/g, '/');
+    const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${encodedKey}`;
+
+    return {
+      success: true,
+      code: 200,
+      message: 'Song uploaded successfully',
+      file: {
+        fileName: file.originalname,
+        url: fileUrl
+      }
+    };
+  } catch (error) {
+    throw new APIError(
+      'Something went wrong while uploading song',
+      HttpStatusCode.INTERNAL_SERVER,
+      true,
+      'Please try again later'
+    );
+  }
+};
+
 export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
   if (!jsonData) {
     throw new Error("No JSON data provided");
@@ -107,7 +142,7 @@ export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
   const fileKey = `${email}/${fileName}`;
 
   try {
-    const fileBuffer =  Buffer.from(JSON.stringify(jsonData));
+    const fileBuffer = Buffer.from(JSON.stringify(jsonData));
 
     const params = {
       Bucket: BUCKET_NAME,
