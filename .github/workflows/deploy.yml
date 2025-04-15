@@ -4,8 +4,9 @@ on:
   push:
     branches:
       - main
-      - koyal-demo
+      - koyal-demo-v2
       - koyal-charcha
+      - koyal-music
 
 jobs:
   deploy:
@@ -49,22 +50,46 @@ jobs:
             cd ../Server
             npm install
 
-            echo "🚀 Restarting backend with PM2"
-            pm2 restart koyal-backend || pm2 start server.js --name koyal-backend
+            echo "🔍 Checking if PM2 is installed"
+            if ! command -v pm2 &> /dev/null
+            then
+              echo "🛠 PM2 not found. Installing PM2 globally..."
+              npm install -g pm2
+            fi
 
-          elif [ "$BRANCH" = "koyal-demo" ]; then
+            echo "⚙️ Getting PM2 path"
+            PM2_PATH=$(which pm2 || echo "/usr/local/bin/pm2")
+            echo "📍 Using PM2 at: $PM2_PATH"
+
+            echo "🚀 Restarting backend with PM2"
+            "$PM2_PATH" restart koyal-backend || "$PM2_PATH" start server.js --name koyal-backend
+
+          elif [ "$BRANCH" = "koyal-demo-v2" ]; then
             echo "🔨 Building frontend for demo at /var/www/demo-koyal/Client"
             cd /var/www/demo-koyal 
-            git pull origin koyal-demo
+            git pull origin koyal-demo-v2
             cd /var/www/demo-koyal/Client
+            git pull origin koyal-demo-v2
             npm install
             npm run build
+          
+          elif [ "$BRANCH" = "koyal-music" ]; then
+            echo "🔨 Building frontend for demo at /var/www/music-koyal/Client"
+            cd /var/www/music-koyal
+            git pull origin koyal-music
+            cd /var/www/music-koyal/Client
+            git pull origin koyal-music
+            npm install
+            npm run build
+
+
 
           elif [ "$BRANCH" = "koyal-charcha" ]; then
             echo "🔨 Building frontend for charcha at /var/www/charcha/Client"
             cd /var/www/charcha
             git pull origin koyal-charcha
             cd /var/www/charcha/Client
+            git pull origin koyal-charcha
             npm install
             npm run build
 
