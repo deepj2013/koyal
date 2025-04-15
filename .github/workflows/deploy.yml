@@ -33,18 +33,18 @@ jobs:
           if [ "$BRANCH" = "main" ]; then
             echo "🔄 Pulling latest code in /root/koyal"
             cd /root/koyal
-            git reset --hard HEAD
-            git clean -fd
-            git pull origin main
+            # git reset --hard HEAD
+            # git clean -fd
+            # git pull origin main
 
             echo "🔨 Building frontend"
             cd Client
-            npm install
-            npm run build
+            # npm install
+            # npm run build
 
-            echo "🚚 Copying frontend to /var/www/koyal"
-            rm -rf /var/www/koyal/*
-            cp -r dist/* /var/www/koyal/
+            # echo "🚚 Copying frontend to /var/www/koyal"
+            # rm -rf /var/www/koyal/*
+            # cp -r dist/* /var/www/koyal/
 
             echo "📦 Installing backend"
             cd ../Server
