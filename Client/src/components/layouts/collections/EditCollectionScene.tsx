@@ -11,12 +11,11 @@ import {
   IoTabletLandscapeOutline,
   IoTabletPortraitOutline,
 } from "react-icons/io5";
-import { setIsLoading } from "../../../redux/features/collectionSlice";
-import { useDispatch } from "react-redux";
-import { FaWrench } from "react-icons/fa";
+import { FaDownload, FaWrench } from "react-icons/fa";
 import AddEditSongModal from "./EditSaveModal";
 import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
 import { staticAudioList, staticAudios } from "./staticData";
+import UploadExcelButton from "./UploadExcelButton";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -25,7 +24,6 @@ export const VideoOrientationIcons = {
 };
 
 export const EditCollectionScene = () => {
-
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
   const [themeOptions, setThemeOptions] = useState([]);
@@ -83,6 +81,9 @@ export const EditCollectionScene = () => {
     setSelectedScene(scene);
   };
 
+  const handleExcelData = () => {};
+  const onSampleDownload = () => {};
+
   const onGetAudioList = (result) => {
     const sceneList = [];
     for (const element of result?.data) {
@@ -133,17 +134,35 @@ export const EditCollectionScene = () => {
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
       <h1 className="text-2xl font-bold mb-4">{"My Collection 1"}</h1>
-      <div className="mb-6 flex items-center">
-        <p className="text-sm text-gray-700 mr-2">Style Key:</p>
-        <div className="flex space-x-4">
-          {styles.map((style) => (
-            <div key={style.id} className="flex items-center">
-              <div
-                className={`w-4 h-4 rounded-full mr-2 ${StyleColors[style.id]}`}
-              ></div>
-              <span className="text-sm">{style.label}</span>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center">
+          <p className="text-sm text-gray-700 mr-2">Style Key:</p>
+          <div className="flex space-x-4">
+            {styles.map((style) => (
+              <div key={style.id} className="flex items-center">
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 ${
+                    StyleColors[style.id]
+                  }`}
+                ></div>
+                <span className="text-sm">{style.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <UploadExcelButton onFileRead={handleExcelData} />
+
+          <button
+            className="px-4 py-2 ml-2 bg-blue-500 text-white text-sm rounded-lg"
+            onClick={onSampleDownload}
+            title="Download Sample"
+          >
+            <div className="flex">
+              <FaDownload className="w-4 h-4 mr-2" />
+              Download Template
             </div>
-          ))}
+          </button>
         </div>
       </div>
 
