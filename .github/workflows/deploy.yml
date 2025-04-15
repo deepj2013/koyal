@@ -49,19 +49,22 @@ jobs:
             echo "📦 Installing backend"
             cd ../Server
             npm install
-            
+                        
             echo "🔄 Loading NVM and Node"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use v23.7.0
+            nvm use --delete-prefix v23.7.0 --silent
             
-            echo "📦 PM2 version: $(~/.nvm/versions/node/v23.7.0/bin/pm2 -v)"
+            # Add custom global npm bin to PATH
+            export PATH="$HOME/.npm-global/bin:$PATH"
             
-            echo "🧹 Deleting old PM2 process"
-            ~/.nvm/versions/node/v23.7.0/bin/pm2 delete koyal-backend || echo "ℹ️ No existing process"
+            echo "📦 PM2 version: $(pm2 -v)"
+            
+            echo "🧹 Deleting old PM2 process (if any)"
+            pm2 delete koyal-backend || echo "ℹ️ No existing process"
             
             echo "🚀 Starting backend"
-            ~/.nvm/versions/node/v23.7.0/bin/pm2 start server.js --name koyal-backend
+            pm2 start server.js --name koyal-backend
             
             
           elif [ "$BRANCH" = "koyal-demo-v2" ]; then
