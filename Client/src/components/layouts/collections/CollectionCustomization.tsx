@@ -6,12 +6,16 @@ import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/colle
 import { useDispatch, useSelector } from "react-redux";
 import {
   CollectionState,
+  setCollectionFormDetails,
   setIsLoading,
 } from "../../../redux/features/collectionSlice";
 import { PageRoutes } from "../../../routes/appRoutes";
 import { useNavigate } from "react-router-dom";
 import { AuthState } from "../../../redux/features/authSlice";
 import { downloadSampleExcelFile } from "../../../redux/services/collectionService/collectionService";
+import { FaDownload } from "react-icons/fa";
+import UploadExcelButton from "./UploadExcelButton";
+import toast from "react-hot-toast";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -23,19 +27,33 @@ const CollectionCustomization = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { taskId, groupId, bulkUploadedData } = useSelector(CollectionState);
+  const { taskId, groupId, bulkUploadedData, collectionFormDetails } =
+    useSelector(CollectionState);
   const { userInfo } = useSelector(AuthState);
 
-  const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData }] =
-    useBulkUploadAudioDetailsMutation();
+  const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData, error: bulkUploadError }] =
+    useBulkUploadAudioDetailsMutation<any>();
 
   const [styleImages, setStyleImages] = useState<any>(styles);
-  const [collectionName, setCollectionName] = useState<any>("");
-  const [themeName, setThemeName] = useState<any>("");
-  const [character, setCharacter] = useState<any>("");
-  const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState(styles[1]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [collectionName, setCollectionName] = useState<any>(
+    collectionFormDetails?.collectionName
+  );
+  const [themeName, setThemeName] = useState<any>(collectionFormDetails?.theme);
+  const [character, setCharacter] = useState<any>(
+    collectionFormDetails?.character
+  );
+  const [orientationStyle, setOrientationStyle] = useState<string | null>(
+    collectionFormDetails?.orientation
+  );
+  const [selectedStyle, setSelectedStyle] = useState(
+    collectionFormDetails?.style || styles[1]
+  );
+  const [selected, setSelected] = useState<string | null>(
+    collectionFormDetails?.lipSync
+  );
+
+  const isNextDisabled =
+    !collectionName || !themeName || !character || !orientationStyle;
 
   const handleNext = () => {
     navigate(PageRoutes.COLLECTION_LIST);
@@ -46,19 +64,30 @@ const CollectionCustomization = () => {
   };
 
   const onSubmit = () => {
-    const res = bulkUploadedData.map((item) => ({
-      id: item._id,
-      name: collectionName,
+    const payload = {
+      groupId: groupId,
+      taskId: taskId,
+      collectionName: collectionName,
       theme: themeName,
       character: character,
       style: selectedStyle?.name,
       orientation: orientationStyle,
-    }));
-
-    const payload = {
-      audioDetails: res,
+      lipSync: selected === "yes",
     };
+
+    dispatch(
+      setCollectionFormDetails({
+        collectionName: collectionName,
+        theme: themeName,
+        character: character,
+        style: selectedStyle,
+        orientation: orientationStyle,
+        lipSync: selected,
+      })
+    );
+
     dispatch(setIsLoading(true));
+
     bulkUploadAudioDetails({
       params: {
         isExcelUpload: 0,
@@ -67,8 +96,34 @@ const CollectionCustomization = () => {
     });
   };
 
-  const isNextDisabled =
-    !collectionName || !themeName || !character || !orientationStyle;
+  const handleExcelData = (data: any) => {
+    dispatch(setIsLoading(true));
+    let filesData = data.map(
+      ({ name, theme, character, style, orientation, lipsync }) => ({
+        fileName: name,
+        theme: theme,
+        character: character,
+        style: style,
+        orientation: orientation,
+        lipSync: lipsync, // to be implemented from excel
+      })
+    );
+    filesData.pop();
+
+    const payload = {
+      groupId,
+      taskId,
+      filesData: filesData,
+    };
+
+    bulkUploadAudioDetails({
+      params: {
+        isExcelUpload: 1,
+      },
+      data: payload,
+    });
+  };
+
 
   useEffect(() => {
     if (bulkUploadAudioDetailsData?.success) {
@@ -77,21 +132,30 @@ const CollectionCustomization = () => {
     }
   }, [bulkUploadAudioDetailsData]);
 
+  useEffect(() => {
+    if (bulkUploadError?.data?.error) {
+      toast.error(bulkUploadError?.data?.error?.message)
+    }
+  }, [bulkUploadError]);
+
   return (
     <div className="px-20 max-w-[1200px]">
       <div className="w-[800px] mx-auto bg-white p-6 rounded-lg shadow-md border mt-2 mb-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Collection Customization</h2>
-          <div>
-            <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg">
-              Upload Excel
-            </button>
+          <div className="flex">
+            <UploadExcelButton onFileRead={handleExcelData} />
+
             <button
-              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg"
+              className="px-4 py-2 ml-2 bg-blue-500 text-white text-sm rounded-lg"
               onClick={onSampleDownload}
+              title="Download Sample"
             >
-              Download Sample
+              <div className="flex">
+                <FaDownload className="w-4 h-4 mr-2" />
+                Download Template
+              </div>
             </button>
           </div>
         </div>

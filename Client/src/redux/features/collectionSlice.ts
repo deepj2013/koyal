@@ -6,6 +6,7 @@ const initialState: CollectionModel = {
   bulkUploadedData: null,
   taskId: null,
   groupId: null,
+  collectionFormDetails: null
 };
 
 const collectionSlice = createSlice({
@@ -24,6 +25,9 @@ const collectionSlice = createSlice({
     setGroupId: (state, action) => {
       state.groupId = action.payload;
     },
+    setCollectionFormDetails: (state, action) => {
+      state.collectionFormDetails = action.payload;
+    },
     clearCollectionState: () => {
       return initialState;
     },
@@ -34,8 +38,9 @@ export const {
   setIsLoading,
   setBulkUploadedData,
   setTaskId,
-  clearCollectionState,
   setGroupId,
+  setCollectionFormDetails,
+  clearCollectionState,
 } = collectionSlice.actions;
 
 export default collectionSlice.reducer;

@@ -14,6 +14,7 @@ import {
 import {
   useAddNewAudioMutation,
   useEditAudioDetailsMutation,
+  useLazyGetAllAudiosQuery,
   useLazyGetAudioDetailsQuery,
 } from "../../../redux/services/collectionService/collectionApi";
 import {
@@ -23,6 +24,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { FaWrench } from "react-icons/fa";
 import AddEditSongModal from "./EditSaveModal";
+import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -40,6 +42,7 @@ export const EditCollectionScene = () => {
   const [editAudioDetails, { data: editAudioDetailsData }] =
     useEditAudioDetailsMutation();
   const [addNewAudio, { data: addAudioData }] = useAddNewAudioMutation();
+  const [getAllAudio, { data: getAllAudioData }] = useLazyGetAllAudiosQuery();
 
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
@@ -86,16 +89,18 @@ export const EditCollectionScene = () => {
   useEffect(() => {
     dispatch(setIsLoading(true));
     getAudioDetails({ taskId, groupId });
+    getAllAudio({ groupId });
   }, []);
 
   useEffect(() => {
     if (audioDetailsData) {
       const sceneList = [];
-      const themeList = [];
       for (const element of audioDetailsData?.data) {
         const {
           _id,
           audioDetails: {
+            audioId,
+            audioUrl,
             originalFileName,
             theme,
             character,
@@ -104,10 +109,6 @@ export const EditCollectionScene = () => {
           },
         } = element.taskLogs;
 
-        themeList.push({
-          text: originalFileName,
-          value: _id,
-        });
         sceneList.push({
           title: originalFileName,
           theme: theme,
@@ -115,11 +116,11 @@ export const EditCollectionScene = () => {
           style: style,
           orientation: orientation,
           sceneId: _id,
-          audioId: _id,
+          audioId: audioId,
+          audioUrl: audioUrl,
         });
       }
       setScenes(sceneList);
-      setThemeOptions(themeList);
       dispatch(setIsLoading(false));
     }
   }, [audioDetailsData]);
@@ -129,6 +130,17 @@ export const EditCollectionScene = () => {
       getAudioDetails({ taskId, groupId });
     }
   }, [editAudioDetailsData, addAudioData]);
+
+  useEffect(() => {
+    if (getAllAudioData) {
+      setThemeOptions(
+        getAllAudioData.data.map(({ fileName, _id }) => ({
+          text: fileName?.substring(0, fileName.lastIndexOf(".")),
+          value: _id,
+        }))
+      );
+    }
+  }, [getAllAudioData]);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
@@ -167,14 +179,11 @@ export const EditCollectionScene = () => {
             {scenes.map((scene, index) => (
               <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="py-4 px-4">
-                  <div className="w-16 h-10 bg-gray-300 rounded flex items-center justify-center">
-                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                      <div className="w-0 h-0 border-t-4 border-t-transparent border-l-8 border-l-gray-500 border-b-4 border-b-transparent"></div>
-                    </div>
-                  </div>
+                  <AudioPlayer audioUrl={scene?.audioUrl} />
                 </td>
+
                 <td className="py-4 px-4 text-sm text-gray-600">
-                  {scene.title}
+                  {scene.title?.substring(0, scene.title.lastIndexOf("."))}
                 </td>
                 <td className="py-4 px-4 text-sm text-gray-600">
                   {scene.theme}
