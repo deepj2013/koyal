@@ -43,6 +43,7 @@ const UploadCollection = () => {
   };
 
   useEffect(() => {
+    console.log("test deployment")
     dispatch(clearCollectionState());
   }, []);
 
