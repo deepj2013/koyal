@@ -48,6 +48,7 @@ export const userTaskLogNameEnum = {
   UPLOAD_AUDIO: 'upload audio',
   REVIEW_TRANSCRIPT: 'review transcript',
   CHOOSE_CHARACTER: 'choose character',
+  AUDIO_PROCESSING: "audio-processing"
 }
 
 export const editStoryModes = {
@@ -55,4 +56,5 @@ export const editStoryModes = {
   EDIT_PROMPT: "edit-prompts",
   EDIT_STORY: "edit-story",
   EDIT_CHARACTER: "edit-character",
+  CREATE_STORY: "create-story"
 }

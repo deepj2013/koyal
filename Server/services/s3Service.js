@@ -165,3 +165,27 @@ export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
     throw error;
   }
 };
+
+export const uploadFileToS3 = async (file, email) => {
+  try {
+    const fileKey = `${email}/${Date.now()}-${file.originalname}`;
+
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: "public-read",
+    };
+
+    await s3.send(new PutObjectCommand(params));
+    const encodedFileKey = encodeURIComponent(fileKey);
+
+    const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}`;
+    console.log("File uploaded successfully:", fileUrl);
+    return fileUrl;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
