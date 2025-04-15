@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { uploadFileToS3 } from "../aws/s3-service";
 
 export const convertJsonToFile = (data: any, fileName: string) => {
@@ -66,4 +67,12 @@ export const formatTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${minutes}:${secs.toString().padStart(2, "0")}`;
+};
+
+export const showErrorToater = (message) => {
+  if (typeof message === "string") {
+    toast.error(message);
+  } else {
+    toast.error("Something went wrong");
+  }
 };
