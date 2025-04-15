@@ -192,11 +192,10 @@ const AudioUploadPage = () => {
               </button>
               <button
                 className={`px-6 py-1 h-[40px] rounded-md relative group ${
-                  !isNextButtonEnabled
+                  false
                     ? "bg-gray-300 text-gray-800"
                     : "bg-black text-white hover:bg-gray-800"
                 }`}
-                disabled={!isNextButtonEnabled}
                 onClick={handleNext}
               >
                 Next
