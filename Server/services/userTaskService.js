@@ -33,6 +33,19 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
             }
             const { _id } = requestUser;
             const userIdStr = toStringId(_id);
+            console.log(userIdStr)
+            console.log(taskTypeEnum.GROUP);
+
+            let defaultCollectionName;
+            const existingCollections = await userTask.find({
+                taskType: taskTypeEnum.GROUP,
+                userId: userIdStr
+            });
+
+            const nextNumber = existingCollections.length + 1;
+
+            defaultCollectionName = `My-Collection-${nextNumber}`;
+
             const userTaskPromises = filesData.map(async (file) => {
                 const { fileName, theme, character, style, orientation, lipSync, collectionName } = file;
                 const audioDetails = await userAudio.find({
@@ -40,7 +53,6 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                     groupId,
                     fileName: fileName
                 });
-                console.log("audioDetails", audioDetails);
 
                 if (!audioDetails || audioDetails.length === 0) {
                     console.warn(`Audio not found for filename: ${fileName}`);
@@ -56,7 +68,7 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
                         audioId: audio._id,
                         audioUrl: audio.audioUrl,
                         originalFileName: fileName,
-                        collectionName: collectionName || 'N/A',
+                        collectionName: collectionName || defaultCollectionName,
                         theme,
                         character,
                         style,
@@ -200,7 +212,7 @@ export const getBulkAudiosService = async (requestUser, queryData) => {
             },
             {
                 $sort: {
-                    "taskLogs.createdAt": -1
+                    "taskLogs.createdAt": 1
                 }
             },
             {
@@ -368,7 +380,7 @@ export const addSingleAudioService = async (requestUser, requestData) => {
             );
         }
         const { theme, character, style, orientation, audioId } = requestData;
-        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), _id: audioId });
+        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), "audioDetails.audioId": audioId });
         if (!sourceAudio) {
             throw new APIError(
                 "Source audio not found",
@@ -394,10 +406,6 @@ export const addSingleAudioService = async (requestUser, requestData) => {
                     style: style,
                     orientation: orientation
                 },
-                audioMetadata: {
-                    originalName: sourceAudio.audioMetadata.originalName,
-                    mimeType: sourceAudio.audioMetadata.mimeType
-                }
             }
         );
         await userTask.findOneAndUpdate(
