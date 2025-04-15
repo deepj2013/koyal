@@ -6,6 +6,7 @@ on:
       - main
       - koyal-demo-v2
       - koyal-charcha
+      - koyal-music
 
 jobs:
   deploy:
@@ -71,6 +72,17 @@ jobs:
             git pull origin koyal-demo-v2
             npm install
             npm run build
+          
+          elif [ "$BRANCH" = "koyal-music" ]; then
+            echo "🔨 Building frontend for demo at /var/www/music-koyal/Client"
+            cd /var/www/music-koyal
+            git pull origin koyal-music
+            cd /var/www/music-koyal/Client
+            git pull origin koyal-music
+            npm install
+            npm run build
+
+
 
           elif [ "$BRANCH" = "koyal-charcha" ]; then
             echo "🔨 Building frontend for charcha at /var/www/charcha/Client"
