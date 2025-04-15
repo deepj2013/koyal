@@ -33,8 +33,6 @@ export const bulkAudioDetailsService = async (requestData, requestFile, queryDat
             }
             const { _id } = requestUser;
             const userIdStr = toStringId(_id);
-            console.log(userIdStr)
-            console.log(taskTypeEnum.GROUP);
 
             let defaultCollectionName;
             const existingCollections = await userTask.find({
@@ -379,14 +377,30 @@ export const addSingleAudioService = async (requestUser, requestData) => {
                 dataError.details[0].message
             );
         }
+
         const { theme, character, style, orientation, audioId } = requestData;
-        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), "audioDetails.audioId": audioId });
-        if (!sourceAudio) {
+
+        const audio = await userAudio.findOne({
+            _id: toObjectId(audioId),
+            userId: toStringId(_id)
+        })
+
+        if (!audio) {
             throw new APIError(
-                "Source audio not found",
+                "audio not found",
                 HttpStatusCode.BAD_REQUEST,
                 true,
-                "Source audio not found"
+                "audio not found"
+            );
+        }
+
+        const sourceAudio = await userTaskLog.findOne({ userId: _id.toString(), groupId: audio.groupId });
+        if (!sourceAudio) {
+            throw new APIError(
+                "Source audio task not found",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "Source audio task not found"
             );
         }
         const createdNewAudioTask = await userTaskLog.create(
@@ -395,11 +409,11 @@ export const addSingleAudioService = async (requestUser, requestData) => {
                 taskId: sourceAudio.taskId,
                 taskName: sourceAudio.taskName,
                 isAudioUpload: true,
-                audioUrl: sourceAudio.audioUrl,
-                audioPath: sourceAudio.audioPath,
+                audioUrl: audio.audioUrl,
+                audioPath: audio.audioPath,
                 groupId: sourceAudio.groupId,
                 audioDetails: {
-                    originalFileName: sourceAudio.audioDetails.originalFileName,
+                    originalFileName: audio.fileName,
                     collectionName: sourceAudio.audioDetails.collectionName,
                     theme: theme,
                     character: character,
