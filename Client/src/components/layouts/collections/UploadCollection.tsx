@@ -57,10 +57,15 @@ const UploadCollection = () => {
   }, [bulkUploadAudioData]);
 
   useEffect(() => {
-    if (bulkUploadError?.data?.errors) {
-      toast.error(bulkUploadError?.data?.errors?.message);
-    } else if (bulkUploadError?.error) {
-      toast.error(bulkUploadError?.error);
+    if(bulkUploadError) {
+      dispatch(setIsLoading(false))
+      if (bulkUploadError?.data?.errors) {
+        toast.error(bulkUploadError?.data?.errors?.message);
+      } else if (bulkUploadError?.error) {
+        toast.error(bulkUploadError?.error);
+      } else {
+        toast.error("Something Went Wrong");
+      }
     }
   }, [bulkUploadError]);
 
