@@ -1,31 +1,14 @@
 import { useEffect, useState } from "react";
 import { clockSvg, removeSvg } from "../../../assets";
 import { FileUpload } from "../../common/FilePicker/FilePicker";
-import { useBulkUploadAudioMutation } from "../../../redux/services/collectionService/collectionApi";
 import { useDispatch } from "react-redux";
-import {
-  clearCollectionState,
-  setBulkUploadedData,
-  setGroupId,
-  setIsLoading,
-  setTaskId,
-} from "../../../redux/features/collectionSlice";
+import { clearCollectionState } from "../../../redux/features/collectionSlice";
 import { useNavigate } from "react-router-dom";
 import { PageRoutes } from "../../../routes/appRoutes";
-import toast from "react-hot-toast";
 
 const UploadCollection = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const [
-    bulkUploadAudio,
-    {
-      data: bulkUploadAudioData,
-      isLoading: isBulkUploading,
-      error: bulkUploadError,
-    },
-  ] = useBulkUploadAudioMutation<any>();
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
@@ -34,41 +17,12 @@ const UploadCollection = () => {
   };
 
   const onSubmit = () => {
-    const formData = new FormData();
-    uploadedFiles.forEach((file) => {
-      formData.append("audioFiles", file);
-    });
-    bulkUploadAudio(formData);
-    dispatch(setIsLoading(true));
+    handleNext();
   };
 
   useEffect(() => {
-    console.log("test deployment")
     dispatch(clearCollectionState());
   }, []);
-
-  useEffect(() => {
-    if (bulkUploadAudioData) {
-      dispatch(setIsLoading(false));
-      dispatch(setBulkUploadedData(bulkUploadAudioData?.data?.files));
-      dispatch(setTaskId(bulkUploadAudioData?.data?.files[0]?.taskId));
-      dispatch(setGroupId(bulkUploadAudioData?.data?.files[0]?.groupId));
-      handleNext();
-    }
-  }, [bulkUploadAudioData]);
-
-  useEffect(() => {
-    if(bulkUploadError) {
-      dispatch(setIsLoading(false))
-      if (bulkUploadError?.data?.errors) {
-        toast.error(bulkUploadError?.data?.errors?.message);
-      } else if (bulkUploadError?.error) {
-        toast.error(bulkUploadError?.error);
-      } else {
-        toast.error("Something Went Wrong");
-      }
-    }
-  }, [bulkUploadError]);
 
   return (
     <div className="px-20 max-w-[1200px]">

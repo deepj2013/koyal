@@ -2,6 +2,7 @@ import { fetchBaseQuery, createApi } from "@reduxjs/toolkit/query/react";
 import { config } from "../../config/config";
 import { showErrorToater } from "../../utils/helper";
 import { setIsLoading } from "../features/collectionSlice";
+import { AppError } from "../../utils/constants";
 
 const BASE_URL = config.baseUrl;
 
@@ -23,7 +24,7 @@ const baseQuery: typeof rawBaseQuery = async (args, api, extraOptions) => {
   const result: any = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {
-    showErrorToater(result.error?.data?.error?.message);
+    // showErrorToater(result.error?.data?.error?.message || AppError.GENERAL_ERROR);
   }
   api.dispatch(setIsLoading(false));
   return result;

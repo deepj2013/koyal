@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import VisualStyleComponent from "../characterSelection/VisualStyle";
-import { CharacterStyles } from "../../../utils/constants";
+import { AppError, CharacterStyles } from "../../../utils/constants";
 import { animatedStyle, realisticStyle, sketchStyle } from "../../../assets";
 import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/collectionService/collectionApi";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,14 +25,10 @@ const styles = [
 
 const CollectionCustomization = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const { taskId, groupId, bulkUploadedData, collectionFormDetails } =
+  const { taskId, groupId, collectionFormDetails } =
     useSelector(CollectionState);
   const { userInfo } = useSelector(AuthState);
-
-  const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData, error: bulkUploadError }] =
-    useBulkUploadAudioDetailsMutation<any>();
 
   const [styleImages, setStyleImages] = useState<any>(styles);
   const [collectionName, setCollectionName] = useState<any>(
@@ -64,79 +60,12 @@ const CollectionCustomization = () => {
   };
 
   const onSubmit = () => {
-    const payload = {
-      groupId: groupId,
-      taskId: taskId,
-      collectionName: collectionName,
-      theme: themeName,
-      character: character,
-      style: selectedStyle?.name,
-      orientation: orientationStyle,
-      lipSync: selected === "yes",
-    };
-
-    dispatch(
-      setCollectionFormDetails({
-        collectionName: collectionName,
-        theme: themeName,
-        character: character,
-        style: selectedStyle,
-        orientation: orientationStyle,
-        lipSync: selected,
-      })
-    );
-
-    dispatch(setIsLoading(true));
-
-    bulkUploadAudioDetails({
-      params: {
-        isExcelUpload: 0,
-      },
-      data: payload,
-    });
+    handleNext();
   };
 
   const handleExcelData = (data: any) => {
-    dispatch(setIsLoading(true));
-    let filesData = data.map(
-      ({ name, theme, character, style, orientation, lipsync }) => ({
-        fileName: name,
-        theme: theme,
-        character: character,
-        style: style,
-        orientation: orientation,
-        lipSync: lipsync, // to be implemented from excel
-      })
-    );
-    filesData.pop();
-
-    const payload = {
-      groupId,
-      taskId,
-      filesData: filesData,
-    };
-
-    bulkUploadAudioDetails({
-      params: {
-        isExcelUpload: 1,
-      },
-      data: payload,
-    });
+    handleNext();
   };
-
-
-  useEffect(() => {
-    if (bulkUploadAudioDetailsData?.success) {
-      dispatch(setIsLoading(false));
-      handleNext();
-    }
-  }, [bulkUploadAudioDetailsData]);
-
-  useEffect(() => {
-    if (bulkUploadError?.data?.error) {
-      toast.error(bulkUploadError?.data?.error?.message)
-    }
-  }, [bulkUploadError]);
 
   return (
     <div className="px-20 max-w-[1200px]">

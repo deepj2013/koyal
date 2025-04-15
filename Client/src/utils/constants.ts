@@ -74,3 +74,10 @@ export const collectionListHeaders = [
   { id: "auto", label: "Auto Generate" },
   { id: "manual", label: "Manual Generate" },
 ];
+
+export enum AppError {
+  GENERAL_ERROR = "Something went wrong",
+  NETWORK_ERROR = "Network connection failed",
+  UNAUTHORIZED = "Unauthorized access",
+  NOT_FOUND = "Resource not found",
+}

@@ -1,33 +1,24 @@
-import { config } from "../../../config/config";
+import { staticExcelFileUrl } from "../../../components/layouts/collections/staticData";
 
 export const downloadSampleExcelFile = async ({ taskId, groupId, token }) => {
-  try {
-    const response = await fetch(
-      `${config.baseUrl}/api/user/uploads/download-excel?taskId=${taskId}&groupId=${groupId}`,
-      {
-        method: "GET",
-        headers: {
-          "x-auth-token": token,
-          Accept: "*/*",
-        },
-      }
-    );
+  const fallbackUrl = staticExcelFileUrl;
 
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
-    }
-
-    const blob = await response.blob();
-
+  const downloadBlob = (blob, filename) => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "sample.xlsx");
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error downloading Excel file:", error);
+  };
+
+  try {
+    const fallbackResponse = await fetch(fallbackUrl);
+    const fallbackBlob = await fallbackResponse.blob();
+    downloadBlob(fallbackBlob, "sample.xlsx");
+  } catch (fallbackError) {
+    console.error("Fallback download also failed:", fallbackError);
   }
 };

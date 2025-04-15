@@ -11,20 +11,12 @@ import {
   IoTabletLandscapeOutline,
   IoTabletPortraitOutline,
 } from "react-icons/io5";
-import {
-  useAddNewAudioMutation,
-  useEditAudioDetailsMutation,
-  useLazyGetAllAudiosQuery,
-  useLazyGetAudioDetailsQuery,
-} from "../../../redux/services/collectionService/collectionApi";
-import {
-  CollectionState,
-  setIsLoading,
-} from "../../../redux/features/collectionSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { setIsLoading } from "../../../redux/features/collectionSlice";
+import { useDispatch } from "react-redux";
 import { FaWrench } from "react-icons/fa";
 import AddEditSongModal from "./EditSaveModal";
 import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
+import { staticAudioList, staticAudios } from "./staticData";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -33,16 +25,6 @@ export const VideoOrientationIcons = {
 };
 
 export const EditCollectionScene = () => {
-  const dispatch = useDispatch();
-
-  const { taskId, groupId } = useSelector(CollectionState);
-
-  const [getAudioDetails, { data: audioDetailsData }] =
-    useLazyGetAudioDetailsQuery();
-  const [editAudioDetails, { data: editAudioDetailsData }] =
-    useEditAudioDetailsMutation();
-  const [addNewAudio, { data: addAudioData }] = useAddNewAudioMutation();
-  const [getAllAudio, { data: getAllAudioData }] = useLazyGetAllAudiosQuery();
 
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
@@ -55,26 +37,31 @@ export const EditCollectionScene = () => {
     return !theme || !character || !style || !orientation || !audioId;
   };
 
-  const onConfirm = () => {
-    const { sceneId, title, audioId, character, orientation, style, theme } =
-      selectedScene;
+  const generateSceneId = () => {
+    return `scene-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+  };
 
-    dispatch(setIsLoading(true));
+  const onConfirm = () => {
     if (isEdit) {
-      editAudioDetails({
-        id: sceneId,
-        data: {
-          audioId,
-          character,
-          orientation,
-          style,
-          theme,
-        },
-      });
+      const updatedScenes = scenes.map((scene) =>
+        scene?.sceneId === selectedScene?.sceneId ? selectedScene : scene
+      );
+      setScenes([...updatedScenes]);
+      setSelectedScene(null);
     } else {
-      addNewAudio(selectedScene);
+      const audioID = selectedScene?.audioId;
+      const current = staticAudios?.data.find((item) => item._id === audioID);
+
+      const newElement = {
+        ...selectedScene,
+        audioUrl: current?.audioUrl,
+        sceneId: generateSceneId(),
+        title: current?.fileName,
+      };
+
+      setSelectedScene(null);
+      setScenes((p) => [...p, newElement]);
     }
-    setSelectedScene(null);
   };
 
   const addScene = () => {
@@ -85,6 +72,9 @@ export const EditCollectionScene = () => {
       style: "",
       orientation: "",
       audioId: null,
+      audioUrl: null,
+      sceneId: null,
+      title: "",
     });
   };
 
@@ -93,67 +83,56 @@ export const EditCollectionScene = () => {
     setSelectedScene(scene);
   };
 
+  const onGetAudioList = (result) => {
+    const sceneList = [];
+    for (const element of result?.data) {
+      const {
+        _id,
+        audioDetails: {
+          audioId,
+          audioUrl,
+          originalFileName,
+          theme,
+          character,
+          style,
+          orientation,
+        } = {},
+      } = element?.taskLogs || {};
+
+      sceneList.push({
+        title: originalFileName,
+        theme: theme,
+        character: character,
+        style: style,
+        orientation: orientation,
+        sceneId: _id,
+        audioId: audioId,
+        audioUrl: audioUrl,
+      });
+    }
+    setScenes(sceneList);
+  };
+
   useEffect(() => {
-    dispatch(setIsLoading(true));
-    getAudioDetails({ taskId, groupId });
-    getAllAudio({ groupId });
+    onGetAudioList(staticAudioList);
   }, []);
 
   useEffect(() => {
-    if (audioDetailsData) {
-      const sceneList = [];
-      for (const element of audioDetailsData?.data) {
-        const {
-          _id,
-          audioDetails: {
-            audioId,
-            audioUrl,
-            originalFileName,
-            theme,
-            character,
-            style,
-            orientation,
-          },
-        } = element.taskLogs;
-
-        sceneList.push({
-          title: originalFileName,
-          theme: theme,
-          character: character,
-          style: style,
-          orientation: orientation,
-          sceneId: _id,
-          audioId: audioId,
-          audioUrl: audioUrl,
-        });
-      }
-      setScenes(sceneList);
-      dispatch(setIsLoading(false));
-    }
-  }, [audioDetailsData]);
-
-  useEffect(() => {
-    if (editAudioDetailsData || addAudioData) {
-      getAudioDetails({ taskId, groupId });
-    }
-  }, [editAudioDetailsData, addAudioData]);
-
-  useEffect(() => {
-    if (getAllAudioData) {
+    const prepareDropDown = (result) => {
       setThemeOptions(
-        getAllAudioData.data.map(({ fileName, _id }) => ({
+        result.data.map(({ fileName, _id }) => ({
           text: fileName?.substring(0, fileName.lastIndexOf(".")),
           value: _id,
         }))
       );
-    }
-  }, [getAllAudioData]);
+    };
+
+    prepareDropDown(staticAudios);
+  }, []);
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
-      <h1 className="text-2xl font-bold mb-4">
-        {audioDetailsData?.data?.[0]?.taskLogs?.audioDetails?.collectionName}
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">{"My Collection 1"}</h1>
       <div className="mb-6 flex items-center">
         <p className="text-sm text-gray-700 mr-2">Style Key:</p>
         <div className="flex space-x-4">
@@ -202,7 +181,7 @@ export const EditCollectionScene = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-3 h-3 rounded-full mr-2 ${
-                        StyleColors[scene.style.toLowerCase()]
+                        StyleColors[scene?.style?.toLowerCase()]
                       }`}
                     ></div>
                     <span className="text-sm text-gray-600">{scene.style}</span>
