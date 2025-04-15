@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import APIError, { HttpStatusCode } from "../exception/errorHandler.js";
 
 export const adminAuth = async (req, res, next) => {
-  const validAdminIds = ['67a5b162760a44e56042f30f', '674752ffa5225cc67abe3b8d','67cfc75b8a0511c9a54d1c36'];
+  const validAdminIds = ['67a5b162760a44e56042f30f', '674752ffa5225cc67abe3b8d','67cfc75b8a0511c9a54d1c36','67fe1498fc4625963747f51e'];
 
   try {
     const token = req.headers['x-auth-token'];
