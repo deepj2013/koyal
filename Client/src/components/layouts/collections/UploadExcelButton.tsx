@@ -23,6 +23,9 @@ const UploadExcelButton = ({ onFileRead }: { onFileRead: (data: any) => void }) 
       const jsonData = XLSX.utils.sheet_to_json(sheet);
 
       onFileRead(jsonData); 
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     };
 
     reader.readAsArrayBuffer(file);

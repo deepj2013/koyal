@@ -97,7 +97,7 @@ const CollectionCustomization = () => {
   };
 
   const handleExcelData = (data: any) => {
-    
+    dispatch(setIsLoading(true));
     let filesData = data.map(
       ({ name, theme, character, style, orientation, lipsync }) => ({
         fileName: name,
