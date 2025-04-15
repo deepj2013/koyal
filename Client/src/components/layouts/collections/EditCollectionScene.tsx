@@ -56,13 +56,20 @@ export const EditCollectionScene = () => {
   };
 
   const onConfirm = () => {
-    const { sceneId, title, ...rest } = selectedScene;
+    const { sceneId, title, audioId, character, orientation, style, theme } =
+      selectedScene;
 
     dispatch(setIsLoading(true));
     if (isEdit) {
       editAudioDetails({
         id: sceneId,
-        data: rest,
+        data: {
+          audioId,
+          character,
+          orientation,
+          style,
+          theme,
+        },
       });
     } else {
       addNewAudio(selectedScene);
