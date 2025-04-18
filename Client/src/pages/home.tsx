@@ -35,6 +35,8 @@ import { VideoPlayer } from "../components/VideoPlayer";
 import AdvertiserSection from "../components/layouts/AdvertiserSection";
 import Logo from "../components/common/Logo/Logo";
 import VideoBackground from "../components/common/VideoBackground/VideoBackground";
+import { config } from "../config/config";
+import { WaitingListApiRoutes } from "../redux/environment/apiRoutes";
 
 const images = {
   Realistic: Realstic,
@@ -668,7 +670,7 @@ const WaitingListModal = ({ isOpen, onClose }) => {
 
     try {
       const response = await fetch(
-        "https://koyal.ai/api/api/public/createWaitingList",
+        `${config.baseUrl}${WaitingListApiRoutes.JoinWaitList}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
