@@ -16,6 +16,7 @@ import AddEditSongModal from "./EditSaveModal";
 import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
 import { staticAudioList, staticAudios } from "./staticData";
 import UploadExcelButton from "./UploadExcelButton";
+import { useLocation } from "react-router-dom";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -24,6 +25,8 @@ export const VideoOrientationIcons = {
 };
 
 export const EditCollectionScene = () => {
+  const location = useLocation();
+
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
   const [themeOptions, setThemeOptions] = useState([]);
@@ -38,6 +41,8 @@ export const EditCollectionScene = () => {
   const generateSceneId = () => {
     return `scene-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
   };
+
+  console.log("selectedScene", selectedScene)
 
   const onConfirm = () => {
     if (isEdit) {
@@ -115,8 +120,12 @@ export const EditCollectionScene = () => {
   };
 
   useEffect(() => {
-    onGetAudioList(staticAudioList);
-  }, []);
+    if (location?.state) {
+      setScenes(location?.state?.sceneData );
+    } else {
+      onGetAudioList(staticAudioList)
+    }
+  }, [location?.state]);
 
   useEffect(() => {
     const prepareDropDown = (result) => {
@@ -133,7 +142,7 @@ export const EditCollectionScene = () => {
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg shadow-lg max-w-6xl mx-auto mt-4">
-      <h1 className="text-2xl font-bold mb-4">{"My Collection 1"}</h1>
+      <h1 className="text-2xl font-bold mb-4">{location?.state?.collectionName || "My Collection 1"}</h1>
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
           <p className="text-sm text-gray-700 mr-2">Style Key:</p>
@@ -184,7 +193,7 @@ export const EditCollectionScene = () => {
             {scenes.map((scene, index) => (
               <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="py-4 px-4">
-                  <AudioPlayer audioUrl={scene?.audioUrl} />
+                  <AudioPlayer audioUrl={null} fileName={scene?.audioUrl} />
                 </td>
 
                 <td className="py-4 px-4 text-sm text-gray-600">

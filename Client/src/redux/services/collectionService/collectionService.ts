@@ -1,24 +1,12 @@
-import { staticExcelFileUrl } from "../../../components/layouts/collections/staticData";
+import sampleExcel from "public/assets/sample/demoTemplate.xlsx";
 
-export const downloadSampleExcelFile = async ({ taskId, groupId, token }) => {
-  const fallbackUrl = staticExcelFileUrl;
+export const downloadSampleExcelFile = () => {
+  const fileUrl = "/assets/sample/demoTemplate.xlsx"; // Relative path to public folder
 
-  const downloadBlob = (blob, filename) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
-
-  try {
-    const fallbackResponse = await fetch(fallbackUrl);
-    const fallbackBlob = await fallbackResponse.blob();
-    downloadBlob(fallbackBlob, "sample.xlsx");
-  } catch (fallbackError) {
-    console.error("Fallback download also failed:", fallbackError);
-  }
+  const link = document.createElement("a");
+  link.href = fileUrl;
+  link.setAttribute("download", "sample.xlsx");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 };

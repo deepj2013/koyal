@@ -1,12 +1,14 @@
 import { useState, useRef } from "react";
 import { Play, Pause } from "lucide-react";
 
-const AudioPlayer = ({ audioUrl }) => {
+const AudioPlayer = ({ audioUrl, fileName }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
+  const resolvedAudioUrl = audioUrl || fileName || null;
+
   const togglePlayPause = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !resolvedAudioUrl) return;
 
     if (isPlaying) {
       audioRef.current.pause();
@@ -37,12 +39,14 @@ const AudioPlayer = ({ audioUrl }) => {
         </div>
       </div>
 
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        onEnded={() => setIsPlaying(false)}
-        preload="none"
-      />
+      {resolvedAudioUrl && (
+        <audio
+          ref={audioRef}
+          src={resolvedAudioUrl}
+          onEnded={() => setIsPlaying(false)}
+          preload="none"
+        />
+      )}
     </div>
   );
 };

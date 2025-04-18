@@ -16,6 +16,7 @@ import { downloadSampleExcelFile } from "../../../redux/services/collectionServi
 import { FaDownload } from "react-icons/fa";
 import UploadExcelButton from "./UploadExcelButton";
 import toast from "react-hot-toast";
+import { staticAudioList } from "./staticData";
 
 const styles = [
   { name: CharacterStyles.REALISTIC, image: realisticStyle },
@@ -51,20 +52,68 @@ const CollectionCustomization = () => {
   const isNextDisabled =
     !collectionName || !themeName || !character || !orientationStyle;
 
-  const handleNext = () => {
-    navigate(PageRoutes.COLLECTION_LIST);
+  const prepareScene = (data) => {
+    const sceneList = [];
+    for (const element of data) {
+      const {
+        _id,
+        audioDetails: {
+          audioId,
+          audioUrl,
+          originalFileName,
+          theme,
+          character,
+          style,
+          orientation,
+        } = {},
+      } = element?.taskLogs || {};
+
+      sceneList.push({
+        title: originalFileName,
+        theme: theme,
+        character: character,
+        style: style,
+        orientation: orientation,
+        sceneId: _id,
+        audioId: audioId,
+        audioUrl: audioUrl,
+      });
+    }
+
+    return sceneList;
+  };
+  
+  const handleNext = (isExcel: boolean) => {
+    const originalScenes = prepareScene(staticAudioList?.data);
+
+    const finalScenes = isExcel
+      ? originalScenes
+      : originalScenes.map((scene) => ({
+          ...scene,
+          style: selectedStyle.name,
+          theme: themeName,
+          character: character,
+          orientation: orientationStyle,
+        }));
+
+    navigate(PageRoutes.COLLECTION_LIST, {
+      state: {
+        sceneData: finalScenes,
+        collectionName: collectionName
+      },
+    });
   };
 
   const onSampleDownload = () => {
-    downloadSampleExcelFile({ taskId, groupId, token: userInfo.token });
+    downloadSampleExcelFile();
   };
 
   const onSubmit = () => {
-    handleNext();
+    handleNext(false);
   };
 
   const handleExcelData = (data: any) => {
-    handleNext();
+    handleNext(true);
   };
 
   return (

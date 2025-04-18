@@ -12,6 +12,7 @@ import {
   IoTabletLandscapeOutline,
   IoTabletPortraitOutline,
 } from "react-icons/io5";
+import { staticAudios } from "./staticData";
 
 const AddEditSongModal = ({
   isEdit,
@@ -26,10 +27,20 @@ const AddEditSongModal = ({
   if (!isOpen) return null;
 
   const handleChange = (key, newValue) => {
-    setSelectedScene((prev) => ({
-      ...prev,
-      [key]: newValue,
-    }));
+    if (key === "audioId") {
+      const element = staticAudios?.data.find((item) => item?._id === newValue);
+      setSelectedScene((prev) => ({
+        ...prev,
+        [key]: newValue,
+        audioUrl: element?.audioUrl,
+        title: element?.fileName,
+      }));
+    } else {
+      setSelectedScene((prev) => ({
+        ...prev,
+        [key]: newValue,
+      }));
+    }
   };
 
   return (
