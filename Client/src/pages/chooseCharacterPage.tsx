@@ -45,10 +45,14 @@ import ShimmerWrapper from "../components/Shimmer";
 import AvatarModal from "../components/layouts/chooseCharacter/AvatarModal";
 import CharchaModal from "../components/layouts/chooseCharacter/CharchaModal";
 import NewThemeModal from "../components/layouts/chooseCharacter/NewThemeModal";
+import { getSocket } from "../socket/socketInstance";
+import { SocketRoutes } from "../socket/socketRoutes";
+import toast from "react-hot-toast";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const socket = getSocket();
 
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
@@ -310,16 +314,18 @@ const ChooseCharacterPage = () => {
   };
 
   const handleTextChange = (e) => {
-    setNewThemeInput(e.target.value)
+    setNewThemeInput(e.target.value);
   };
 
   useEffect(() => {
-    procesStory({
-      mode: "create-story",
-      scenes_path: sceneDataFileUrl,
-    });
-    setActions(getRandomActions());
-  }, []);
+    if(sceneDataFileUrl) {
+      socket?.emit(SocketRoutes.SceneEditProcess, {
+        mode: EditStoryModes.CREATE_STORY,
+        scenes_path: sceneDataFileUrl,
+      });
+      setActions(getRandomActions());
+    }
+  }, [sceneDataFileUrl]);
 
   useEffect(() => {
     if (sceneLLMResponse?.call_id) {
@@ -421,6 +427,31 @@ const ChooseCharacterPage = () => {
       setAnimatedImages(Object?.values(avatarData));
     }
   }, [avatarData]);
+
+    useEffect(() => {
+      if (!socket) return;
+  
+      const onCreateSuccess = (data: any) => {
+        console.log("s", data)
+      };
+  
+      const onError = (data: any) => {
+        toast.error(data?.message || "Error occured");
+      };
+  
+      const onprocess = (data: any) => {
+        console.log("processing-status", data);
+      };
+  
+      socket.on("processing-complete", onCreateSuccess);
+
+      socket.on("processing-error", onError);
+      socket.on("processing-status", onprocess);
+  
+      return () => {
+        socket.off("processing-complete", onCreateSuccess);
+      };
+    }, [socket]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -681,7 +712,6 @@ const ChooseCharacterPage = () => {
               handleTextChange={handleTextChange}
               onConfirm={handleSaveTheme}
             />
-           
           </div>
         </div>
       </div>

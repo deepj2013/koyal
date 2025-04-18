@@ -1,4 +1,5 @@
 export interface AppModel {
+  isProcessing: boolean | null;
   isEnglish: boolean | null;
   characterName: string;
   loraPath: string | null;

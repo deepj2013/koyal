@@ -122,14 +122,14 @@ const TranscriptPage = () => {
   };
 
   useEffect(() => {
-    if (audioFileUrl) {
+    if (audioFileUrl && isEnglish !== null) {
       setIsLoading(true);
       socket?.emit("start-audio-processing", {
         audio: audioFileUrl,
         english_priority: isEnglish,
       });
     }
-  }, [audioFileUrl, socket]);
+  }, [audioFileUrl, socket, isEnglish]);
 
   useEffect(() => {
     if (!socket) return;

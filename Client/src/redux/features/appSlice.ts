@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { AppModel } from "../models/appModel";
 
 const initialState: AppModel = {
+  isProcessing: null,
   isEnglish: null,
   characterName: "",
   loraPath: null,
@@ -20,6 +21,9 @@ const appSlice = createSlice({
   name: "app",
   initialState: initialState,
   reducers: {
+    setIsProcessing: (state, action) => {
+      state.isProcessing = action.payload;
+    },
     setIsEnglish: (state, action) => {
       state.isEnglish = action.payload;
     },
@@ -60,6 +64,7 @@ const appSlice = createSlice({
 });
 
 export const {
+  setIsProcessing,
   setIsEnglish,
   setCharacterName,
   setLoraPath,

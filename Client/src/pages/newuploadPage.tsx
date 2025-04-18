@@ -12,11 +12,21 @@ import {
   setIsEnglish,
 } from "../redux/features/appSlice";
 import { musicicon } from "../assets";
+import LoadingBar from "../components/common/LoadingBar/LoadingBar";
+import { useAudioUploadMutation } from "../redux/services/uploadAudioService/uploadAudioApi";
 
 const allowedFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 const AudioUploadPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const [
+    audioUpload,
+    {
+      data: audioUploadData,
+      isLoading: isAudioUploadLoading,
+    },
+  ] = useAudioUploadMutation<any>();
 
   const { isEnglish, audioFileUrl } = useSelector(AppState);
 
@@ -27,7 +37,9 @@ const AudioUploadPage = () => {
   const isNextButtonEnabled = audioFileUrl && isEnglish !== null;
 
   const handleNext = () => {
-    navigate("/lyricedit");
+    const formData = new FormData();
+    formData.append("audioFile", uploadedFile);
+    audioUpload(formData);
   };
 
   const handleFileUpload = async (event) => {
@@ -49,32 +61,29 @@ const AudioUploadPage = () => {
           } else {
             clearInterval(interval);
           }
-        }, 100);
-
-        // Upload file to S3
-        const fileUrl = await uploadFileToS3(
-          file,
-          localStorage.getItem("currentUser")
-        );
+        }, 50);
 
         clearInterval(interval);
         setUploadProgress(100);
-
-        dispatch(setAudioFileUrl(fileUrl));
-        console.log("fileUrl", fileUrl);
       } catch (error) {
-        console.error("Upload failed:", error);
-        console.log("File upload failed. Please try again.");
-        setUploadProgress(0); // Reset progress on failure
+        setUploadProgress(0);
       }
     } else {
       console.log("Please select an MP3 or WAV file.");
     }
   };
 
+  useEffect(() => {
+    if (audioUploadData) {
+      dispatch(setAudioFileUrl(audioUploadData?.data?.file?.url));
+      navigate("/lyricedit");
+    }
+  }, [audioUploadData]);
+
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
+      <LoadingBar isLoading={isAudioUploadLoading} />
       <div className="flex justify-center">
         <div className="px-20 max-w-[1200px]">
           {/* Main Content */}

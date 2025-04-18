@@ -1,8 +1,15 @@
-import { ApiRoutes } from "../../environment/apiRoutes";
+import { ApiRoutes, InternalApiRoutes } from "../../environment/apiRoutes";
 import { apiSlice } from "../../environment/base";
 
 export const uploadAudioApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    audioUpload: builder.mutation({
+      query: (data) => ({
+        url: InternalApiRoutes.AudioUpload,
+        method: "POST",
+        body: data,
+      }),
+    }),
     emotionEndpoint: builder.mutation({
       query: (data) => ({
         url: ApiRoutes.EmotionEndpoint,
@@ -42,11 +49,11 @@ export const uploadAudioApi = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
-   
   }),
 });
 
 export const {
+  useAudioUploadMutation,
   useEmotionEndpointMutation,
   useTranscriberEndpointMutation,
   useGetTranscriberResultQuery,

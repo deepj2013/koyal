@@ -24,6 +24,14 @@ export const ApiRoutes = {
   GetFinalVideo: "vid_cut_endpoint/result",
 } as const;
 
+export const InternalApiRoutes = {
+  AudioUpload : 'api/user/uploads/single-upload',
+}
+
+export const WaitingListApiRoutes = {
+  JoinWaitList : 'api/public/createWaitingList',
+}
+
 export const CollectionApiRoutes = {
   BulkUploadAudio: "api/user/uploads/bulk-upload",
   BulkUploadAudioDetails: "api/user/task/update-bulk-audio-details",

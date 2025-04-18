@@ -39,6 +39,7 @@ export enum AvatarProcessModes {
 }
 
 export enum EditStoryModes {
+  CREATE_STORY = "create-story",
   CREATE_PROMPT = "create-prompts",
   EDIT_PROMPT = "edit-prompts",
   EDIT_STORY = "edit-story",
