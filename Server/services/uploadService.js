@@ -182,10 +182,11 @@ export const singleAudioUploadService = async (audioFile, user) => {
             numberofTaskLog: 1,
             taskType: taskTypeEnum.INDIVIDUAL,
             stage: 1,
+            isAudioUpload: true
         });
 
         return {
-           // _id: savedAudioLog._id,
+            // _id: savedAudioLog._id,
             url: savedAudioLog.audioUrl,
             path: savedAudioLog.audioPath,
             groupId: savedAudioLog.groupId,

@@ -58,3 +58,14 @@ export const editStoryModes = {
   EDIT_CHARACTER: "edit-character",
   CREATE_STORY: "create-story"
 }
+
+export const AvatarProcessModes = {
+  CREATE: "create",
+  UPSCALE: "upscale",
+}
+
+export const ReplacementWords = {
+  MAN: "man",
+  WOMAN: "woman",
+  PERSON: "person",
+}

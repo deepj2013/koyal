@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { audioprocessedSocket, lyricsProcessedSocket, themeCharacterSocket } from "../controllers/aiController.js"
+import { audioprocessedSocket, avatarServiceSocket, editSceneSocket, generateFinalVideoSocket, lyricsProcessedSocket, selectStyleSocket, themeCharacterSocket } from "../controllers/aiController.js"
 import User from "../models/userModel.js";
 import { toObjectId } from "../utils/mongo.js";
 
@@ -20,7 +20,6 @@ export const socketHandler = (io) => {
                 return next(new Error("User not found"));
             }
             socket.user = user;
-            
             console.log("user details--->", socket.user)
             next();
         } catch (err) {
@@ -35,15 +34,33 @@ export const socketHandler = (io) => {
         socket.on("start-audio-processing", (data) => {
             audioprocessedSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
-
         socket.on("lyrics-edit-processing", (data) => {
             console.log("lyrics-edit-request", data)
             lyricsProcessedSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
-
         socket.on("theme-character-processing", (data) => {
             console.log("theme-character-request", data)
-            themeCharacterSocket({...data, socket, socketId: socket.id, user: socket.user })
+            themeCharacterSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+        })
+        socket.on("avtar-processing-request", (data) => {
+            console.log("avtar-process-request", data)
+            avatarServiceSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+        })
+        socket.on("style-processing-request", (data) => {
+            console.log("style-process-request", data);
+            selectStyleSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+        })
+        socket.on("edit-scene-processing-request", (data) => {
+            console.log("edit-scene-processing-request", data);
+            editSceneSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+        })
+        socket.on("generate_video", (data) => {
+            console.log("generate_video", data);
+            generateFinalVideoSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+        })
+        socket.on("generate_video_with_prompt", (data) => {
+            console.log("generate_video_with_prompt", data);
+            generateFinalVideoSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
         socket.on("disconnect", () => {
             console.log("Client disconnected:", socket.id)

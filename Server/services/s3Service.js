@@ -134,6 +134,7 @@ export const uploadSingleSongToS3 = async (file, email) => {
   }
 };
 
+//for uploading JSON file in s3 for a user
 export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
   if (!jsonData) {
     throw new Error("No JSON data provided");
@@ -166,9 +167,10 @@ export const uploadJSONFileToS3 = async (jsonData, fileName, email) => {
   }
 };
 
-export const uploadFileToS3 = async (file, email) => {
+//for uploading image file in s3 for a user
+export const uploadFileToS3 = async (file, folderName, email, fileName) => {
   try {
-    const fileKey = `${email}/${Date.now()}-${file.originalname}`;
+    const fileKey = `${email}/${folderName}/${fileName}`;
 
     const params = {
       Bucket: BUCKET_NAME,
@@ -179,9 +181,9 @@ export const uploadFileToS3 = async (file, email) => {
     };
 
     await s3.send(new PutObjectCommand(params));
-    const encodedFileKey = encodeURIComponent(fileKey);
 
-    const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${encodedFileKey}`;
+    const encodedKey = encodeURIComponent(fileKey);
+    const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${encodedKey}`;
     console.log("File uploaded successfully:", fileUrl);
     return fileUrl;
   } catch (error) {
@@ -189,3 +191,32 @@ export const uploadFileToS3 = async (file, email) => {
     throw error;
   }
 };
+
+// Helper function to create empty folder in S3
+export const createS3Folder = async (email, folderName) => {
+  const s3Client = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+  });
+
+  // Directly use email in path, as-is
+  const folderPath = `${email}/${folderName}/`;
+
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: folderPath,
+    Body: '' // Empty body to simulate folder
+  };
+
+  try {
+    await s3Client.send(new PutObjectCommand(params));
+    return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${folderPath}`;
+  } catch (error) {
+    console.error('Error creating S3 folder:', error);
+    throw error;
+  }
+};
+

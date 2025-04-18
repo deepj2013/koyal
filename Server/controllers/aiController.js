@@ -1,12 +1,14 @@
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
-import { uploadFileToS3, uploadJSONFileToS3 } from "../services/s3Service.js"
+import { createS3Folder, createUserFolder, uploadFileToS3, uploadJSONFileToS3 } from "../services/s3Service.js"
 import APIError, { HttpStatusCode } from '../exception/errorHandler.js'
 import userTask from '../models/userTaskModel.js'
 import userAudio from '../models/userAudioModel.js'
 import { toStringId } from '../utils/mongo.js'
 import userTaskLog from '../models/userTaskLogModel.js'
-import { editStoryModes, taskLogStatusENUM, taskStatusENUM, userTaskLogNameEnum } from '../enums/ENUMS.js'
+import { AvatarProcessModes, editStoryModes, taskLogStatusENUM, taskStatusENUM, userTaskLogNameEnum } from '../enums/ENUMS.js'
+import { updateSceneDataService } from '../services/aiServices.js'
+import logger from '../utils/logger.js'
 
 
 const pollForResult = async (url, socket, interval = 3000, maxAttempts = 5) => {
@@ -23,6 +25,28 @@ const pollForResult = async (url, socket, interval = 3000, maxAttempts = 5) => {
     socket.emit('processing-error', { status: 'timeout', message: 'Timeout while polling result' })
     throw new Error('Timeout while polling result')
 }
+
+const pollForResultWithSocket = async (url, socket, eventName) => {
+    const maxRetries = 60;
+    const delay = 5000;
+
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await axios.get(url);
+            if (response.data && Object.keys(response.data).length > 0) {
+                socket.emit(eventName, { status: 'completed', data: response.data });
+                return response.data;
+            }
+        } catch (err) {
+            console.warn(`Poll attempt ${i + 1} failed for ${url}`);
+        }
+
+        socket.emit(eventName, { status: 'waiting', attempt: i + 1 });
+        await new Promise(res => setTimeout(res, delay));
+    }
+
+    throw new Error(`Polling timed out for: ${url}`);
+};
 
 export const audioProcess = async (req, res, next) => {
     try {
@@ -94,6 +118,30 @@ export const audioProcess = async (req, res, next) => {
     }
 }
 
+export const updateSceneData = async (req, res, next) => {
+    try {
+        const requestData = req.body;
+        const requestUser = req.user;
+
+        console.log(requestData);
+        console.log(requestUser);
+        
+        const response = await updateSceneDataService(requestData, requestUser)
+
+        console.log("response-->", response)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Scene data updated successfully',
+            data: response
+        })
+
+    } catch (error) {
+        logger.error("error in updated scene data api-->", error)
+        next(error);
+    }
+}
+
 export const audioprocessedSocket = async (data) => {
     const { audio, groupId, socket, socketId, english_priority = false, user } = data
     const userEmail = user?.email;
@@ -154,45 +202,7 @@ export const audioprocessedSocket = async (data) => {
         const sceneUrl = await uploadJSONFileToS3(sceneData, "scenes-${uuid()}.json", userEmail)
         socket.emit("processing-status", { status: 'result-completed', message: 'Scene processing complete' })
 
-        // 🧠 SAVE TO DB RIGHT HERE 👇
-        // we can do this by using bull MQ when we implement the bullMQ
-        const task = await userTask.findOne({ groupId: groupId, userId: toStringId(user._id) });
-        if (!task) {
-            console.log("task is not present ")
-            socket.emit('processing-error', {
-                success: false,
-                message: error.message || 'task is not present'
-            })
-        }
 
-        const existingAudio = await userAudio.findOne({ groupId: groupId, userId: toStringId(user._id) });
-
-        const log = await userTaskLog.create({
-            taskId: toStringId(task._id),
-            userId: toStringId(user._id),
-            taskName: userTaskLogNameEnum.AUDIO_PROCESSING,
-            groupId: groupId,
-            audioDetails: {
-                audioId: existingAudio?._id,
-                audioUrl: audio,
-                originalFileName: existingAudio?.fileName,
-                collectionName: "SINGE-UPLOAD",
-                audioJSON: JSON.stringify({
-                    emotionUrl,
-                    transcriptUrl,
-                    sceneUrl,
-                    sceneData
-                })
-            },
-            status: taskLogStatusENUM.COMPLETED
-        });
-
-        await userTask.findByIdAndUpdate(task._id, {
-            $push: { taskLogIds: log._id },
-            numberofTaskLog: (task.numberofTaskLog || 0) + 1,
-            stage: 2,
-            status: taskStatusENUM.COMPLETED
-        });
 
         // 5. 🔥 Send Results
         socket.emit('processing-status', { status: 'sending-results', message: 'Sending results...' })
@@ -217,7 +227,7 @@ export const audioprocessedSocket = async (data) => {
 }
 
 export const lyricsProcessedSocket = async (data) => {
-    const { mode, socket, socketId, user, scenes_path, Story_elements, story_instructions, storyS3Key, new_story } = data;
+    const { mode, socket, socketId, user, scenes_path, story_elements, story_instructions, storyS3Key, new_story } = data;
 
     if (!scenes_path || !mode) return socket.emit('processing-error', { status: 'error', message: 'Missing required parameters scene_path and mode' })
 
@@ -249,7 +259,7 @@ export const lyricsProcessedSocket = async (data) => {
                 storyKey
             })
         } else if (mode === editStoryModes.EDIT_STORY) {
-            if (!story_instructions || !Story_elements || !storyS3Key) {
+            if (!story_instructions || !story_elements || !storyS3Key) {
                 return socket.emit('processing-error', {
                     status: 'error',
                     message: 'Missing storyInstructions,storyElement storyS3Key for edit-story',
@@ -262,10 +272,10 @@ export const lyricsProcessedSocket = async (data) => {
             });
 
             try {
-                const response = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/ submit`, {
+                const response = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
                     mode,
                     scenes_path,
-                    Story_elements,
+                    Story_elements: story_elements,
                     story_instructions
                 });
                 const callId = response.data.call_id;
@@ -296,7 +306,7 @@ export const lyricsProcessedSocket = async (data) => {
                 });
             }
         } else if (mode === editStoryModes.EDIT_CHARACTER) {
-            if (!scenes_path || !Story_elements || !new_story || !storyS3Key) {
+            if (!scenes_path || !story_elements || !new_story || !storyS3Key) {
                 return socket.emit('processing-error', {
                     status: 'error',
                     message: 'Missing scenesPath, storyElement, newStory or sceneKey for edit-character',
@@ -313,13 +323,13 @@ export const lyricsProcessedSocket = async (data) => {
                 const response = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
                     mode,
                     scenes_path,
-                    Story_elements,
+                    Story_elements: story_elements,
                     new_story,
                 });
 
                 const callId = response.data.call_id;
                 console.log("EDIT_CHARACTER call ID ---->", callId);
-                socket.emit('processing-started', { call_id: callId });
+                socket.emit('processing-status', { call_id: callId });
 
                 // Polling the result
                 const result = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`, socket);
@@ -327,9 +337,10 @@ export const lyricsProcessedSocket = async (data) => {
                 // Upload updated story elements to S3 (overwrite)
                 const updatedStoryUrl = await uploadJSONFileToS3(result.story_elements, storyS3Key, user?.email);
 
-                socket.emit('processing-success', {
+                socket.emit('processing-status', { status: 'edit-character-complete', message: 'edit character processing complete' });
+
+                socket.emit('processing-complete', {
                     status: 'success',
-                    mode,
                     message: 'Character updated and story saved successfully.',
                     story_elements: result.story_elements,
                     storyUrl: updatedStoryUrl,
@@ -342,8 +353,12 @@ export const lyricsProcessedSocket = async (data) => {
                     message: error.message || 'Failed to edit character',
                 });
             }
+        } else {
+            socket.emit('processing-error', {
+                success: false,
+                message: `mode can be only one of: ${Object.values(editStoryModes).join(', ')}`
+            });
         }
-
     } catch (error) {
         console.error('Audio processing error:', error)
         socket.emit('processing-error', {
@@ -356,13 +371,11 @@ export const lyricsProcessedSocket = async (data) => {
 export const themeCharacterSocket = async (data) => {
     const {
         socket,
-        mode, // 'use_likeness' or 'create_avatar'
         user,
         character_name,
         avatarFolderPath,
         calibrationImage,
-        charchaImages = [], // 6 images
-        characterDetails,
+        charchaImages = [],
         character_outfit
     } = data;
 
@@ -371,34 +384,43 @@ export const themeCharacterSocket = async (data) => {
     try {
         socket.emit('processing-status', { status: 'started', message: 'Theme character creation started' });
 
-        // 1. Upload calibration image and charcha images to S3
-        const allImages = [calibrationImage, ...charchaImages]; // 7 total
-        await Promise.all(allImages.map((img, index) =>
-            uploadFileToS3(img, `${avatarFolderPath}/image_${index + 1}.png`, email)
-        ));
+        const allImages = [calibrationImage, ...charchaImages];
+
+        const avtarFolderName = "charchaImages";
+        await Promise.all(allImages.map((img, index) => {
+            const fileName = `image${index + 1}.png`;
+            return uploadFileToS3(img, avtarFolderName, email, fileName);
+        }));
 
         socket.emit('processing-status', { status: 'upload-complete', message: 'Images uploaded to S3' });
 
         // 2. Preprocess
         const preprocessPayload = {
-            images_path: `https://s3.amazonaws.com/${avatarFolderPath}`,
+            images_path: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${avatarFolderPath}/`,
             character_name
         };
         const preprocessRes = await axios.post(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/submit`, preprocessPayload);
         const preprocessCallId = preprocessRes.data.call_id;
 
+        console.log("id---->", preprocessCallId)
         socket.emit('processing-status', { status: 'preprocessing', call_id: preprocessCallId });
 
         const preprocessResult = await pollForResult(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/result/${preprocessCallId}`, socket);
         const processedPath = preprocessResult.processed_path;
+
+        socket.emit('processing-status', { status: "result completed", processedPath });
+
+        socket.emit('processing-status', { status: 'training character started', message: 'training character started' });
 
         // 3. Train character
         const trainPayload = {
             processed_path: processedPath,
             character_name
         };
+
         const trainRes = await axios.post(`${process.env.PY_TRAIN_CHARACTER_BASE_URL}/submit`, trainPayload);
         const trainCallId = trainRes.data.call_id;
+
 
         socket.emit('processing-status', { status: 'training', call_id: trainCallId });
 
@@ -411,13 +433,18 @@ export const themeCharacterSocket = async (data) => {
             character_name,
             character_outfit
         };
+
+        socket.emit('processing-status', { status: 'style started', message: 'style started' });
+
         const styleRes = await axios.post(`${process.env.PY_STYLE_BASE_URL}/submit`, stylePayload);
         const styleCallId = styleRes.data.call_id;
 
-        socket.emit('processing-status', { status: 'styling', call_id: styleCallId });
+        socket.emit('processing-status', { status: 'styling call Id', call_id: styleCallId });
 
         const styledImages = await pollForResult(`${process.env.PY_STYLE_BASE_URL}/result/${styleCallId}`, socket);
+        // here we get three iamges realastic ,animated, sketch..
 
+        socket.emit('processing-status', { status: 'style completed ', message: 'style completed' });
         // Done
         socket.emit('processing-complete', {
             success: true,
@@ -434,119 +461,453 @@ export const themeCharacterSocket = async (data) => {
     }
 };
 
-const sceneCharacterService = async (data) => {
+export const avatarServiceSocket = async (data) => {
     const {
         socket,
         user,
+        mode,
         character_name,
-        media_type, // music, podcast, voiceover
         avatarFolderPath,
-        scenesJsonPath,
-        storyElementsJsonPath,
-        characterOutfit,
-        styleChoice, // 'realistic', 'animated', 'sketch'
-        orientation, // 'portrait', 'square', 'landscape'
-        lipsync // true or false
+        character_details,
+        character_outfit
     } = data;
 
     const email = user?.email;
+    let avatarImages = [];
 
     try {
-        // Emit socket update for the start of the process
-        socket.emit('processing-status', { status: 'started', message: 'Scene character creation started' });
+        socket.emit('avatar-status', { status: 'started', message: 'Avatar processing started' });
 
-        // 1. Upload the images to S3
-        const images = ['realistic.png', 'animated.png', 'sketch.png']; // Assuming these images are part of your assets
-        await Promise.all(images.map((img, index) =>
-            uploadFileToS3(img, `${avatarFolderPath}/${img}`, email)
-        ));
+        const folderName = "AVATAR";
+        const folderPath = await createS3Folder(folderName, email); // Ensure it returns a usable S3 path
+        const s3BasePath = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${folderPath}/`;
 
-        socket.emit('processing-status', { status: 'upload-complete', message: 'Images uploaded to S3' });
-
-        // 2. Generate prompts by calling scene_llm_endpoint
-        const scenePayload = {
-            mode: "create-prompts",
-            scenes_path: `https://s3.amazonaws.com/${scenesJsonPath}`,
-            story_elements: `https://s3.amazonaws.com/${storyElementsJsonPath}`,
-            character_name,
-            media_type
-        };
-        const sceneRes = await axios.post(`${process.env.SCENE_LLM_ENDPOINT}/submit`, scenePayload);
-        const sceneCallId = sceneRes.data.call_id;
-
-        socket.emit('processing-status', { status: 'generating-prompts', call_id: sceneCallId });
-
-        // Poll for result of prompt generation
-        const promptsResult = await pollForResult(`${process.env.SCENE_LLM_ENDPOINT}/result/${sceneCallId}`, socket);
-        const prompts = promptsResult.prompts;
-
-        // Save the prompts as proto_prompts.json in S3 using uploadJSONFileToS3
-        await uploadJSONFileToS3(prompts, `${avatarFolderPath}/proto_prompts.json`, email);
-
-        socket.emit('processing-status', { status: 'prompts-saved', message: 'Prompts saved to S3' });
-
-        // 3. Update character styling if the user presses "change look"
-        if (characterOutfit) {
-            // Update story elements (e.g., change character outfit)
-            const updatedStoryElements = { ...prompts, character_outfit: characterOutfit };
-
-            // Save the updated story elements JSON to S3
-            await uploadJSONFileToS3(updatedStoryElements, `${avatarFolderPath}/story_elements.json`, email);
-
-            // Call the style endpoint with the new character outfit
-            const stylePayload = {
-                lora_path: `https://s3.amazonaws.com/${avatarFolderPath}/lora/${character_name}.safetensors`,
-                character_name,
-                character_outfit: characterOutfit
-            };
-            const styleRes = await axios.post(`${process.env.STYLE_ENDPOINT}/submit`, stylePayload);
-            const styleCallId = styleRes.data.call_id;
-
-            socket.emit('processing-status', { status: 'styling', call_id: styleCallId });
-
-            const styledImages = await pollForResult(`${process.env.STYLE_ENDPOINT}/result/${styleCallId}`, socket);
-
-            // Return styled images based on the user's selected style
-            let finalImage = '';
-            if (styleChoice === 'realistic') {
-                finalImage = styledImages.realistic;
-            } else if (styleChoice === 'animated') {
-                finalImage = styledImages.animated;
-            } else if (styleChoice === 'sketch') {
-                finalImage = styledImages.sketch;
-            }
-
-            // Include additional options for orientation and lipsync if necessary
-            const result = {
-                image: finalImage,
-                orientation,
-                lipsync
+        if (mode === AvatarProcessModes.CREATE) {
+            const avatarPayload = {
+                mode: AvatarProcessModes.CREATE,
+                images_path: s3BasePath,
+                character_details
             };
 
-            socket.emit('processing-complete', {
-                success: true,
-                result
+            const avatarRes = await axios.post(`${process.env.AVATAR_ENDPOINT_URL}/submit`, avatarPayload);
+            const callId = avatarRes.data.call_id;
+
+            socket.emit('avatar-status', { status: 'generating-avatars', call_id: callId });
+
+            const result = await pollForResult(`${process.env.AVATAR_ENDPOINT_URL}/result/${callId}`, socket);
+            avatarImages = [
+                result.image_1_path,
+                result.image_2_path,
+                result.image_3_path
+            ];
+
+            socket.emit('avatar-status', {
+                status: 'avatars-generated',
+                message: 'Avatar images generated',
+                avatarImages
             });
-        } else {
-            // If no outfit change, directly return the styled image
-            const result = {
-                image: promptsResult.prompts[0]?.image, // Example to show first prompt's image
-                orientation,
-                lipsync
-            };
 
-            socket.emit('processing-complete', {
+            return {
                 success: true,
-                result
-            });
+                avatarImages
+            };
         }
 
+        if (mode === AvatarProcessModes.UPSCALE) {
+            // Step 1: Upscale
+            socket.emit('avatar-status', { status: 'upscaling', message: 'Upscaling avatar images' });
+
+            const upscalePayload = {
+                mode: AvatarProcessModes.UPSCALE,
+                images_path: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${avatarFolderPath}/`
+            };
+
+            const upscaleRes = await axios.post(`${process.env.AVATAR_ENDPOINT_URL}/submit`, upscalePayload);
+            const upscaleCallId = upscaleRes.data.call_id;
+
+            socket.emit('avatar-status', { status: 'upscaling', call_id: upscaleCallId });
+
+            const upscaleResult = await pollForResult(`${process.env.AVATAR_ENDPOINT_URL}/result/${upscaleCallId}`, socket);
+            const upscaledPath = upscaleResult.upscaled_path;
+
+            // Step 2: Preprocess
+            socket.emit('avatar-status', { status: 'preprocessing', message: 'Preprocessing avatar images' });
+
+            const preprocessPayload = {
+                images_path: upscaledPath,
+                character_name
+            };
+
+            const preprocessRes = await axios.post(`${process.env.CHARACTER_PREPROCESS_ENDPOINT_URL}/submit`, preprocessPayload);
+            const preprocessCallId = preprocessRes.data.call_id;
+
+            socket.emit('avatar-status', { status: 'preprocessing', call_id: preprocessCallId });
+
+            const preprocessResult = await pollForResult(`${process.env.CHARACTER_PREPROCESS_ENDPOINT_URL}/result/${preprocessCallId}`, socket);
+            const processedPath = preprocessResult.processed_path;
+
+            // Step 3: Train
+            socket.emit('avatar-status', { status: 'training', message: 'Training character model' });
+
+            const trainPayload = {
+                processed_path: processedPath,
+                character_name
+            };
+
+            const trainRes = await axios.post(`${process.env.TRAIN_CHARACTER_ENDPOINT_URL}/submit`, trainPayload);
+            const trainCallId = trainRes.data.call_id;
+
+            socket.emit('avatar-status', { status: 'training', call_id: trainCallId });
+
+            const trainResult = await pollForResult(`${process.env.TRAIN_CHARACTER_ENDPOINT_URL}/result/${trainCallId}`, socket);
+            const loraPath = trainResult.lora_path;
+
+            // Step 4: Style
+            socket.emit('avatar-status', { status: 'styling', message: 'Applying styles to character' });
+
+            const stylePayload = {
+                lora_path: loraPath,
+                character_name,
+                character_outfit
+            };
+
+            const styleRes = await axios.post(`${process.env.STYLE_ENDPOINT_URL}/submit`, stylePayload);
+            const styleCallId = styleRes.data.call_id;
+
+            socket.emit('avatar-status', { status: 'styling', call_id: styleCallId });
+
+            const styleResult = await pollForResult(`${process.env.STYLE_ENDPOINT_URL}/result/${styleCallId}`, socket);
+
+            socket.emit('avatar-complete', {
+                success: true,
+                styledImages: styleResult,
+                loraPath,
+                avatarImages
+            });
+
+            return {
+                success: true,
+                styledImages: styleResult,
+                loraPath,
+                avatarImages
+            };
+        }
+
+        throw new Error(`Invalid mode: ${mode}`);
     } catch (error) {
-        console.error("Error in sceneCharacterService:", error);
-        socket.emit('processing-error', {
+        console.error("Error in avatarService:", error);
+        socket.emit('avatar-error', {
             success: false,
-            message: error.message || 'Scene character generation failed'
+            message: error.message || 'Avatar processing failed'
         });
+        throw error;
     }
 };
 
+export const selectStyleSocket = async (data) => {
+    const {
+        socket,
+        characterName,
+        loraPath,
+        mediaType,
+        scenesPath,
+        storyElementsPath,
+        styleImageFolderPath,
+        newCharacterOutfit,
+        isLookUpdated = false
+    } = data;
+
+    try {
+        const s3BaseUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`;
+
+        // Load 3 images from S3
+        const styledImages = {
+            realistic: `${s3BaseUrl}/${styleImageFolderPath}/realistic.png`,
+            animated: `${s3BaseUrl}/${styleImageFolderPath}/animated.png`,
+            sketch: `${s3BaseUrl}/${styleImageFolderPath}/sketch.png`
+        };
+
+        socket.emit("style-images-loaded", {
+            message: "Styled images loaded successfully",
+            styledImages
+        });
+
+        // If user updates look (new character outfit), re-style
+        if (isLookUpdated && newCharacterOutfit) {
+            socket.emit("style-status", { status: "restyling", message: "Updating character look..." });
+
+            const stylePayload = {
+                lora_path: loraPath,
+                character_name: characterName,
+                character_outfit: newCharacterOutfit
+            };
+
+            const styleRes = await axios.post(`${process.env.PY_STYLE_BASE_URL}/submit`, stylePayload);
+            const callId = styleRes.data.call_id;
+
+            const result = await pollForResult(`${process.env.PY_STYLE_BASE_URL}/result/${callId}`, socket);
+            styledImages.realistic = result.realistic;
+            styledImages.animated = result.animated;
+            styledImages.sketch = result.sketch;
+
+            socket.emit("style-restyled", {
+                message: "Look updated successfully",
+                styledImages
+            });
+        }
+
+        // Start prompt generation in background
+        socket.emit("prompt-status", { status: "prompting", message: "Generating story prompts..." });
+
+        const promptPayload = {
+            mode: "create-prompts",
+            scenes_path: scenesPath,
+            story_elements: storyElementsPath,
+            character_name: characterName,
+            media_type: mediaType
+        };
+
+        const promptRes = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, promptPayload);
+        const callId = promptRes.data.call_id;
+
+        const promptResult = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`, socket);
+        const prompts = promptResult.prompts;
+
+        const protoPromptsKey = `${styleImageFolderPath}/proto_prompts.json`;
+        await uploadToS3(JSON.stringify(prompts), protoPromptsKey);
+
+        socket.emit("prompt-complete", {
+            message: "Prompts generated and saved",
+            protoPromptsKey,
+            prompts
+        });
+
+        return {
+            success: true,
+            styledImages,
+            prompts,
+            protoPromptsPath: `${s3BaseUrl}/${protoPromptsKey}`
+        };
+    } catch (error) {
+        console.error("Error in selectStyleService:", error);
+        socket.emit("style-error", {
+            success: false,
+            message: error.message || "Style processing failed"
+        });
+        throw error;
+    }
+};
+
+export const editSceneSocket = async (data) => {
+    const {
+        protoPromptsUrl,
+        characterName,
+        characterOutfit,
+        loraPath,
+        promptIndex,
+        style,
+        orientation,
+        idImageUrl,
+        mode,
+        editInstruction,
+        replacementWord = null,
+        socket,
+        socketId,
+        user
+    } = data;
+    try {
+        const email = user?.email;
+
+        // Step 1: Edit the Prompt using scene_llm_endpoint
+        const sceneResponse = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
+            mode: mode || 'edit-prompt',
+            prompts_path: protoPromptsUrl,
+            prompt_index: promptIndex,
+            edit_instruction: editInstruction,
+        });
+
+        const { call_id: sceneCallId } = sceneResponse.data;
+
+        // Polling scene_llm result
+        const editedPromptResp = await pollForResult(`${process.env.PY_FLUX_PROMT_BASE_URL}/result/${sceneCallId}`);
+        const updatedPrompts = editedPromptResp.prompts;
+
+        // Step 2: Upload updated proto_prompts to S3
+
+        const proto_key = `proto_prompt-${uuid()}.json`
+        const updatedPromptS3Url = await uploadJSONFileToS3(updatedPrompts, proto_key, email);
+
+        // Step 3: Call flux_prompts_endpoint to regenerate image
+        const fluxRequest = {
+            proto_prompts: updatedPromptS3Url,
+            character_lora_path: loraPath,
+            character_name: characterName,
+            character_outfit: characterOutfit,
+            prompt_indices: [promptIndex],
+            style,
+            id_image: idImageUrl,
+            orientation,
+        };
+
+        if (replacementWord) {
+            fluxRequest.replacement_word = replacementWord;
+        }
+
+        const fluxResponse = await axios.post(`${process.env.PY_FLUX_PROMT_BASE_URL}/submit`, fluxRequest);
+        const { call_id: fluxCallId } = fluxResponse.data;
+
+        // Polling flux result
+        const fluxResult = await pollForResult(`${process.env.PY_FLUX_PROMT_BASE_URL}/result/${fluxCallId}`);
+        return fluxResult;
+
+    } catch (error) {
+        console.error('Error in editScene service:', error);
+        throw error;
+    }
+};
+
+export const generateFinalVideoSocket = async (data) => {
+    const {
+        proto_prompts,
+        character_name,
+        style,
+        orientation,
+        image_folder_path,
+        replacement_word,
+        socket,
+        socketId,
+        user
+    } = data;
+
+    try {
+        // Step 1: Call i2v submit
+        socket.emit('i2v_status', { status: 'submitting' });
+
+        const i2vSubmitRes = await axios.post(`${process.env.PY_I2V_BASE_URL}/submit`, {
+            proto_prompts,
+            character_name,
+            style,
+            orientation,
+            image_folder_path,
+            replacement_word,
+        });
+
+        const i2vCallId = i2vSubmitRes.data.call_id;
+        socket.emit('i2v_status', { status: 'submitted', call_id: i2vCallId });
+
+        // Step 2: Poll for i2v result
+        const i2vResult = await pollForResultWithSocket(
+            `${process.env.PY_I2V_BASE_URL}/result/${i2vCallId}`,
+            socket,
+            'i2v_result'
+        );
+
+        const video_folder_path = i2vResult.video_folder_path;
+
+        // Step 3: Call video cut submit
+        socket.emit('vidcut_status', { status: 'submitting' });
+
+        const vidCutSubmitRes = await axios.post(`${process.env.PY_VIDEO_CUT_BASE_URL}/submit`, {
+            proto_prompts,
+            video_folder_path,
+        });
+
+        const vidCutCallId = vidCutSubmitRes.data.call_id;
+        socket.emit('vidcut_status', { status: 'submitted', call_id: vidCutCallId });
+
+        // Step 4: Poll for vidcut result
+        const vidCutResult = await pollForResultWithSocket(
+            `${process.env.PY_VIDEO_CUT_BASE_URL}/result/${vidCutCallId}`,
+            socket,
+            'vidcut_result'
+        );
+
+        const final_video_folder = vidCutResult.final_video_folder;
+
+        // Final result
+        socket.emit('final_video_done', {
+            message: 'Final video folder ready.',
+            final_video_folder,
+        });
+
+        return { final_video_folder };
+    } catch (err) {
+        console.error('Error generating final video:', err);
+        socket.emit('final_video_error', { error: err.message || 'Unexpected error occurred.' });
+        throw err;
+    }
+};
+
+export const generateFinalVideoWithPromptSocket = async (data) => {
+    const {
+        proto_prompts,
+        character_name,
+        style,
+        orientation,
+        image_folder_path,
+        prompt,
+        replacement_word,
+        socket,
+        socketId,
+        user
+    } = data;
+
+    try {
+        // Step 1: i2v Submit
+        socket.emit('i2v_status', { status: 'submitting', prompt });
+
+        const i2vSubmitRes = await axios.post(`${process.env.PY_I2V_BASE_URL}/submit`, {
+            proto_prompts,
+            character_name,
+            style,
+            orientation,
+            image_folder_path,
+            prompt,
+            replacement_word,
+        });
+
+        const i2vCallId = i2vSubmitRes.data.call_id;
+        socket.emit('i2v_status', { status: 'submitted', call_id: i2vCallId });
+
+        // Step 2: i2v Polling
+        const i2vResult = await pollForResultWithSocket(
+            `${process.env.PY_I2V_BASE_URL}/result/${i2vCallId}`,
+            socket,
+            'i2v_result'
+        );
+
+        const video_folder_path = i2vResult.video_folder_path;
+
+        // Step 3: vid_cut Submit
+        socket.emit('vidcut_status', { status: 'submitting' });
+
+        const vidCutSubmitRes = await axios.post(`${process.env.PY_VIDEO_CUT_BASE_URL}/submit`, {
+            proto_prompts,
+            video_folder_path,
+        });
+
+        const vidCutCallId = vidCutSubmitRes.data.call_id;
+        socket.emit('vidcut_status', { status: 'submitted', call_id: vidCutCallId });
+
+        // Step 4: vid_cut Polling
+        const vidCutResult = await pollForResultWithSocket(
+            `${process.env.PY_VIDEO_CUT_BASE_URL}/result/${vidCutCallId}`,
+            socket,
+            'vidcut_result'
+        );
+
+        const final_video_path = vidCutResult.final_video_path;
+
+        // Final Output
+        socket.emit('final_video_done', {
+            message: 'Final video ready.',
+            final_video_path,
+        });
+
+        return { final_video_path };
+    } catch (err) {
+        console.error('Error generating video with prompt:', err);
+        socket.emit('final_video_error', { error: err.message || 'Something went wrong' });
+        throw err;
+    }
+};
