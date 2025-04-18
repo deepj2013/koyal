@@ -69,3 +69,52 @@ export const ReplacementWords = {
   WOMAN: "woman",
   PERSON: "person",
 }
+
+
+export const audioProcessingEnum = {
+  AUDIO_PROCESSING_START: "audio-processing-start",
+  AUDIO_PROCESSING_END: "audio-processing-end",
+  AUDIO_PROCESSING_RESULT: "audio-processing-result",
+
+  EMOTION_SUBMIT_PROCESSING_START: "emotion-processing",
+  EMOTION_SUBMIT_PROCESSING_COMPLETED: "emotion-processing",
+  EMOTION_RESULT_PROCESSING_START: "emotion-result-processing",
+  EMOTION_RESULT_PROCESSING_COMPLETED: "emotion-result-processing",
+
+  TRANSCRIBER_SUBMIT_PROCESSING_START: "transcriber-processing",
+  TRANSCRIBER_SUBMIT_PROCESSING_COMPLETED: "transcriber-processing",
+  TRANSCRIBER_RESULT_PROCESSING_START: "transcriber-result-processing",
+  TRANSCRIBER_RESULT_PROCESSING_COMPLETED: "transcriber-result-processing",
+
+  SCENE_SUBMIT_PROCESSING_START: "scene-submit-processing",
+  SCENE_SUBMIT_PROCESSING_COMPLETED: "scene-submit-processing",
+
+  SCENE_RESULT_PROCESSING_START: "scene-result-processing",
+  SCENE_RESULT_PROCESSING_COMPLETED: "scene-result-processing",
+
+  AUDIO_PROCESSING_ERROR: "audio-processing-error"
+}
+
+export const processingStatus = {
+  STARTED: "started",
+  COMPLETED: "completed",
+}
+
+export const lyricsProcessENUM = Object.freeze({
+  START: 'lyrics-processing-start',
+  END: 'lyrics-processing-end',
+  STORY_SUBMIT: 'story-submit',
+  STORY_RESULT: 'story-result',
+  LYRICS_PROCESSING_RESULT: 'lyrics-processing-result',
+  LYRICS_PROCESSING_ERROR: 'lyrics-processing-error',
+  VALIDATION_ERROR: 'validation-error',
+})
+
+export const themeCharacterEnum = Object.freeze({
+  START: 'theme-character-processing-start',
+  END: 'theme-character-processing-end',
+  THEME_CHARACTER_PROCESSING_RESULT: 'theme-character-processing-result',
+  THEME_CHARACTER_PROCESSING_ERROR: 'theme-character-processing-error',
+  VALIDATION_ERROR: 'validation-error',
+  THEME_CHARACTER_PROCESSING:'theme-character-processing',
+})

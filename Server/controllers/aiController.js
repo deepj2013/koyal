@@ -6,7 +6,7 @@ import userTask from '../models/userTaskModel.js'
 import userAudio from '../models/userAudioModel.js'
 import { toStringId } from '../utils/mongo.js'
 import userTaskLog from '../models/userTaskLogModel.js'
-import { AvatarProcessModes, editStoryModes, taskLogStatusENUM, taskStatusENUM, userTaskLogNameEnum } from '../enums/ENUMS.js'
+import { audioProcessingEnum, AvatarProcessModes, editStoryModes, lyricsProcessENUM, processingStatus, taskLogStatusENUM, taskStatusENUM, themeCharacterEnum, userTaskLogNameEnum } from '../enums/ENUMS.js'
 import { updateSceneDataService } from '../services/aiServices.js'
 import logger from '../utils/logger.js'
 
@@ -15,9 +15,27 @@ const pollForResult = async (url, socket, interval = 3000, maxAttempts = 5) => {
 
     for (let i = 0; i < maxAttempts; i++) {
         const res = await axios.get(url)
-        if (res.status === 200) return res.data
-        if (res.status === 404) {
-            console.log("getting error 404 from polling")
+        const status = res.status
+        if (status === 200) return res.data
+        if (status === 202) {
+            console.log(`[${attempt}] 🕒 Still processing...`);
+            socket.emit('polling-processing-progress', { attempt, message: 'data is still processing...' });
+        } else if (status === 404) {
+            console.warn(`[${i}] ❌ Not found`);
+            socket.emit('processing-error', {
+                attempt,
+                status: 'failed',
+                message: 'Emotion processing failed or file not found.',
+            });
+            throw new Error('Emotion data not found (404)');
+        } else {
+            console.warn(`[${attempt}] ⚠️ Unexpected status code: ${status}`);
+            socket.emit('processing-error', {
+                attempt,
+                status: 'unexpected',
+                message: `Unexpected status code: ${status}`,
+            });
+            throw new Error(`Unexpected status: ${status}`);
         }
         await new Promise(resolve => setTimeout(resolve, interval))
     }
@@ -125,7 +143,7 @@ export const updateSceneData = async (req, res, next) => {
 
         console.log(requestData);
         console.log(requestUser);
-        
+
         const response = await updateSceneDataService(requestData, requestUser)
 
         console.log("response-->", response)
@@ -147,11 +165,11 @@ export const audioprocessedSocket = async (data) => {
     const userEmail = user?.email;
     console.log("userEmail", userEmail);
     try {
-        socket.emit('processing-status', { status: 'started', message: 'Audio processing started' })
+        socket.emit(audioProcessingEnum.AUDIO_PROCESSING_START, { status: processingStatus.STARTED, message: 'Audio processing started' })
 
         // Emit that both processing tasks are starting
-        socket.emit('processing-status', { status: 'emotion-processing', message: 'Processing emotions...' });
-        socket.emit('processing-status', { status: 'transcriber-processing', message: 'Processing transcription...' });
+        socket.emit(audioProcessingEnum.EMOTION_SUBMIT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Processing emotions...' });
+        socket.emit(audioProcessingEnum.TRANSCRIBER_SUBMIT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Processing transcription...' });
 
         //1. 🔥 Fire both emotion and transcriber submit calls in parallel
         const [emotionSubmit, transcriberSubmit] = await Promise.all([
@@ -167,9 +185,11 @@ export const audioprocessedSocket = async (data) => {
         const emotionCallId = emotionSubmit.data.call_id;
         const transcriberCallId = transcriberSubmit.data.call_id;
 
-        socket.emit('processing-status', { status: 'emotion-call-id', message: 'Emotion submitted', data: emotionCallId });
-        socket.emit('processing-status', { status: 'transcriber-call-id', message: 'Transcriber submitted', data: transcriberCallId });
+        socket.emit(audioProcessingEnum.EMOTION_SUBMIT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'Emotion submitted', data: emotionCallId });
+        socket.emit(audioProcessingEnum.TRANSCRIBER_SUBMIT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'Transcriber submitted', data: transcriberCallId });
 
+        socket.emit(audioProcessingEnum.EMOTION_RESULT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Emotion result processing started' });
+        socket.emit(audioProcessingEnum.TRANSCRIBER_RESULT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Transcriber result processing started' });
 
         // Fire both polling tasks in parallel
         const [emotionData, transcriptData] = await Promise.all([
@@ -177,38 +197,34 @@ export const audioprocessedSocket = async (data) => {
             pollForResult(`${process.env.PY_TRANSCRIBER_BASE_URL}/result/${transcriberCallId}`)
         ]);
 
+        socket.emit(audioProcessingEnum.EMOTION_RESULT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'Emotion result processing completed' });
+        socket.emit(audioProcessingEnum.EMOTION_RESULT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'Transcriber result processing completed' });
+
         //3.🔥 Upload to S3 in parallel
         const [emotionUrl, transcriptUrl] = await Promise.all([
             uploadJSONFileToS3(emotionData, `emotion_data-${uuid()}.json`, userEmail),
             uploadJSONFileToS3(transcriptData, `word_timestamps-${uuid()}.json`, userEmail)
         ]);
 
-        socket.emit('processing-status', { status: 'emotion-complete', message: 'Emotion processing complete' });
-        socket.emit('processing-status', { status: 'transcriber-completed', message: 'Transcription complete' });
-
         // 3. 🔥 Scene Processing
-        socket.emit('processing-status', { status: 'scene-processing', message: 'Processing scenes...' })
+        socket.emit(audioProcessingEnum.SCENE_SUBMIT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Scene Submit started..' })
         const sceneSubmit = await axios.post(`${process.env.PY_SCENE_BASE_URL}/submit`, {
             word_timestamps: transcriptUrl,
             emotion_data: emotionUrl,
             audio_file: audio
         })
         const sceneCallId = sceneSubmit.data.call_id
-        socket.emit('processing-status', { status: 'scene-complete', message: 'Scene processing complete' })
+        socket.emit(audioProcessingEnum.SCENE_SUBMIT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'scene submit is completed' })
 
         // 4. 🔥 Scene Result Processing
-        socket.emit('processing-status', { status: 'result-processing', message: 'Processing scenes...' })
+        socket.emit(audioProcessingEnum.SCENE_RESULT_PROCESSING_START, { status: processingStatus.STARTED, message: 'Processing scenes...' })
         const sceneData = await pollForResult(`${process.env.PY_SCENE_BASE_URL}/result/${sceneCallId}`)
         const sceneUrl = await uploadJSONFileToS3(sceneData, "scenes-${uuid()}.json", userEmail)
-        socket.emit("processing-status", { status: 'result-completed', message: 'Scene processing complete' })
 
-
-
-        // 5. 🔥 Send Results
-        socket.emit('processing-status', { status: 'sending-results', message: 'Sending results...' })
+        socket.emit(audioProcessingEnum.SCENE_RESULT_PROCESSING_COMPLETED, { status: processingStatus.COMPLETED, message: 'Scene result completed..' })
 
         //🚀 Emit that processing is complete
-        socket.emit('processing-complete', {
+        socket.emit(audioProcessingEnum.AUDIO_PROCESSING_RESULT, {
             success: true,
             audio,
             emotion_url: emotionUrl,
@@ -216,10 +232,11 @@ export const audioprocessedSocket = async (data) => {
             scene_url: sceneUrl,
             scene_data: sceneData
         })
+        socket.emit(audioProcessingEnum.AUDIO_PROCESSING_END, { status: 'end', message: 'Audio processing ended' })
 
     } catch (error) {
         console.error('Audio processing error:', error)
-        socket.emit('processing-error', {
+        socket.emit(audioProcessingEnum.AUDIO_PROCESSING_ERROR, {
             success: false,
             message: error.message || 'Audio processing failed'
         })
@@ -229,29 +246,32 @@ export const audioprocessedSocket = async (data) => {
 export const lyricsProcessedSocket = async (data) => {
     const { mode, socket, socketId, user, scenes_path, story_elements, story_instructions, storyS3Key, new_story } = data;
 
-    if (!scenes_path || !mode) return socket.emit('processing-error', { status: 'error', message: 'Missing required parameters scene_path and mode' })
+    if (!scenes_path || !mode) return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, { status: 'error', message: 'Missing required parameters scene_path and mode' })
 
     const email = user?.email;
     try {
-        socket.emit('processing-status', { status: 'started', message: 'Lyrics processing started' });
+        socket.emit(lyricsProcessENUM.START, { status: processingStatus.STARTED, message: 'Lyrics processing started' });
 
         if (mode === editStoryModes.CREATE_STORY) {
+
+            socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: 'started', message: 'Lyrics processing started for create story' });
+
             const lyricsSubmit = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
                 mode,
                 scenes_path
             });
-            socket.emit('processing-status', { status: 'end', message: 'Lyrics processing end' });
 
             const lyricsCallId = lyricsSubmit.data.call_id;
-            socket.emit('processing-status', { status: 'lyrics-call-id', message: 'Lyrics submitted', data: lyricsCallId });
+            socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: 'lyrics-call-id', message: 'Lyrics submitted', data: lyricsCallId });
 
+            socket.emit(lyricsProcessENUM.STORY_RESULT, { status: 'lyrics-result-processing', message: 'Lyrics result-processing', data: lyricsCallId });
             const storyData = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${lyricsCallId}`, socket);
             const storyKey = `story_elements-${uuid()}.json`
             const stroyUrl = await uploadJSONFileToS3(storyData, storyKey, email);
 
-            socket.emit('processing-status', { status: 'lyrics-complete', message: 'Lyrics processing complete' });
+            socket.emit(lyricsProcessENUM.STORY_RESULT, { status: 'lyrics-complete', message: 'Lyrics processing complete' });
 
-            socket.emit('processing-complete', {
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
                 success: true,
                 sceneUrl: scenes_path,
                 storyUrl: stroyUrl,
@@ -260,16 +280,13 @@ export const lyricsProcessedSocket = async (data) => {
             })
         } else if (mode === editStoryModes.EDIT_STORY) {
             if (!story_instructions || !story_elements || !storyS3Key) {
-                return socket.emit('processing-error', {
+                return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
                     status: 'error',
                     message: 'Missing storyInstructions,storyElement storyS3Key for edit-story',
                 });
             }
 
-            socket.emit('processing-status', {
-                status: 'started',
-                message: 'Editing story details..',
-            });
+            socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: processingStatus.STARTED, message: 'Editing story details..' });
 
             try {
                 const response = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
@@ -280,18 +297,18 @@ export const lyricsProcessedSocket = async (data) => {
                 });
                 const callId = response.data.call_id;
 
-                console.log("EDIT LYRICS call ID--->", callId)
+                socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: processingStatus.COMPLETED, message: "submit completed for edit", data: callId });
 
-                socket.emit('processing-status', { call_id: callId });
+                socket.emit(lyricsProcessENUM.STORY_RESULT, { status: processingStatus.STARTED, message: "lyrics story result started" });
 
                 const result = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`);
 
                 // 🔁 Replace the existing file in S3 using the same key
                 const updatedStoryUrl = await uploadJSONFileToS3(result, storyS3Key, email);
 
-                socket.emit('processing-status', { status: 'lyrics-complete', message: 'Lyrics processing complete' });
+                socket.emit(lyricsProcessENUM.STORY_RESULT, { status: processingStatus.COMPLETED, message: 'Lyrics processing complete' });
 
-                socket.emit('processing-complete', {
+                socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
                     success: true,
                     storyUrl: updatedStoryUrl,
                     storyElements: result,
@@ -300,25 +317,22 @@ export const lyricsProcessedSocket = async (data) => {
                 })
             } catch (error) {
                 console.error("Error in edit-character flow:", error);
-                socket.emit('processing-error', {
+                socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                     success: false,
                     message: error.message || 'Failed to edit story',
                 });
             }
         } else if (mode === editStoryModes.EDIT_CHARACTER) {
+
             if (!scenes_path || !story_elements || !new_story || !storyS3Key) {
-                return socket.emit('processing-error', {
+                return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
                     status: 'error',
                     message: 'Missing scenesPath, storyElement, newStory or sceneKey for edit-character',
                 });
             }
 
-            socket.emit('processing-status', {
-                status: 'started',
-                message: 'Editing character details from updated narrative...',
-            });
-
             try {
+                socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: processingStatus.STARTED, message: 'Processing Submit for edit-character' });
                 // Submit the request to edit-character endpoint
                 const response = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
                     mode,
@@ -328,8 +342,9 @@ export const lyricsProcessedSocket = async (data) => {
                 });
 
                 const callId = response.data.call_id;
-                console.log("EDIT_CHARACTER call ID ---->", callId);
-                socket.emit('processing-status', { call_id: callId });
+                socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: processingStatus.COMPLETED, message: 'completed Submit for edit-character', data: callId });
+
+                socket.emit(lyricsProcessENUM.STORY_RESULT, { status: processingStatus.STARTED, message: 'Processing Submit for edit-character' });
 
                 // Polling the result
                 const result = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`, socket);
@@ -337,15 +352,14 @@ export const lyricsProcessedSocket = async (data) => {
                 // Upload updated story elements to S3 (overwrite)
                 const updatedStoryUrl = await uploadJSONFileToS3(result.story_elements, storyS3Key, user?.email);
 
-                socket.emit('processing-status', { status: 'edit-character-complete', message: 'edit character processing complete' });
+                socket.emit(lyricsProcessENUM.STORY_RESULT, { status: processingStatus.COMPLETED, message: 'edit character processing complete' });
 
-                socket.emit('processing-complete', {
+                socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
                     status: 'success',
                     message: 'Character updated and story saved successfully.',
                     story_elements: result.story_elements,
                     storyUrl: updatedStoryUrl,
                 });
-
             } catch (error) {
                 console.error("Error in edit-character flow:", error);
                 socket.emit('processing-error', {
@@ -354,16 +368,17 @@ export const lyricsProcessedSocket = async (data) => {
                 });
             }
         } else {
-            socket.emit('processing-error', {
+            socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
                 success: false,
                 message: `mode can be only one of: ${Object.values(editStoryModes).join(', ')}`
             });
         }
+        socket.emit(lyricsProcessENUM.END, { status: 'completed', message: 'Lyrics processing ended' });
     } catch (error) {
-        console.error('Audio processing error:', error)
-        socket.emit('processing-error', {
+        console.error('lyrics processing error:', error)
+        socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
             success: false,
-            message: error.message || 'Audio processing failed'
+            message: error.message || 'Lyrics processing failed'
         })
     }
 }
@@ -382,7 +397,7 @@ export const themeCharacterSocket = async (data) => {
     const email = user?.email;
 
     try {
-        socket.emit('processing-status', { status: 'started', message: 'Theme character creation started' });
+        socket.emit(themeCharacterEnum.START, { status: 'started', message: 'Theme character creation started' });
 
         const allImages = [calibrationImage, ...charchaImages];
 
@@ -402,7 +417,6 @@ export const themeCharacterSocket = async (data) => {
         const preprocessRes = await axios.post(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/submit`, preprocessPayload);
         const preprocessCallId = preprocessRes.data.call_id;
 
-        console.log("id---->", preprocessCallId)
         socket.emit('processing-status', { status: 'preprocessing', call_id: preprocessCallId });
 
         const preprocessResult = await pollForResult(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/result/${preprocessCallId}`, socket);
@@ -446,15 +460,17 @@ export const themeCharacterSocket = async (data) => {
 
         socket.emit('processing-status', { status: 'style completed ', message: 'style completed' });
         // Done
-        socket.emit('processing-complete', {
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING_RESULT, {
             success: true,
             styledImages,
             loraPath
         });
 
+        socket.emit(themeCharacterEnum.END, { status: processingStatus.COMPLETED, message: 'theme processing completed' });
+
     } catch (error) {
         console.error("Error in themeCharacterSocket:", error);
-        socket.emit('processing-error', {
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING_ERROR, {
             success: false,
             message: error.message || 'Theme character generation failed'
         });
