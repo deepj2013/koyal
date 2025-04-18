@@ -26,7 +26,7 @@ const CharacterSelectionPage = () => {
   const navigate = useNavigate();
   const [selectedStyle, setSelectedStyle] = useState("Animated");
   const [selected, setSelected] = useState<string | null>(null);
-  const [orientationStyle, setOrientationStyle] = useState<string | null>(null);
+  const [orientationStyle, setOrientationStyle] = useState<string | null>(VideoOrientationStyles.LANDSCAPE);
 
   const styles = [
     { name: CharacterStyles.REALISTIC, image: Realstic },
