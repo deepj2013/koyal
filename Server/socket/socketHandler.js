@@ -42,7 +42,7 @@ export const socketHandler = (io) => {
             console.log("theme-character-request", data)
             themeCharacterSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
-        socket.on("avtar-processing-request", (data) => {
+        socket.on("start-avtar-processing", (data) => {
             console.log("avtar-process-request", data)
             avatarServiceSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })

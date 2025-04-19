@@ -361,7 +361,7 @@ export const lyricsProcessedSocket = async (data) => {
         } else if (mode === editStoryModes.EDIT_CHARACTER) {
 
             if (!scenes_path || !story_elements || !new_story || !storyS3Key) {
-                return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
+                return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                     status: 'error',
                     message: 'Missing scenesPath, storyElement, newStory or sceneKey for edit-character',
                 });
@@ -398,7 +398,7 @@ export const lyricsProcessedSocket = async (data) => {
                 });
             } catch (error) {
                 console.error("Error in edit-character flow:", error);
-                socket.emit('processing-error', {
+                socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                     success: false,
                     message: error.message || 'Failed to edit character',
                 });
