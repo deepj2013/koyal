@@ -282,14 +282,13 @@ export const audioprocessedSocket = async (data) => {
 
 export const lyricsProcessedSocket = async (data) => {
     const { mode, socket, socketId, user, scenes_path, story_elements, story_instructions, storyS3Key, new_story, character_name, media_type, prompts_path, prompt_index, edit_instruction, proto_key } = data;
-
-    if (!scenes_path || !mode) return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, { status: 'error', message: 'Missing required parameters scene_path and mode' })
-
+    
     const email = user?.email;
     try {
         socket.emit(lyricsProcessENUM.START, { status: processingStatus.STARTED, message: 'Lyrics processing started' });
 
         if (mode === editStoryModes.CREATE_STORY) {
+            if (!scenes_path || !mode) return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, { status: 'error', message: 'Missing required parameters scene_path and mode' })
 
             socket.emit(lyricsProcessENUM.STORY_SUBMIT, { status: 'started', message: 'Lyrics processing started for create story' });
 
@@ -446,7 +445,7 @@ export const lyricsProcessedSocket = async (data) => {
             if (!prompts_path || !prompt_index || !edit_instruction || !proto_key) {
                 return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                     status: 'error',
-                    message: 'Missing promptsPath, promptIndex or editInstruction for edit-prompt',
+                    message: 'Missing prompts_path, prompt_index or edit_instruction, proto_key,for edit-prompt',
                 });
             }
             socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.STARTED, message: 'Processing Submit for edit-prompt' });
@@ -616,10 +615,10 @@ export const avatarServiceSocket = async (data) => {
         const folderName = "AVATAR";
         const folderPath = await createS3Folder(email, folderName);
 
-        socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Folder Created in Bucket' });
+        socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, message: 'Folder Created in Bucket' });
 
         if (!character_details || !mode) {
-            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING_ERROR, {
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING_ERROR, {
                 success: false,
                 message: 'character_details , mode are required parameters'
             })
@@ -632,23 +631,23 @@ export const avatarServiceSocket = async (data) => {
                 character_details
             };
 
-            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar submit processing started' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar submit processing started' });
 
             const avatarRes = await axios.post(`${process.env.PY_AVTAR_BASE_URL}/submit`, avatarPayload);
             const callId = avatarRes.data.call_id;
 
-            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, call_id: callId });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, call_id: callId });
 
-            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar result processing started' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar result processing started' });
             const result = await pollForResult(`${process.env.PY_AVTAR_BASE_URL}/result/${callId}`, socket);
             avatarImages = [
                 result.image_1_path,
                 result.image_2_path,
                 result.image_3_path
             ];
-            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Avatar submit processing COMPLETED' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, message: 'Avatar submit processing COMPLETED' });
 
-            socket.emit(avtarCharacterEnum.AUDIO_PROCESSING_RESULT, {
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING_RESULT, {
                 success: true,
                 avatarImages,
                 avtarfolderPath: folderPath
