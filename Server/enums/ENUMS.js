@@ -108,6 +108,7 @@ export const lyricsProcessENUM = Object.freeze({
   LYRICS_PROCESSING_RESULT: 'lyrics-processing-result',
   LYRICS_PROCESSING_ERROR: 'lyrics-processing-error',
   VALIDATION_ERROR: 'validation-error',
+  LYRICS_PROCESSING: 'lyrics-processing',
 })
 
 export const themeCharacterEnum = Object.freeze({

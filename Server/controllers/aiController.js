@@ -281,7 +281,7 @@ export const audioprocessedSocket = async (data) => {
 }
 
 export const lyricsProcessedSocket = async (data) => {
-    const { mode, socket, socketId, user, scenes_path, story_elements, story_instructions, storyS3Key, new_story } = data;
+    const { mode, socket, socketId, user, scenes_path, story_elements, story_instructions, storyS3Key, new_story, character_name, media_type, prompts_path, prompt_index, edit_instruction, proto_key } = data;
 
     if (!scenes_path || !mode) return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, { status: 'error', message: 'Missing required parameters scene_path and mode' })
 
@@ -404,8 +404,84 @@ export const lyricsProcessedSocket = async (data) => {
                     message: error.message || 'Failed to edit character',
                 });
             }
-        } else {
-            socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
+        } else if (mode === editStoryModes.CREATE_PROMPT) {
+            if (!scenes_path || !story_elements || !character_name || !media_type) {
+                return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
+                    status: "error",
+                    message: 'Missing scenesPath, storyElement, characterName or mediaType for create-prompt',
+                });
+            }
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.STARTED, message: 'Processing Submit for create-prompt' });
+            const promptPayload = {
+                mode: editStoryModes.CREATE_PROMPT,
+                scenes_path,
+                story_elements,
+                character_name,
+                media_type
+            };
+
+            const promptRes = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, promptPayload);
+            const callId = promptRes.data.call_id;
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'Processing Submit for create-prompt' });
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.STARTED, message: 'Processing result for create-prompt' });
+            const promptResult = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`, socket);
+            const prompts = promptResult.prompts;
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'Processing result for create-prompt' });
+
+            const protoPromptsKey = `proto_prompts-${uuid()}.json`;
+            const protoPromtUrl = await uploadJSONFileToS3(prompts, protoPromptsKey, email);
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'uploded prompts result for create-prompt' });
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
+                success: true,
+                prompt_data: prompts,
+                proto_key: protoPromptsKey,
+                proto_url: protoPromtUrl,
+            });
+        } else if (mode === editStoryModes.EDIT_PROMPT) {
+            if (!prompts_path || !prompt_index || !edit_instruction || !proto_key) {
+                return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
+                    status: 'error',
+                    message: 'Missing promptsPath, promptIndex or editInstruction for edit-prompt',
+                });
+            }
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.STARTED, message: 'Processing Submit for edit-prompt' });
+            const editPromptPayload = {
+                mode: editStoryModes.EDIT_PROMPT,
+                prompts_path,
+                prompt_index,
+                edit_instruction
+            };
+
+            const sceneResponse = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, editPromptPayload);
+
+            const sceneCallId = sceneResponse.data.call_id;
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'Processing Submit for edit-prompt' });
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.STARTED, message: 'Processing result for edit-prompt' });
+
+            const editedPromptResp = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${sceneCallId}`);
+            const updatedPrompts = editedPromptResp.prompts;
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'Processing result for edit-prompt' });
+
+            const proto_url = await uploadJSONFileToS3(updatedPrompts, proto_key, email);
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING, { status: processingStatus.COMPLETED, message: 'uploded prompts result for edit-prompt' });
+
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
+                success: true,
+                prompt_data: updatedPrompts,
+                proto_key,
+                proto_url
+            })
+        }else {
+            socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                 success: false,
                 message: `mode can be only one of: ${Object.values(editStoryModes).join(', ')}`
             });
@@ -556,26 +632,26 @@ export const avatarServiceSocket = async (data) => {
                 character_details
             };
 
-            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar submit processing started' });
+            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar submit processing started' });
 
             const avatarRes = await axios.post(`${process.env.PY_AVTAR_BASE_URL}/submit`, avatarPayload);
             const callId = avatarRes.data.call_id;
 
-            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, call_id: callId });
+            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, call_id: callId });
 
-            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar result processing started' });
+            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar result processing started' });
             const result = await pollForResult(`${process.env.PY_AVTAR_BASE_URL}/result/${callId}`, socket);
             avatarImages = [
                 result.image_1_path,
                 result.image_2_path,
                 result.image_3_path
             ];
-            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Avatar submit processing COMPLETED' });
+            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Avatar submit processing COMPLETED' });
 
-            socket.emit(audioProcessingEnum.AUDIO_PROCESSING_RESULT, {
+            socket.emit(avtarCharacterEnum.AUDIO_PROCESSING_RESULT, {
                 success: true,
                 avatarImages,
-                avtarfolderPath:folderPath
+                avtarfolderPath: folderPath
             });
         }
 
@@ -668,7 +744,7 @@ export const selectStyleSocket = async (data) => {
         characterName,
         loraPath,
         mediaType,
-        scenesPath,
+        scenes_path,
         storyElementsPath,
         styleImageFolderPath,
         newCharacterOutfit,
@@ -717,28 +793,9 @@ export const selectStyleSocket = async (data) => {
         // Start prompt generation in background
         socket.emit("prompt-status", { status: "prompting", message: "Generating story prompts..." });
 
-        const promptPayload = {
-            mode: "create-prompts",
-            scenes_path: scenesPath,
-            story_elements: storyElementsPath,
-            character_name: characterName,
-            media_type: mediaType
-        };
 
-        const promptRes = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, promptPayload);
-        const callId = promptRes.data.call_id;
 
-        const promptResult = await pollForResult(`${process.env.PY_SCENE_LLM_BASE_URL}/result/${callId}`, socket);
-        const prompts = promptResult.prompts;
 
-        const protoPromptsKey = `${styleImageFolderPath}/proto_prompts.json`;
-        await uploadToS3(JSON.stringify(prompts), protoPromptsKey);
-
-        socket.emit("prompt-complete", {
-            message: "Prompts generated and saved",
-            protoPromptsKey,
-            prompts
-        });
 
         return {
             success: true,
@@ -767,7 +824,6 @@ export const editSceneSocket = async (data) => {
         orientation,
         idImageUrl,
         mode,
-        editInstruction,
         replacementWord = null,
         socket,
         socketId,
@@ -776,24 +832,7 @@ export const editSceneSocket = async (data) => {
     try {
         const email = user?.email;
 
-        // Step 1: Edit the Prompt using scene_llm_endpoint
-        const sceneResponse = await axios.post(`${process.env.PY_SCENE_LLM_BASE_URL}/submit`, {
-            mode: mode || 'edit-prompt',
-            prompts_path: protoPromptsUrl,
-            prompt_index: promptIndex,
-            edit_instruction: editInstruction,
-        });
 
-        const { call_id: sceneCallId } = sceneResponse.data;
-
-        // Polling scene_llm result
-        const editedPromptResp = await pollForResult(`${process.env.PY_FLUX_PROMT_BASE_URL}/result/${sceneCallId}`);
-        const updatedPrompts = editedPromptResp.prompts;
-
-        // Step 2: Upload updated proto_prompts to S3
-
-        const proto_key = `proto_prompt-${uuid()}.json`
-        const updatedPromptS3Url = await uploadJSONFileToS3(updatedPrompts, proto_key, email);
 
         // Step 3: Call flux_prompts_endpoint to regenerate image
         const fluxRequest = {
