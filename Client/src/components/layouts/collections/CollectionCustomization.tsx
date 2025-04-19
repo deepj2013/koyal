@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import VisualStyleComponent from "../characterSelection/VisualStyle";
 import { CharacterStyles } from "../../../utils/constants";
-import { animatedStyle, realisticStyle, sketchStyle } from "../../../assets";
+import { animatedStyle, drakeAnimated, drakeReal, drakeSketch, realisticStyle, sketchStyle } from "../../../assets";
 import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/collectionService/collectionApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -18,9 +18,9 @@ import UploadExcelButton from "./UploadExcelButton";
 import toast from "react-hot-toast";
 
 const styles = [
-  { name: CharacterStyles.REALISTIC, image: realisticStyle },
-  { name: CharacterStyles.ANIMATED, image: animatedStyle },
-  { name: CharacterStyles.SKETCH, image: sketchStyle },
+  { name: CharacterStyles.REALISTIC, image: drakeReal },
+  { name: CharacterStyles.ANIMATED, image: drakeAnimated },
+  { name: CharacterStyles.SKETCH, image: drakeSketch },
 ];
 
 const CollectionCustomization = () => {
@@ -34,7 +34,6 @@ const CollectionCustomization = () => {
   const [bulkUploadAudioDetails, { data: bulkUploadAudioDetailsData, error: bulkUploadError }] =
     useBulkUploadAudioDetailsMutation<any>();
 
-  const [styleImages, setStyleImages] = useState<any>(styles);
   const [collectionName, setCollectionName] = useState<any>(
     collectionFormDetails?.collectionName
   );
@@ -208,7 +207,7 @@ const CollectionCustomization = () => {
           Visual Style
         </label>
         <VisualStyleComponent
-          styleImages={styleImages}
+          styleImages={styles}
           setSelectedStyle={setSelectedStyle}
           selectedStyle={selectedStyle}
           orientationStyle={orientationStyle}
