@@ -316,7 +316,7 @@ export const lyricsProcessedSocket = async (data) => {
             })
         } else if (mode === editStoryModes.EDIT_STORY) {
             if (!story_instructions || !story_elements || !storyS3Key) {
-                return socket.emit(lyricsProcessENUM.VALIDATION_ERROR, {
+                return socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_ERROR, {
                     status: 'error',
                     message: 'Missing storyInstructions,storyElement storyS3Key for edit-story',
                 });
@@ -348,7 +348,7 @@ export const lyricsProcessedSocket = async (data) => {
                     success: true,
                     storyUrl: updatedStoryUrl,
                     storyElements: result,
-                    sceneKey: storyS3Key,
+                    storyKey: storyS3Key,
                     scenes_path
                 })
             } catch (error) {
@@ -393,7 +393,7 @@ export const lyricsProcessedSocket = async (data) => {
                 socket.emit(lyricsProcessENUM.LYRICS_PROCESSING_RESULT, {
                     status: 'success',
                     message: 'Character updated and story saved successfully.',
-                    story_elements: result.story_elements,
+                    storyElements: result,
                     storyUrl: updatedStoryUrl,
                 });
             } catch (error) {
