@@ -7,6 +7,9 @@ import Sketch from "./images/sketch_preview.png";
 import Pencil from "./images/Pencil.svg";
 import Generate from "./images/Generate.svg";
 import AudioFile from "./images/Audiofile.png";
+import DrakeReal from "./images/drake_real.png";
+import DrakeAnimated from "./images/drake_anime.png";
+import DrakeSketch from "./images/drake_sketch.png";
 
 export const removeSvg = RemoveSvg;
 export const clockSvg = ClockSvg;
@@ -17,3 +20,6 @@ export const sketchStyle = Sketch;
 export const pencilIcon = Pencil;
 export const GenerateIcon = Generate;
 export const musicicon = AudioFile;
+export const drakeReal = DrakeReal;
+export const drakeAnimated = DrakeAnimated;
+export const drakeSketch = DrakeSketch;
