@@ -6,8 +6,8 @@ import userTask from '../models/userTaskModel.js'
 import userAudio from '../models/userAudioModel.js'
 import { toStringId } from '../utils/mongo.js'
 import userTaskLog from '../models/userTaskLogModel.js'
-import { audioProcessingEnum, AvatarProcessModes, editStoryModes, lyricsProcessENUM, processingStatus, taskLogStatusENUM, taskStatusENUM, themeCharacterEnum, userTaskLogNameEnum } from '../enums/ENUMS.js'
-import { updateSceneDataService } from '../services/aiServices.js'
+import { audioProcessingEnum, AvatarProcessModes, avtarCharacterEnum, editStoryModes, lyricsProcessENUM, processingStatus, taskLogStatusENUM, taskStatusENUM, themeCharacterEnum, userTaskLogNameEnum } from '../enums/ENUMS.js'
+import { updateSceneDataService, uploadCharchaImagesService } from '../services/aiServices.js'
 import logger from '../utils/logger.js'
 
 
@@ -160,6 +160,43 @@ export const updateSceneData = async (req, res, next) => {
     }
 }
 
+export const uploadCharchaImages = async (req, res, next) => {
+    try {
+        const calibrationImage = req.files.calibrationImage?.[0];
+        const charchaImages = req.files.charchaImages;
+        const { characterName } = req.body;
+        const user = req.user;
+        console.log("calibrationImage", calibrationImage);
+        console.log("charchaImages", charchaImages);
+        console.log("characterName", characterName);
+
+        if (!charchaImages || charchaImages.length != 7) {
+            throw new APIError(
+                "Validation Error",
+                HttpStatusCode.BAD_REQUEST,
+                true,
+                "All 7 images are required"
+            );
+        }
+
+        const { folderPath, uploadedUrls } = await uploadCharchaImagesService({
+            calibrationImage,
+            charchaImages,
+            characterName,
+            user
+        });
+        return res.status(200).json({
+            success: true,
+            message: 'Images uploaded sucessfully',
+            data: { folderPath, uploadedUrls }
+        });
+    } catch (error) {
+        console.log("error in uploadCharchaImages", error);
+        logger.error("Error in uploadCharchaImages:", error);
+        next(error);
+    }
+};
+
 export const audioprocessedSocket = async (data) => {
     const { audio, groupId, socket, socketId, english_priority = false, user } = data
     const userEmail = user?.email;
@@ -275,7 +312,7 @@ export const lyricsProcessedSocket = async (data) => {
                 success: true,
                 sceneUrl: scenes_path,
                 storyUrl: stroyUrl,
-                storyData: storyData,
+                storyElements: storyData,
                 storyKey
             })
         } else if (mode === editStoryModes.EDIT_STORY) {
@@ -388,9 +425,9 @@ export const themeCharacterSocket = async (data) => {
         socket,
         user,
         character_name,
-        avatarFolderPath,
-        calibrationImage,
-        charchaImages = [],
+        images_path,
+        // calibrationImage,
+        // charchaImages = [],
         character_outfit
     } = data;
 
@@ -399,32 +436,40 @@ export const themeCharacterSocket = async (data) => {
     try {
         socket.emit(themeCharacterEnum.START, { status: 'started', message: 'Theme character creation started' });
 
-        const allImages = [calibrationImage, ...charchaImages];
+        // const allImages = [calibrationImage, ...charchaImages];
 
-        const avtarFolderName = "charchaImages";
-        await Promise.all(allImages.map((img, index) => {
-            const fileName = `image${index + 1}.png`;
-            return uploadFileToS3(img, avtarFolderName, email, fileName);
-        }));
+        // console.log("allImages", allImages);
 
-        socket.emit('processing-status', { status: 'upload-complete', message: 'Images uploaded to S3' });
+        // const avtarFolderName = "charchaImages";
+        // await Promise.all(allImages.map((img, index) => {
+        //     const fileName = `image${index + 1}.png`;
+        //     return uploadBase64FileToS3(img, avtarFolderName, email, fileName);
+        // }));
+
+
+        if (!images_path || !character_name) {
+            return socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING_ERROR, {
+                status: 'error',
+                message: 'image_path, character_name are required parameters',
+            });
+        }
 
         // 2. Preprocess
         const preprocessPayload = {
-            images_path: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${avatarFolderPath}/`,
+            images_path,
             character_name
         };
         const preprocessRes = await axios.post(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/submit`, preprocessPayload);
         const preprocessCallId = preprocessRes.data.call_id;
 
-        socket.emit('processing-status', { status: 'preprocessing', call_id: preprocessCallId });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'preprocessing', call_id: preprocessCallId });
 
         const preprocessResult = await pollForResult(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/result/${preprocessCallId}`, socket);
         const processedPath = preprocessResult.processed_path;
 
-        socket.emit('processing-status', { status: "result completed", processedPath });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: "result completed", data: processedPath });
 
-        socket.emit('processing-status', { status: 'training character started', message: 'training character started' });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'training character started', message: 'training character started' });
 
         // 3. Train character
         const trainPayload = {
@@ -436,7 +481,7 @@ export const themeCharacterSocket = async (data) => {
         const trainCallId = trainRes.data.call_id;
 
 
-        socket.emit('processing-status', { status: 'training', call_id: trainCallId });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'training', call_id: trainCallId });
 
         const trainResult = await pollForResult(`${process.env.PY_TRAIN_CHARACTER_BASE_URL}/result/${trainCallId}`, socket);
         const loraPath = trainResult.lora_path;
@@ -448,18 +493,17 @@ export const themeCharacterSocket = async (data) => {
             character_outfit
         };
 
-        socket.emit('processing-status', { status: 'style started', message: 'style started' });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'style started', message: 'style started' });
 
         const styleRes = await axios.post(`${process.env.PY_STYLE_BASE_URL}/submit`, stylePayload);
         const styleCallId = styleRes.data.call_id;
 
-        socket.emit('processing-status', { status: 'styling call Id', call_id: styleCallId });
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'styling call Id', call_id: styleCallId });
 
         const styledImages = await pollForResult(`${process.env.PY_STYLE_BASE_URL}/result/${styleCallId}`, socket);
-        // here we get three iamges realastic ,animated, sketch..
 
-        socket.emit('processing-status', { status: 'style completed ', message: 'style completed' });
-        // Done
+        socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING, { status: 'style completed ', message: 'style completed' });
+
         socket.emit(themeCharacterEnum.THEME_CHARACTER_PROCESSING_RESULT, {
             success: true,
             styledImages,
@@ -483,103 +527,109 @@ export const avatarServiceSocket = async (data) => {
         user,
         mode,
         character_name,
-        avatarFolderPath,
         character_details,
-        character_outfit
+        character_outfit,
     } = data;
 
     const email = user?.email;
     let avatarImages = [];
 
     try {
-        socket.emit('avatar-status', { status: 'started', message: 'Avatar processing started' });
+        socket.emit(avtarCharacterEnum.START, { status: processingStatus.STARTED, message: 'Avatar processing started' });
 
         const folderName = "AVATAR";
-        const folderPath = await createS3Folder(folderName, email); // Ensure it returns a usable S3 path
-        const s3BasePath = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${folderPath}/`;
+        const folderPath = await createS3Folder(email, folderName);
+
+        socket.emit(avtarCharacterEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Folder Created in Bucket' });
+
+        if (!character_details || !mode) {
+            socket.emit(avtarCharacterEnum.AVATAR_PROCESSING_ERROR, {
+                success: false,
+                message: 'character_details , mode are required parameters'
+            })
+        }
 
         if (mode === AvatarProcessModes.CREATE) {
             const avatarPayload = {
                 mode: AvatarProcessModes.CREATE,
-                images_path: s3BasePath,
+                images_path: folderPath,
                 character_details
             };
 
-            const avatarRes = await axios.post(`${process.env.AVATAR_ENDPOINT_URL}/submit`, avatarPayload);
+            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar submit processing started' });
+
+            const avatarRes = await axios.post(`${process.env.PY_AVTAR_BASE_URL}/submit`, avatarPayload);
             const callId = avatarRes.data.call_id;
 
-            socket.emit('avatar-status', { status: 'generating-avatars', call_id: callId });
+            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, call_id: callId });
 
-            const result = await pollForResult(`${process.env.AVATAR_ENDPOINT_URL}/result/${callId}`, socket);
+            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.STARTED, message: 'Avatar result processing started' });
+            const result = await pollForResult(`${process.env.PY_AVTAR_BASE_URL}/result/${callId}`, socket);
             avatarImages = [
                 result.image_1_path,
                 result.image_2_path,
                 result.image_3_path
             ];
+            socket.emit(audioProcessingEnum.AVATAR_PROCESSING, { status: processingStatus.COMPLETED, message: 'Avatar submit processing COMPLETED' });
 
-            socket.emit('avatar-status', {
-                status: 'avatars-generated',
-                message: 'Avatar images generated',
-                avatarImages
-            });
-
-            return {
+            socket.emit(audioProcessingEnum.AUDIO_PROCESSING_RESULT, {
                 success: true,
-                avatarImages
-            };
+                avatarImages,
+                avtarfolderPath:folderPath
+            });
         }
 
         if (mode === AvatarProcessModes.UPSCALE) {
-            // Step 1: Upscale
-            socket.emit('avatar-status', { status: 'upscaling', message: 'Upscaling avatar images' });
+
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Upscaling avatar images processing' });
 
             const upscalePayload = {
                 mode: AvatarProcessModes.UPSCALE,
-                images_path: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${avatarFolderPath}/`
+                images_path: folderPath
             };
 
-            const upscaleRes = await axios.post(`${process.env.AVATAR_ENDPOINT_URL}/submit`, upscalePayload);
+            const upscaleRes = await axios.post(`${process.env.PY_AVTAR_BASE_URL}/submit`, upscalePayload);
             const upscaleCallId = upscaleRes.data.call_id;
 
-            socket.emit('avatar-status', { status: 'upscaling', call_id: upscaleCallId });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, data: upscaleCallId });
 
-            const upscaleResult = await pollForResult(`${process.env.AVATAR_ENDPOINT_URL}/result/${upscaleCallId}`, socket);
+            const upscaleResult = await pollForResult(`${process.env.PY_AVTAR_BASE_URL}/result/${upscaleCallId}`, socket);
             const upscaledPath = upscaleResult.upscaled_path;
 
             // Step 2: Preprocess
-            socket.emit('avatar-status', { status: 'preprocessing', message: 'Preprocessing avatar images' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Preprocessing avatar images' });
 
             const preprocessPayload = {
                 images_path: upscaledPath,
                 character_name
             };
 
-            const preprocessRes = await axios.post(`${process.env.CHARACTER_PREPROCESS_ENDPOINT_URL}/submit`, preprocessPayload);
+            const preprocessRes = await axios.post(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/submit`, preprocessPayload);
             const preprocessCallId = preprocessRes.data.call_id;
 
-            socket.emit('avatar-status', { status: 'preprocessing', call_id: preprocessCallId });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, data: preprocessCallId });
 
-            const preprocessResult = await pollForResult(`${process.env.CHARACTER_PREPROCESS_ENDPOINT_URL}/result/${preprocessCallId}`, socket);
+            const preprocessResult = await pollForResult(`${process.env.PY_CHARACTER_PROGRESS_BASE_URL}/result/${preprocessCallId}`, socket);
             const processedPath = preprocessResult.processed_path;
 
             // Step 3: Train
-            socket.emit('avatar-status', { status: 'training', message: 'Training character model' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Training character model' });
 
             const trainPayload = {
                 processed_path: processedPath,
                 character_name
             };
 
-            const trainRes = await axios.post(`${process.env.TRAIN_CHARACTER_ENDPOINT_URL}/submit`, trainPayload);
+            const trainRes = await axios.post(`${process.env.PY_TRAIN_CHARACTER_BASE_URL}/submit`, trainPayload);
             const trainCallId = trainRes.data.call_id;
 
-            socket.emit('avatar-status', { status: 'training', call_id: trainCallId });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, data: trainCallId });
 
-            const trainResult = await pollForResult(`${process.env.TRAIN_CHARACTER_ENDPOINT_URL}/result/${trainCallId}`, socket);
+            const trainResult = await pollForResult(`${process.env.PY_TRAIN_CHARACTER_BASE_URL}/result/${trainCallId}`, socket);
             const loraPath = trainResult.lora_path;
 
             // Step 4: Style
-            socket.emit('avatar-status', { status: 'styling', message: 'Applying styles to character' });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.STARTED, message: 'Applying styles to character' });
 
             const stylePayload = {
                 lora_path: loraPath,
@@ -587,36 +637,28 @@ export const avatarServiceSocket = async (data) => {
                 character_outfit
             };
 
-            const styleRes = await axios.post(`${process.env.STYLE_ENDPOINT_URL}/submit`, stylePayload);
+            const styleRes = await axios.post(`${process.env.PY_STYLE_BASE_URL}/submit`, stylePayload);
             const styleCallId = styleRes.data.call_id;
 
-            socket.emit('avatar-status', { status: 'styling', call_id: styleCallId });
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING, { status: processingStatus.COMPLETED, data: styleCallId });
 
-            const styleResult = await pollForResult(`${process.env.STYLE_ENDPOINT_URL}/result/${styleCallId}`, socket);
+            const styleResult = await pollForResult(`${process.env.PY_STYLE_BASE_URL}/result/${styleCallId}`, socket);
 
-            socket.emit('avatar-complete', {
+            socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING_RESULT, {
                 success: true,
                 styledImages: styleResult,
                 loraPath,
                 avatarImages
             });
 
-            return {
-                success: true,
-                styledImages: styleResult,
-                loraPath,
-                avatarImages
-            };
+            socket.emit(avtarCharacterEnum.END, { status: processingStatus.COMPLETED, message: 'Avatar processing completed' });
         }
-
-        throw new Error(`Invalid mode: ${mode}`);
     } catch (error) {
         console.error("Error in avatarService:", error);
-        socket.emit('avatar-error', {
+        socket.emit(avtarCharacterEnum.AVATAR_CHARACTER_PROCESSING_ERROR, {
             success: false,
             message: error.message || 'Avatar processing failed'
         });
-        throw error;
     }
 };
 

@@ -115,6 +115,13 @@ export const themeCharacterEnum = Object.freeze({
   END: 'theme-character-processing-end',
   THEME_CHARACTER_PROCESSING_RESULT: 'theme-character-processing-result',
   THEME_CHARACTER_PROCESSING_ERROR: 'theme-character-processing-error',
-  VALIDATION_ERROR: 'validation-error',
-  THEME_CHARACTER_PROCESSING:'theme-character-processing',
+  THEME_CHARACTER_PROCESSING: 'theme-character-processing',
+})
+
+export const avtarCharacterEnum = Object.freeze({
+  START: 'avatar-character-processing-start',
+  END: 'avatar-character-processing-end',
+  AVATAR_CHARACTER_PROCESSING_RESULT: 'avatar-character-processing-result',
+  AVATAR_CHARACTER_PROCESSING_ERROR: 'avatar-character-processing-error',
+  AVATAR_CHARACTER_PROCESSING: 'avatar-character-processing',
 })

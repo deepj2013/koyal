@@ -8,6 +8,5 @@ const router = express.Router()
 router.post('/bulk-upload', userAuth, validateAudioFiles('audioFiles'), bulkAudioUpload);
 router.get('/download-excel', userAuth, downloadAudioExcel);
 router.post("/single-upload", userAuth, validateSingleAudioFile('audioFile'), singleAudioUpload)
-router.put("/update-scene-data", userAuth, updateSceneData);
 
 export default router;

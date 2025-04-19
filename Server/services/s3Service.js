@@ -183,7 +183,7 @@ export const uploadFileToS3 = async (file, folderName, email, fileName) => {
     await s3.send(new PutObjectCommand(params));
 
     const encodedKey = encodeURIComponent(fileKey);
-    const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${encodedKey}`;
+    const fileUrl = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${encodedKey}`;
     console.log("File uploaded successfully:", fileUrl);
     return fileUrl;
   } catch (error) {
@@ -194,29 +194,22 @@ export const uploadFileToS3 = async (file, folderName, email, fileName) => {
 
 // Helper function to create empty folder in S3
 export const createS3Folder = async (email, folderName) => {
-  const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-  });
-
   // Directly use email in path, as-is
   const folderPath = `${email}/${folderName}/`;
 
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: BUCKET_NAME,
     Key: folderPath,
-    Body: '' // Empty body to simulate folder
+    Body: '',
+    ContentType: 'application/x-directory'
   };
 
   try {
-    await s3Client.send(new PutObjectCommand(params));
-    return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${folderPath}`;
+    await s3.send(new PutObjectCommand(params));
+
+    return `https://s3.${process.env.AWS_REGION}.amazonaws.com/${BUCKET_NAME}/${folderPath}`;
   } catch (error) {
     console.error('Error creating S3 folder:', error);
     throw error;
   }
 };
-
