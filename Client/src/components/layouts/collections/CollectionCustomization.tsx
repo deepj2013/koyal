@@ -1,27 +1,21 @@
 import { useEffect, useState } from "react";
 import VisualStyleComponent from "../characterSelection/VisualStyle";
-import { AppError, CharacterStyles } from "../../../utils/constants";
-import { animatedStyle, realisticStyle, sketchStyle } from "../../../assets";
-import { useBulkUploadAudioDetailsMutation } from "../../../redux/services/collectionService/collectionApi";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  CollectionState,
-  setCollectionFormDetails,
-  setIsLoading,
-} from "../../../redux/features/collectionSlice";
+import { CharacterStyles } from "../../../utils/constants";
+import { drakeAnimated, drakeReal, drakeSketch } from "../../../assets";
+import { useSelector } from "react-redux";
+import { CollectionState } from "../../../redux/features/collectionSlice";
 import { PageRoutes } from "../../../routes/appRoutes";
 import { useNavigate } from "react-router-dom";
 import { AuthState } from "../../../redux/features/authSlice";
 import { downloadSampleExcelFile } from "../../../redux/services/collectionService/collectionService";
 import { FaDownload } from "react-icons/fa";
 import UploadExcelButton from "./UploadExcelButton";
-import toast from "react-hot-toast";
 import { staticAudioList } from "./staticData";
 
 const styles = [
-  { name: CharacterStyles.REALISTIC, image: realisticStyle },
-  { name: CharacterStyles.ANIMATED, image: animatedStyle },
-  { name: CharacterStyles.SKETCH, image: sketchStyle },
+  { name: CharacterStyles.REALISTIC, image: drakeReal },
+  { name: CharacterStyles.ANIMATED, image: drakeAnimated },
+  { name: CharacterStyles.SKETCH, image: drakeSketch },
 ];
 
 const CollectionCustomization = () => {
@@ -31,7 +25,6 @@ const CollectionCustomization = () => {
     useSelector(CollectionState);
   const { userInfo } = useSelector(AuthState);
 
-  const [styleImages, setStyleImages] = useState<any>(styles);
   const [collectionName, setCollectionName] = useState<any>(
     collectionFormDetails?.collectionName
   );
@@ -82,7 +75,7 @@ const CollectionCustomization = () => {
 
     return sceneList;
   };
-  
+
   const handleNext = (isExcel: boolean) => {
     const originalScenes = prepareScene(staticAudioList?.data);
 
@@ -99,7 +92,7 @@ const CollectionCustomization = () => {
     navigate(PageRoutes.COLLECTION_LIST, {
       state: {
         sceneData: finalScenes,
-        collectionName: collectionName
+        collectionName: collectionName,
       },
     });
   };
@@ -186,7 +179,7 @@ const CollectionCustomization = () => {
           Visual Style
         </label>
         <VisualStyleComponent
-          styleImages={styleImages}
+          styleImages={styles}
           setSelectedStyle={setSelectedStyle}
           selectedStyle={selectedStyle}
           orientationStyle={orientationStyle}
