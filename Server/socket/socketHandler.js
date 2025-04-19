@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { audioprocessedSocket, avatarServiceSocket, editSceneSocket, generateFinalVideoSocket, lyricsProcessedSocket, selectStyleSocket, themeCharacterSocket } from "../controllers/aiController.js"
+import { audioprocessedSocket, avatarServiceSocket, editSceneSocket, generateFinalVideoSocket, generateFinalVideoWithPromptSocket, lyricsProcessedSocket, selectStyleSocket, themeCharacterSocket } from "../controllers/aiController.js"
 import User from "../models/userModel.js";
 import { toObjectId } from "../utils/mongo.js";
 
@@ -54,13 +54,13 @@ export const socketHandler = (io) => {
             console.log("edit-scene-processing-request", data);
             editSceneSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
-        socket.on("generate_video", (data) => {
+        socket.on("generate_video-request", (data) => {
             console.log("generate_video", data);
             generateFinalVideoSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
-        socket.on("generate_video_with_prompt", (data) => {
+        socket.on("generate_video_with_prompt-request", (data) => {
             console.log("generate_video_with_prompt", data);
-            generateFinalVideoSocket({ ...data, socket, socketId: socket.id, user: socket.user })
+            generateFinalVideoWithPromptSocket({ ...data, socket, socketId: socket.id, user: socket.user })
         })
         socket.on("disconnect", () => {
             console.log("Client disconnected:", socket.id)

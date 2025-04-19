@@ -126,3 +126,21 @@ export const avtarCharacterEnum = Object.freeze({
   AVATAR_CHARACTER_PROCESSING_ERROR: 'avatar-character-processing-error',
   AVATAR_CHARACTER_PROCESSING: 'avatar-character-processing',
 })
+
+export const styleCharacterEnum = Object.freeze({
+  STYLE_CHARACTER_PROCESSING_RESULT: 'style-character-processing-result',
+  STYLE_CHARACTER_PROCESSING_ERROR: 'style-character-processing-error',
+  STYLE_CHARACTER_PROCESSING: 'style-character-processing',
+})
+
+export const editSceneEnum = Object.freeze({
+  EDIT_SCENE_PROCESSING_RESULT: 'edit-scene-processing-result',
+  EDIT_SCENE_PROCESSING_ERROR: 'edit-scene-processing-error',
+  EDIT_SCENE_PROCESSING: 'edit-scene-processing',
+})
+
+export const finalVideoEnum = Object.freeze({
+  FINAL_VIDEO_PROCESSING_RESULT: 'final-video-processing-result',
+  FINAL_VIDEO_PROCESSING_ERROR: 'final-video-processing-error',
+  FINAL_VIDEO_PROCESSING: 'final-video-processing',
+})
