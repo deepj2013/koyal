@@ -19,7 +19,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { UploadAudioState } from "../redux/features/uploadSlice";
 
 import { dataURLtoFile, getRandomActions } from "../utils/helper";
-import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 import {
   AppState,
   setCharacterFolderPath,
@@ -36,6 +35,7 @@ import NewThemeModal from "../components/layouts/chooseCharacter/NewThemeModal";
 import { getSocket } from "../socket/socketInstance";
 import { SocketRoutes } from "../socket/socketRoutes";
 import toast from "react-hot-toast";
+import { useUploadCharchaImagesMutation } from "../redux/services/chooseCharacterService/chooseCharacterApi";
 
 const ChooseCharacterPage = () => {
   const navigate = useNavigate();
@@ -46,6 +46,8 @@ const ChooseCharacterPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
+  const [uploadCharchaImages, { data: uploadCharchaImagesData }] =
+    useUploadCharchaImagesMutation();
   const { isProcessing } = useSelector(AppState);
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl } = useSelector(UploadAudioState);
@@ -71,11 +73,10 @@ const ChooseCharacterPage = () => {
   const [actions, setActions] = useState([]);
   const [storyKey, setStoryKey] = useState("");
 
-
   const handleAICharClick = async () => {
     setIsCustomAvatarModalOpen(true);
     setIsProcessing(true);
-   
+
     socket?.emit(SocketRoutes.ProcessAvatar, {
       mode: AvatarProcessModes.CREATE,
       character_details: storyElement?.character_details,
@@ -94,10 +95,7 @@ const ChooseCharacterPage = () => {
     setIsCustomAvatarModalOpen(false);
     setIsAvatarFinalized(true);
     setUseCharcha(false);
-    const { uriPath } = await createFolderInS3(
-      `${localStorage.getItem("currentUser")}/AVATAR`
-    );
-    dispatch(setCharacterFolderPath(uriPath));
+ 
   };
 
   const captureImage = () => {
@@ -152,7 +150,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    setIsProcessing(true)
+    setIsProcessing(true);
     socket.emit(SocketRoutes.ProcessScene, {
       mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
@@ -172,7 +170,7 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveChanges = () => {
-    setIsProcessing(true)
+    setIsProcessing(true);
     socket.emit(SocketRoutes.ProcessScene, {
       mode: EditStoryModes.EDIT_CHARACTER,
       scenes_path: sceneDataFileUrl,
@@ -204,19 +202,15 @@ const ChooseCharacterPage = () => {
       setIsChooseCharModalOpen(false);
       setIsCharchaFinalized(true);
       setUseCharcha(true);
-      const { uriPath } = await createFolderInS3(
-        `${localStorage.getItem("currentUser")}/charchaImages`
-      );
-      dispatch(setCharacterFolderPath(uriPath));
-      await Promise.all(
-        capturedImages.map(async (currentImage, index) => {
-          const file = dataURLtoFile(currentImage, `image-${index + 1}`);
-          return uploadFileToS3(
-            file,
-            `${localStorage.getItem("currentUser")}/charchaImages`
-          );
-        })
-      );
+
+      const formData = new FormData();
+
+      capturedImages.forEach((base64, index) => {
+        const file = dataURLtoFile(base64, `image_${index + 1}.png`);
+        formData.append("charchaImages", file);
+      });
+
+      uploadCharchaImages(formData);
     }
   };
 
@@ -275,6 +269,14 @@ const ChooseCharacterPage = () => {
   };
 
   useEffect(() => {
+    if (uploadCharchaImagesData) {
+      dispatch(
+        setCharacterFolderPath(uploadCharchaImagesData?.data?.folderPath)
+      );
+    }
+  }, [uploadCharchaImagesData]);
+
+  useEffect(() => {
     if (sceneDataFileUrl && socket) {
       dispatch(setIsProcessing(true));
       socket?.emit(SocketRoutes.ProcessScene, {
@@ -324,7 +326,7 @@ const ChooseCharacterPage = () => {
   }, [stage]);
 
   useEffect(() => {
-    if (stage !== "actionRecord") return; // Prevents countdown from running on other stages
+    if (stage !== "actionRecord") return; // Prevrents countdown from running on other stages
 
     if (timeLeft === 3 && !isComplete) {
       const imageCaptured = captureImage();
@@ -334,7 +336,7 @@ const ChooseCharacterPage = () => {
     if (timeLeft > 0 && !isComplete) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-      }, 1000);
+      }, 10);
       return () => clearTimeout(timer);
     } else if (currentAction < actions.length - 1 && !isComplete) {
       setCompletedActions((prev) => [...prev, currentAction]);
@@ -353,7 +355,7 @@ const ChooseCharacterPage = () => {
 
     const onCreateSuccess = (data: any) => {
       const { storyElements, storyUrl, storyKey } = data;
-      if(storyKey) {
+      if (storyKey) {
         setStoryKey(storyKey);
       }
       setStoryElement({ ...storyElements?.story_elements });
@@ -362,8 +364,9 @@ const ChooseCharacterPage = () => {
     };
 
     const onAvatarSuccess = (data: any) => {
-      const { avatarImages } = data;
+      const { avatarImages, avtarfolderPath } = data;
       setIsProcessing(false);
+      dispatch(setCharacterFolderPath(avtarfolderPath));
       setAnimatedImages(avatarImages);
     };
 

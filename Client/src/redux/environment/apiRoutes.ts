@@ -27,6 +27,7 @@ export const ApiRoutes = {
 export const InternalApiRoutes = {
   AudioUpload : 'api/user/uploads/single-upload',
   LyricsUpdate : 'api/user/ai/update-scene-data',
+  UploadCharchaImages : 'api/user/ai/upload-charcha-images',
 }
 
 export const WaitingListApiRoutes = {

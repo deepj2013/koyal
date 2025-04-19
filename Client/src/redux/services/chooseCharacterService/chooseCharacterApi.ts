@@ -1,4 +1,4 @@
-import { ApiRoutes } from "../../environment/apiRoutes";
+import { ApiRoutes, InternalApiRoutes } from "../../environment/apiRoutes";
 import { apiSlice } from "../../environment/base";
 
 export const chooseCharacterApi = apiSlice.injectEndpoints({
@@ -64,6 +64,13 @@ export const chooseCharacterApi = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
+    uploadCharchaImages: builder.mutation({
+      query: (data) => ({
+        url: InternalApiRoutes.UploadCharchaImages,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -77,4 +84,5 @@ export const {
   useLazyGetTrainedCharacterQuery,
   useLazyGetStyleQuery,
   useLazyGetProcessedAvatarQuery,
+  useUploadCharchaImagesMutation
 } = chooseCharacterApi;
