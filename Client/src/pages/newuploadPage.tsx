@@ -34,7 +34,7 @@ const AudioUploadPage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const isNextButtonEnabled = audioFileUrl && isEnglish !== null;
+  const isNextButtonEnabled = uploadedFile && isEnglish !== null;
 
   const handleNext = () => {
     const formData = new FormData();
