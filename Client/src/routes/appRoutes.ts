@@ -4,6 +4,7 @@ export enum PageRoutes {
   ADMIN_LOGIN = "/admin/login",
   COLLECTION = "/collection",
   UPLOAD = "/upload",
+  LYRICS_EDIT = "/lyricedit",
   COLLECTION_UPLOAD = "/collection/upload",
   COLLECTION_DETAILS = "/collection/details",
   COLLECTION_LIST = "/collection/list",

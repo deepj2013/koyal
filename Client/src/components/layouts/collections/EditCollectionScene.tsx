@@ -16,7 +16,8 @@ import AddEditSongModal from "./EditSaveModal";
 import AudioPlayer from "../../common/AudioPlayer/AudioPlayer";
 import { staticAudioList, staticAudios } from "./staticData";
 import UploadExcelButton from "./UploadExcelButton";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { PageRoutes } from "../../../routes/appRoutes";
 
 export const VideoOrientationIcons = {
   [VideoOrientationStyles.PORTRAIT]: <IoTabletPortraitOutline />,
@@ -26,6 +27,7 @@ export const VideoOrientationIcons = {
 
 export const EditCollectionScene = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [selectedScene, setSelectedScene] = useState(null);
   const [scenes, setScenes] = useState([]);
@@ -117,6 +119,10 @@ export const EditCollectionScene = () => {
       });
     }
     setScenes(sceneList);
+  };
+
+  const onManualGenerate = () => {
+    navigate(PageRoutes.LYRICS_EDIT)
   };
 
   useEffect(() => {
@@ -243,7 +249,7 @@ export const EditCollectionScene = () => {
                   </button>
                 </td>
                 <td className="py-4 px-4">
-                  <button className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 mx-auto">
+                  <button className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 mx-auto" onClick={onManualGenerate}>
                     <div className="w-5 h-5 rounded-full">
                       <FaWrench />
                     </div>
