@@ -1,4 +1,4 @@
-import { ApiRoutes } from "../../environment/apiRoutes";
+import { ApiRoutes, InternalApiRoutes } from "../../environment/apiRoutes";
 import { apiSlice } from "../../environment/base";
 
 export const lyricEditApi = apiSlice.injectEndpoints({
@@ -17,8 +17,18 @@ export const lyricEditApi = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
+    editLyrics: builder.mutation({
+      query: (data) => ({
+        url: InternalApiRoutes.LyricsUpdate,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useSceneLLMEndpointMutation, useLazyGetStoryElementQuery } =
-  lyricEditApi;
+export const {
+  useSceneLLMEndpointMutation,
+  useLazyGetStoryElementQuery,
+  useEditLyricsMutation,
+} = lyricEditApi;

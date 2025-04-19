@@ -12,13 +12,18 @@ import ShimmerWrapper from "../components/Shimmer";
 import { getSocket } from "../socket/socketInstance";
 import toast from "react-hot-toast";
 import { SocketRoutes } from "../socket/socketRoutes";
+import { useEditLyricsMutation } from "../redux/services/lyricEditService/lyricEditApi";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const socket = getSocket();
 
-  const { isEnglish, audioFileUrl } = useSelector(AppState);
+
+   const [editLyrics, { data: editLyricsData }] =
+   useEditLyricsMutation();
+
+  const { isEnglish, audioFileUrl, lyricsJsonUrl } = useSelector(AppState);
 
   const [transcriptData, setTranscriptData] = useState([]);
   const [currentStep, setCurrentStep] = useState(2);
@@ -107,13 +112,10 @@ const TranscriptPage = () => {
 
       updatedData.splice(selectedParagraph.index, 1, ...res);
 
-      setTranscriptData(updatedData); // Update state
-      const file = convertJsonToFile(updatedData, "scene.json");
-      const fileUrl = await uploadFileToS3(
-        file,
-        localStorage.getItem("currentUser")
-      );
-      dispatch(setLyricsJsonUrl(fileUrl));
+      editLyrics({
+        sceneUrl: lyricsJsonUrl,
+        newSceneData: updatedData
+      })
       setSelectedParagraph(null); // Close modal
     }
   };
@@ -121,6 +123,12 @@ const TranscriptPage = () => {
   const handleNextClick = () => {
     navigate("/choosecharacter");
   };
+
+  useEffect(() => {
+    if(editLyricsData) {
+      setTranscriptData(editLyricsData?.data?.SceneData)
+    }
+  }, [editLyricsData])
 
   useEffect(() => {
     if (audioFileUrl && isEnglish !== null) {
