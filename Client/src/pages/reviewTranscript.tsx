@@ -11,6 +11,7 @@ import { AppState, setLyricsJsonUrl } from "../redux/features/appSlice";
 import ShimmerWrapper from "../components/Shimmer";
 import { getSocket } from "../socket/socketInstance";
 import toast from "react-hot-toast";
+import { SocketRoutes } from "../socket/socketRoutes";
 
 const TranscriptPage = () => {
   const navigate = useNavigate();
@@ -124,7 +125,7 @@ const TranscriptPage = () => {
   useEffect(() => {
     if (audioFileUrl && isEnglish !== null) {
       setIsLoading(true);
-      socket?.emit("start-audio-processing", {
+      socket?.emit(SocketRoutes.ProcessAudio, {
         audio: audioFileUrl,
         english_priority: isEnglish,
       });
@@ -151,12 +152,12 @@ const TranscriptPage = () => {
       console.log("processing-status", data);
     };
 
-    socket.on("processing-complete", onUploadSuccess);
-    socket.on("processing-error", onError);
+    socket.on(SocketRoutes.ProcessAudioCompleted, onUploadSuccess);
+    socket.on(SocketRoutes.ProcessAudioError, onError);
     socket.on("processing-status", onprocess);
 
     return () => {
-      socket.off("processing-complete", onUploadSuccess);
+      socket.off(SocketRoutes.ProcessAudioCompleted, onUploadSuccess);
     };
   }, [socket]);
 

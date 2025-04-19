@@ -15,29 +15,17 @@ import {
   setStoryEleementFileUrl,
 } from "../redux/features/lyricEditSlice";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  useEditStoryElementMutation,
-  useLazyGetProcessedAvatarQuery,
-  useLazyGetProcessedCharacterQuery,
-  usePreprocessCharacterMutation,
-  useProcessAvatarMutation,
-  useTrainCharacterMutation,
-} from "../redux/services/chooseCharacterService/chooseCharacterApi";
+
 import { UploadAudioState } from "../redux/features/uploadSlice";
-import {
-  useLazyGetStoryElementQuery,
-  useSceneLLMEndpointMutation,
-} from "../redux/services/lyricEditService/lyricEditApi";
-import {
-  dataURLtoFile,
-  getRandomActions,
-  uploadJsonAsFileToS3,
-} from "../utils/helper";
+
+import { dataURLtoFile, getRandomActions } from "../utils/helper";
 import { createFolderInS3, uploadFileToS3 } from "../aws/s3-service";
 import {
+  AppState,
   setCharacterFolderPath,
   setCharacterName,
   setIsCharchaChosen,
+  setIsProcessing,
   setReplacementWord,
 } from "../redux/features/appSlice";
 import ImagePreview from "../components/ImagePreview";
@@ -58,34 +46,9 @@ const ChooseCharacterPage = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
+  const { isProcessing } = useSelector(AppState);
   const { storyEleementFileUrl } = useSelector(LyricEditState);
   const { sceneDataFileUrl } = useSelector(UploadAudioState);
-
-  const [editStory, { data: editStoryData, isLoading: isEditStoryLoading }] =
-    useEditStoryElementMutation();
-  const [
-    procesStory,
-    {
-      data: sceneLLMResponse,
-      isLoading: isProcessStoryLoading,
-      reset: resetSceneLLMResponse,
-    },
-  ] = useSceneLLMEndpointMutation();
-  const [
-    getStoryElement,
-    {
-      data: storyElementData,
-      isLoading: isGetStoryLoading,
-      reset: resetStoryElemetData,
-    },
-  ] = useLazyGetStoryElementQuery();
-
-  const [
-    processAvatar,
-    { data: processedAvatarResponse, isLoading: isAvatarLoading },
-  ] = useProcessAvatarMutation();
-  const [getAvatar, { data: avatarData, isLoading: isAvatarDataLoading }] =
-    useLazyGetProcessedAvatarQuery();
 
   const [newThemeInput, setNewThemeInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,31 +69,23 @@ const ChooseCharacterPage = () => {
   const [isCharchaFinalized, setIsCharchaFinalized] = useState(false);
   const [isAvatarFinalized, setIsAvatarFinalized] = useState(false);
   const [actions, setActions] = useState([]);
+  const [storyKey, setStoryKey] = useState("");
 
-  const isLoading =
-    isProcessStoryLoading || isGetStoryLoading || isEditStoryLoading;
 
   const handleAICharClick = async () => {
     setIsCustomAvatarModalOpen(true);
-    const { message, uriPath } = await createFolderInS3(
-      `${localStorage.getItem("currentUser")}/AVATAR`
-    );
-
-    // if (!message?.includes("already exists.")) {
-    processAvatar({
-      images_path: uriPath,
-      character_details: storyElement.character_details,
+    setIsProcessing(true);
+   
+    socket?.emit(SocketRoutes.ProcessAvatar, {
+      mode: AvatarProcessModes.CREATE,
+      character_details: storyElement?.character_details,
     });
-    // }
   };
 
   const handleChangeLook = async () => {
-    const { uriPath } = await createFolderInS3(
-      `${localStorage.getItem("currentUser")}/AVATAR`
-    );
-    processAvatar({
+    setIsProcessing(true);
+    socket.emit(SocketRoutes.ProcessAvatar, {
       mode: AvatarProcessModes.CREATE,
-      images_path: uriPath,
       character_details: storyElement?.character_details,
     });
   };
@@ -197,12 +152,13 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveTheme = () => {
-    setStoryElement(null);
-    editStory({
+    setIsProcessing(true)
+    socket.emit(SocketRoutes.ProcessScene, {
       mode: EditStoryModes.EDIT_STORY,
       scenes_path: sceneDataFileUrl,
-      Story_elements: storyEleementFileUrl,
+      story_elements: storyEleementFileUrl,
       story_instructions: newThemeInput,
+      storyS3Key: storyKey,
     });
     setIsModalOpen(false);
   };
@@ -216,12 +172,13 @@ const ChooseCharacterPage = () => {
   };
 
   const handleSaveChanges = () => {
-    setStoryElement(null);
-    editStory({
+    setIsProcessing(true)
+    socket.emit(SocketRoutes.ProcessScene, {
       mode: EditStoryModes.EDIT_CHARACTER,
       scenes_path: sceneDataFileUrl,
-      Story_elements: storyEleementFileUrl,
+      story_elements: storyEleementFileUrl,
       new_story: storyElement.narrative,
+      storyS3Key: storyKey,
     });
   };
 
@@ -318,21 +275,15 @@ const ChooseCharacterPage = () => {
   };
 
   useEffect(() => {
-    if(sceneDataFileUrl) {
-      socket?.emit(SocketRoutes.SceneEditProcess, {
+    if (sceneDataFileUrl && socket) {
+      dispatch(setIsProcessing(true));
+      socket?.emit(SocketRoutes.ProcessScene, {
         mode: EditStoryModes.CREATE_STORY,
         scenes_path: sceneDataFileUrl,
       });
       setActions(getRandomActions());
     }
-  }, [sceneDataFileUrl]);
-
-  useEffect(() => {
-    if (sceneLLMResponse?.call_id) {
-      getStoryElement(sceneLLMResponse?.call_id);
-      resetSceneLLMResponse();
-    }
-  }, [sceneLLMResponse]);
+  }, [sceneDataFileUrl, socket]);
 
   useEffect(() => {
     // Stop the camera when modal is closed
@@ -398,60 +349,40 @@ const ChooseCharacterPage = () => {
   }, [timeLeft, currentAction, isComplete, stage]);
 
   useEffect(() => {
-    if (editStoryData?.call_id) {
-      getStoryElement(editStoryData?.call_id);
-    }
-  }, [editStoryData]);
+    if (!socket) return;
 
-  useEffect(() => {
-    if (processedAvatarResponse?.call_id) {
-      getAvatar(processedAvatarResponse?.call_id);
-    }
-  }, [processedAvatarResponse]);
+    const onCreateSuccess = (data: any) => {
+      const { storyElements, storyUrl, storyKey } = data;
+      if(storyKey) {
+        setStoryKey(storyKey);
+      }
+      setStoryElement({ ...storyElements?.story_elements });
+      dispatch(setStoryEleementFileUrl(storyUrl));
+      dispatch(setIsProcessing(false));
+    };
 
-  useEffect(() => {
-    if (storyElementData) {
-      setStoryElement(storyElementData.story_elements);
-      resetStoryElemetData();
-      uploadJsonAsFileToS3(storyElementData, "story_element.json").then(
-        (url) => {
-          dispatch(setStoryEleementFileUrl(url));
-          console.log("story_element.json upload successful");
-        }
-      );
-    }
-  }, [storyElementData]);
+    const onAvatarSuccess = (data: any) => {
+      const { avatarImages } = data;
+      setIsProcessing(false);
+      setAnimatedImages(avatarImages);
+    };
 
-  useEffect(() => {
-    if (avatarData) {
-      setAnimatedImages(Object?.values(avatarData));
-    }
-  }, [avatarData]);
+    const onError = (error: any) => {
+      dispatch(setIsProcessing(false));
+      toast.error(error?.message || "Error occured");
+    };
 
-    useEffect(() => {
-      if (!socket) return;
-  
-      const onCreateSuccess = (data: any) => {
-        console.log("s", data)
-      };
-  
-      const onError = (data: any) => {
-        toast.error(data?.message || "Error occured");
-      };
-  
-      const onprocess = (data: any) => {
-        console.log("processing-status", data);
-      };
-  
-      socket.on("processing-complete", onCreateSuccess);
+    socket.on(SocketRoutes.ProcessSceneCompleted, onCreateSuccess);
+    socket.on(SocketRoutes.ProcessAvatarCompleted, onAvatarSuccess);
 
-      socket.on("processing-error", onError);
-      socket.on("processing-status", onprocess);
-  
-      return () => {
-        socket.off("processing-complete", onCreateSuccess);
-      };
-    }, [socket]);
+    socket.on(SocketRoutes.ProcessSceneError, onError);
+    socket.on(SocketRoutes.ProcessAvatarError, onError);
+
+    return () => {
+      socket.off(SocketRoutes.ProcessSceneCompleted, onCreateSuccess);
+      socket.off(SocketRoutes.ProcessAvatarCompleted, onAvatarSuccess);
+    };
+  }, [socket]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -484,7 +415,7 @@ const ChooseCharacterPage = () => {
         storyElement={storyElement}
         handleNarrativeChange={handleNarrativeChange}
         handleChangeLook={handleChangeLook}
-        isLoading={isAvatarLoading || isAvatarDataLoading}
+        isLoading={isProcessing}
       />
       <Navbar />
       <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
@@ -509,7 +440,7 @@ const ChooseCharacterPage = () => {
                 Click to edit text or press button to completely change the
                 theme
               </p>
-              <ShimmerWrapper isLoading={isLoading}>
+              <ShimmerWrapper isLoading={isProcessing}>
                 <div className="flex flex-col items-center mt-4 w-full bg-[#F3F3F3] rounded-xl p-2 ">
                   <div className="w-full">
                     <textarea
@@ -534,7 +465,7 @@ const ChooseCharacterPage = () => {
                 </div>
               </ShimmerWrapper>
               <div className="mt-2 w-[40%]">
-                <ShimmerWrapper isLoading={isLoading}>
+                <ShimmerWrapper isLoading={isProcessing}>
                   <button
                     className="px-6 py-1 h-[40px] bg-black text-white rounded-md hover:bg-gray-800"
                     onClick={handleSaveChanges}
@@ -603,7 +534,7 @@ const ChooseCharacterPage = () => {
                       </label>
                     </>
                   ) : (
-                    <ShimmerWrapper isLoading={isLoading} width={"30%"}>
+                    <ShimmerWrapper isLoading={isProcessing} width={"30%"}>
                       <label
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                               bg-white text-gray-700 border-gray-300`}
@@ -662,7 +593,7 @@ const ChooseCharacterPage = () => {
                       </label>
                     </>
                   ) : (
-                    <ShimmerWrapper isLoading={isLoading} width={"30%"}>
+                    <ShimmerWrapper isLoading={isProcessing} width={"30%"}>
                       <label
                         className={`inline-flex items-center px-6 py-3 border-2 rounded-lg cursor-pointer transition-all 
                           ${

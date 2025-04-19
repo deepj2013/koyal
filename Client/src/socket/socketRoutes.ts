@@ -1,8 +1,13 @@
+export enum SocketRoutes {
+  ProcessAudio = "start-audio-processing",
+  ProcessAudioCompleted = "audio-processing-result",
+  ProcessAudioError = "audio-processing-error",
 
-export const SocketRoutes = {
-    SceneEditProcess: 'lyrics-edit-processing',
-    // SceneEditSuccess: 'lyrics-edit-completed',
-    SceneEditSuccess: 'processing-complete',
-  } as const;
+  ProcessScene = "lyrics-edit-processing",
+  ProcessSceneCompleted = "lyrics-processing-result",
+  ProcessSceneError = "lyrics-processing-error",
 
-  
+  ProcessAvatar = "start-avtar-processing",
+  ProcessAvatarCompleted = "avatar-character-processing-result",
+  ProcessAvatarError = "avatar-character-processing-error",
+}
